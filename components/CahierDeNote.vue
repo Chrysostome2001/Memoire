@@ -12,6 +12,7 @@
           <span>Matiere</span>
           <span class="ml-9">Trimestre</span>
           <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" @click="validateNotes">Valider les notes</v-btn>
         </v-toolbar>
       </template>
 
@@ -144,6 +145,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   data: () => ({
     dialog: false,
@@ -212,42 +214,36 @@ export default {
 
   created() {
     this.initialize();
+    this.fetchStudentsData()
   },
 
   methods: {
     initialize() {
       this.students = [
-        {
-          name: 'Alice',
-          coef: 1,
-          interro1: null,
-          interro2: null,
-          interro3: null,
-          interro4: null,
-          devoir1: null,
-          devoir2: null,
-          averageInterro: 0,
-          averageDevoir: 0,
-          finalRank: 1,
-        },
-        {
-          name: 'Bob',
-          coef: 1,
-          interro1: null,
-          interro2: null,
-          interro3: null,
-          interro4: null,
-          devoir1: null,
-          devoir2: null,
-          averageInterro: 0,
-          averageDevoir: 0,
-          finalRank: 2,
-        },
+        
         // Add more students here...
       ];
       this.updateAverages();
     },
-
+    fetchStudentsData() {
+    const trimestreId = 1; // Remplacez par l'ID du trimestre approprié
+    axios.get(`http://localhost:8080/api/notes?classe_nom=ciquième&matiere_id1=1&matiere_id2=1`)
+      .then(response => {
+        this.students = response.data.map(student => ({
+          name: student.nom_eleve,
+          coef: student.coef,
+          interro1: student.note_inter || null,
+          devoir1: student.note_devoir || null,
+          averageInterro: 0,
+          averageDevoir: 0,
+          finalRank: 0,
+        }));
+        this.updateAverages();
+      })
+      .catch(error => {
+        console.error('Error fetching students data:', error);
+      });
+  },
     editField(item, field) {
       this.editedIndex = this.students.indexOf(item);
       this.editedItem = { ...item };
@@ -322,7 +318,12 @@ export default {
       console.log(validNotes.length)
       return ((somme -(-this.inter)) / (validNotes.length + 1)).toFixed(2);
     },
-  }
+
+    validateNotes() {
+      // Logique pour valider les notes (par exemple, envoyer au serveur)
+      console.log('Notes validées !');
+    },
+  },
 };
 </script>
 

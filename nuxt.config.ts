@@ -22,4 +22,8 @@ export default defineNuxtConfig({
       },
     },
   },
+  runtimeConfig:{
+    host:process.env.HOST,
+    port:process.env.PORT,
+  }
 })

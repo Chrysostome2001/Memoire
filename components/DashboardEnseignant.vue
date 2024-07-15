@@ -9,13 +9,11 @@
 </template>
 
 <script>
-import Trimestre from '@/components/Trimestre';
 import CahierDeNote from './CahierDeNote.vue';
 
 export default {
   name: "App",
   components: {
-    Trimestre,
     CahierDeNote,
   },
   data() {

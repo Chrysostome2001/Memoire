@@ -9,15 +9,18 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
+                src="../../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
               ></v-img>
             </v-avatar>
           </v-list-item>
           <v-list-item>
             <v-list-item-title class="d-flex align-center">User Name</v-list-item-title>
           </v-list-item>
-          <v-list-item link @click="changeView('DashboardEnseignant')" class="mt-5">
-            <v-list-item-title>Cahier de note</v-list-item-title>
+          <v-list-item link @click="changeView('GererEleve')" class="mt-5">
+            <v-list-item-title>Gerer eleve</v-list-item-title>
+          </v-list-item>
+          <v-list-item link @click="changeView('GererClasse')" class="mt-5">
+            <v-list-item-title>Gerer classe</v-list-item-title>
           </v-list-item>
           <v-list-item link @click="changeView('Home')">
             <v-list-item-content>
@@ -54,13 +57,19 @@
   </template>
   
   <script>
+  import axios from 'axios';
   import Home from '~/components/Home.vue';
   import About from '~/components/About.vue';
   import Contact from '~/components/Contact.vue';
-  import DashboardEnseignant from '@/components/DashboardEnseignant';
+  import AjoutEleve from '@/components/AjoutEleve';
+  import GererEleve from '@/components/GererEleve';
+  import SupprimerEleve from '@/components/SupprimerEleve';
+  import GererClasse from '@/components/GererClasse';
   export default {
     data() {
       return {
+        id: null,
+        data: null,
         drawer: false,
         currentView: 'Home',
       };
@@ -69,19 +78,31 @@
       Home,
       About,
       Contact,
-      DashboardEnseignant,
+      AjoutEleve,
+      SupprimerEleve,
+      GererEleve,
+      GererClasse,
+    },
+    created() {
+      this.fetchData();
     },
     methods: {
+      async fetchData() {
+        const { id } = this.$route.params;
+        try {
+          const response = await axios.get(`http://localhost:8080/api/admin/${id}`);
+          this.data = response.data;
+        } catch (error) {
+          console.error(error);
+        }
+      },
       changeView(view) {
         this.currentView = view;
       },
       logout() {
-        this.$router.push({ name: 'Connexion' });
+        this.$router.push({ name: 'index' });
     },
-    },
+    }
   };
   </script>
   
-  <style>
-  /* Ajoutez des styles personnalisés ici */
-  </style>

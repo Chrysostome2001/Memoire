@@ -9,22 +9,15 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
+                src="../../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
               ></v-img>
             </v-avatar>
           </v-list-item>
           <v-list-item>
             <v-list-item-title class="d-flex align-center">User Name</v-list-item-title>
           </v-list-item>
-          <v-list-item link @click="changeView('DashboardParent')" class="mt-5">
+          <v-list-item link @click="changeView('DashboardEleve')" class="mt-5">
             <v-list-item-title>Consulter note</v-list-item-title>
-          </v-list-item>
-          <v-list-item v-if="showSearch">
-            <v-text-field
-              v-model="search"
-              label="Rechercher..."
-              @input="updateContent"
-            ></v-text-field>
           </v-list-item>
           <v-list-item link @click="changeView('Home')">
             <v-list-item-content>
@@ -64,10 +57,12 @@
   import Home from '~/components/Home.vue';
   import About from '~/components/About.vue';
   import Contact from '~/components/Contact.vue';
-  import DashboardParent from '@/components/DashboardParent';
+  import DashboardEleve from '@/components/DashboardEleve';
   export default {
     data() {
       return {
+        id: null,
+        data: null,
         drawer: false,
         currentView: 'Home',
       };
@@ -76,15 +71,27 @@
       Home,
       About,
       Contact,
-      DashboardParent,
+      DashboardEleve,
+    },
+    created() {
+      this.fetchData();
     },
     methods: {
+      async fetchData() {
+        const { id } = this.$route.params;
+        try {
+          const response = await axios.get(`http://localhost:8080/api/eleve/${id}`);
+          this.data = response.data;
+        } catch (error) {
+          console.error(error);
+        }
+      },
       changeView(view) {
         this.currentView = view;
       },
       logout() {
-        this.$router.push({ name: 'Connexion' });
-    },
+        this.$router.push({ name: 'index' });
+      },
     },
   };
   </script>

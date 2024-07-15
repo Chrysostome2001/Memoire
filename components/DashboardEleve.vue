@@ -2,13 +2,13 @@
     <v-app>
       <v-layout class="rounded-md">
         <v-main>
-          <v-expansion-panels class="mt-6 mb-6" v-for="index in 3" :key="index">
-            <v-expansion-panel>
+          <v-expansion-panels>
+            <v-expansion-panel class="mt-6 mb-6" v-for="(TrimestreComponent, index) in TrimestreComponents" :key="index">
               <v-expansion-panel-title expand-icon="mdi-menu-down">
-                Trimestre {{ index }}
+                Trimestre {{ index + 1 }}
               </v-expansion-panel-title>
               <v-expansion-panel-text>
-                <Trimestre/>
+                <component :is="TrimestreComponent" :trimestre="index + 1"/>
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
@@ -38,19 +38,27 @@
   </template>
   
   <script>
-  import Trimestre from '@/components/Trimestre';
-import Bulletin from './Bulletin.vue';
-  
+  import TrimestresTrimestre1 from '@/components/Trimestres/trimestre1.vue';
+  import TrimestresTrimestre2 from '@/components/Trimestres/trimestre2.vue';
+  import TrimestresTrimestre3 from '@/components/Trimestres/trimestre3.vue';
+  import Bulletin from './Bulletin.vue';
   export default {
     name: "App",
     components: {
-      Trimestre,
+      TrimestresTrimestre1,
+      TrimestresTrimestre2,
+      TrimestresTrimestre3,
         Bulletin,
     },
     data() {
       return {
         showSearch: false,
         tab: null,
+        TrimestreComponents: [
+        TrimestresTrimestre1,
+        TrimestresTrimestre2,
+        TrimestresTrimestre3
+      ]
       };
     },
     methods: {

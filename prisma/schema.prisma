@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Classe {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  nom       String
+  eleves Eleve[]
+  enseignant_classe Enseignant_Classe[]
+}
+
+model Matiere {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  matiere   String
+  enseignants Enseignant[]
+  note_inter Note_inter[]
+  note_devoir Note_devoir[]
+  coeffient Coefficient @relation(fields: [id_coefficient],references: [id])
+  id_coefficient Int
+}
+
+model Coefficient {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  coefficient Int
+  matiere Matiere[]
+}
+model Parent {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  nom       String
+  prenom    String
+  photo     String?
+  username  String    @unique
+  password  String
+  role      String   @default("parent")
+  enfants Eleve[]
+}
+
+model Enseignant {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  nom          String
+  prenom       String
+  email        String
+  photo        String?
+  matiere      Matiere   @relation(fields: [id_matiere], references: [id])
+  id_matiere   Int       // Assumed reference to Matiere's ID
+  username     String    @unique
+  password     String
+  role      String   @default("enseignant")
+  enseignant_classe Enseignant_Classe[]
+  note_inter Note_inter[]
+  note_devoir Note_devoir[]
+}
+
+model Eleve {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  nom String
+  prenom String
+  photo String?
+  classe Classe @relation(fields: [id_classe], references: [id])
+  parent Parent @relation(fields: [id_parent], references: [id])
+  id_classe Int
+  id_parent Int
+  username String @unique
+  password String @unique
+  role      String   @default("eleve")
+  note_inter Note_inter[]
+  note_devoir Note_devoir[]
+}
+
+model Enseignant_Classe {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  id_enseignant Int
+  id_classe Int
+  enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
+  classe Classe @relation(fields: [id_classe], references: [id])
+}
+
+model Trimestre {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  nom String
+  note_inter Note_inter[]
+  note_devoir Note_devoir[]
+}
+model Note_inter {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  inter Float
+  id_eleve Int
+  id_enseignant Int
+  id_matiere Int
+  id_trimestre Int
+  eleve Eleve @relation(fields: [id_eleve], references: [id])
+  enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
+  matiere Matiere @relation(fields: [id_matiere], references: [id])
+  trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
+}
+
+model Note_devoir {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  devoir Float
+  id_eleve Int
+  id_enseignant Int
+  id_matiere Int
+  id_trimestre Int
+  eleve Eleve @relation(fields: [id_eleve], references: [id])
+  enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
+  matiere Matiere @relation(fields: [id_matiere], references: [id])
+  trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
+}
+
+model Admin {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  nom          String
+  prenom       String
+  email        String
+  photo        String?     // Assumed reference to Matiere's ID
+  username     String    @unique
+  password     String
+  role      String   @default("admin")
+}
