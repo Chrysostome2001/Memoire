@@ -28,10 +28,10 @@
                     v-for="classe in classes"
                     :key="classe.classe_id"
                     link
-                    @click="changeView('DashboardEnseignant')"
+                    @click="changeView('DashboardEnseignant'), loadId(classe.classe_id)"
                   >
                     <v-list-item-content>
-                      <v-list-item-title>{{ classe.classe_nom }}</v-list-item-title>
+                      <v-list-item-title>{{ classe.classe_nom }} {{ classe.classe_id }}</v-list-item-title>
                     </v-list-item-content>
                   </v-list-item>
                 </v-list>
@@ -67,7 +67,7 @@
     </v-app-bar>
     
     <v-main>
-      <component :is="currentView" />
+      <component :is="currentView" ref="dashboardEnseignant" :classeId="currentClasseId"/>
       <router-view />
     </v-main>
   </v-app>
@@ -86,7 +86,8 @@ export default {
       data: null,
       drawer: false,
       currentView: 'Home',
-      classes: [] // Utiliser un tableau vide pour stocker les classes récupérées
+      classes: [], // Utiliser un tableau vide pour stocker les classes récupérées
+      currentClasseId: null,
     };
   },
   components: {
@@ -99,6 +100,10 @@ export default {
     this.fetchData();
   },
   methods: {
+    loadId(classeId) {
+      this.currentClasseId = classeId;
+      console.log('Updated currentClasseId:', this.currentClasseId); // Met à jour l'ID de l'élève sélectionné
+    },
     async fetchData() {
       const { id } = this.$route.params;
       try {

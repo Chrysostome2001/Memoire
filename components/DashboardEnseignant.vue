@@ -2,7 +2,7 @@
   <v-app>
     <v-layout class="rounded-md">
       <v-main class="mt-5">
-            <CahierDeNote/>
+        <CahierDeNote :classeId="classeId"/>
       </v-main>
     </v-layout>
   </v-app>
@@ -12,6 +12,9 @@
 import CahierDeNote from './CahierDeNote.vue';
 
 export default {
+  props: {
+    classeId: Number,
+  },
   name: "App",
   components: {
     CahierDeNote,
@@ -22,7 +25,7 @@ export default {
     };
   },
   methods: {
-  }
+  },
 }
 </script>
 

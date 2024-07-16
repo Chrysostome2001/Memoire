@@ -199,18 +199,26 @@ app.get('/api/eleve/:id/notes', (req, res) => {
 });
 
 
-app.get('/api/eleve/:id', (req, res) => {
+app.get('/api/eleves/:id', (req, res) => {
   const id = req.params.id;
-  const query = 'SELECT * FROM Eleve WHERE id = ?';
+  const query = `SELECT 
+                    Eleve.id AS eleve_id,
+                    Eleve.nom AS eleve_nom,
+                    Eleve.prenom AS eleve_prenom,
+                    Classe.nom AS eleve_classe
+                  FROM Eleve 
+                  JOIN Classe ON Eleve.id_classe = Classe.id
+                  WHERE Eleve.id_parent = ?`;
 
   db.query(query, [id], (error, results) => {
     if (error) {
       res.status(500).send(error);
     } else {
-      res.json(results[0]); // Assuming you want to return the first result
+      res.json(results); // Return all results for children of the parent
     }
   });
 });
+
 
 
 
@@ -254,31 +262,39 @@ app.get('/api/classes/:id', (req, res) => {
 });
 
 app.get('/api/notes', (req, res) => {
-  const classnom = req.query.classe_nom; // Nom de la classe
-  const matiereId1 = req.query.matiere_id1; // ID de la matière pour l'interrogation
-  const matiereId2 = req.query.matiere_id2; // ID de la matière pour le devoir
+  const classeId = req.query.classe_id
+  const enseignantId = req.query.enseignant_id; // ID de la matière pour le devoir
 
   const sql = `
-    SELECT 
-      Eleve.nom AS nom_eleve, 
-      Eleve.prenom AS prenom_eleve,
-      Note_inter.inter AS note_interrogation,
-      Note_devoir.devoir AS note_devoir
-    FROM 
-      Eleve 
-    JOIN 
-      Classe ON Eleve.id_classe = Classe.id
-    JOIN 
-      Note_inter ON Eleve.id = Note_inter.id_eleve
-    JOIN 
-      Note_devoir ON Eleve.id = Note_devoir.id_eleve
-    WHERE 
-      Classe.nom = ? 
-      AND Note_inter.id_matiere = ? 
-      AND Note_devoir.id_matiere = ?;
+   SELECT
+  Eleve.nom AS eleve_nom,
+  Eleve.prenom AS eleve_prenom,
+  Note_inter.inter AS note_interrogation,
+  Note_devoir.devoir AS note_devoir,
+  Matiere.id_coefficient AS coefficient,
+  Matiere.matiere AS matiere_nom
+FROM 
+  Eleve
+JOIN 
+  Classe ON Eleve.id_classe = Classe.id
+JOIN 
+  Enseignant_Classe ON Classe.id = Enseignant_Classe.id_classe
+JOIN 
+  Enseignant ON Enseignant_Classe.id_enseignant = Enseignant.id
+JOIN 
+  Matiere ON Matiere.id = Enseignant.id_matiere
+LEFT JOIN 
+  Note_inter ON Eleve.id = Note_inter.id_eleve AND Note_inter.id_enseignant = Enseignant.id
+LEFT JOIN 
+  Note_devoir ON Eleve.id = Note_devoir.id_eleve AND Note_devoir.id_enseignant = Enseignant.id
+WHERE 
+  Classe.id = ?
+  AND Enseignant.id = ?
+ 
+
   `;
 
-  db.query(sql, [classnom, matiereId1, matiereId2], (error, results) => {
+  db.query(sql, [classeId, enseignantId], (error, results) => {
     if (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -289,7 +305,21 @@ app.get('/api/notes', (req, res) => {
   });
 });
 
+app.post('/api/enregistrer-note/:id', (req, res) => {
+  const enseignantId = req.params.id;
+  const classeId = req.query.classe_id;
+  const sql = ``;
 
+  db.query(sql, [classeId, enseignantId], (error, results) => {
+    if (error) {
+      return res.status(500).json({ message: error.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Erreur d\'enregistrement des notes' });
+    }
+    res.json(results);
+  });
+})
 
 
 /*************************************************Connexion*************************************************/

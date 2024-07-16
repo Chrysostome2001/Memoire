@@ -9,7 +9,7 @@
       <template v-slot:top>
         <v-toolbar flat>
           <v-toolbar-title>Cahier de note</v-toolbar-title>
-          <span>Matiere</span>
+          <span>{{ matiereNom }}</span>
           <span class="ml-9">Trimestre</span>
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" @click="validateNotes">Valider les notes</v-btn>
@@ -147,11 +147,18 @@
 <script>
 import axios from 'axios';
 export default {
+  props: {
+    classeId: {
+      type: Number,
+      required: true,
+    },
+  },
   data: () => ({
     dialog: false,
     dialogDelete: false,
     search: '',
     inter: null,
+    matiereNom: '',
     headers: [
       { title: "Nom/Prénom", key: 'name', sortable: false },
       { title: 'Coef', key: 'coef' },
@@ -171,8 +178,9 @@ export default {
     editedField: '',
     editedItem: {
       name: '',
+      prenom: '',
       coef: 0,
-      interro1: null,
+      interro1: '',
       interro2: null,
       interro3: null,
       interro4: null,
@@ -184,6 +192,7 @@ export default {
     },
     defaultItem: {
       name: '',
+      prenom: '',
       coef: 0,
       interro1: null,
       interro2: null,
@@ -210,6 +219,9 @@ export default {
     dialogDelete(val) {
       val || this.closeDelete();
     },
+    classeId(newClasseId) {
+      this.fetchStudentsData();
+    },
   },
 
   created() {
@@ -226,23 +238,29 @@ export default {
       this.updateAverages();
     },
     fetchStudentsData() {
-    const trimestreId = 1; // Remplacez par l'ID du trimestre approprié
-    axios.get(`http://localhost:8080/api/notes?classe_nom=ciquième&matiere_id1=1&matiere_id2=1`)
+      console.log(this.$props.classeId)
+    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${this.$route.query.param}`)
       .then(response => {
         this.students = response.data.map(student => ({
-          name: student.nom_eleve,
-          coef: student.coef,
-          interro1: student.note_inter || null,
+          name: student.eleve_nom,
+          prenom: student.eleve_prenom,
+          nomMatiere: student.matiere_nom,
+          coef: student.coefficient,
+          interro1: student.note_interrogation || null,
           devoir1: student.note_devoir || null,
           averageInterro: 0,
           averageDevoir: 0,
           finalRank: 0,
         }));
+        if (response.data.length > 0) {
+        this.matiereNom = response.data[0].matiere_nom;
+      }
         this.updateAverages();
       })
       .catch(error => {
         console.error('Error fetching students data:', error);
       });
+      
   },
     editField(item, field) {
       this.editedIndex = this.students.indexOf(item);
@@ -315,7 +333,7 @@ export default {
       const validNotes = notes.filter(note => note !== null);
       if (validNotes.length === 0) return 0;
       const somme = validNotes.reduce((a, b) => a - (-b));
-      console.log(validNotes.length)
+      //console.log(validNotes.length)
       return ((somme -(-this.inter)) / (validNotes.length + 1)).toFixed(2);
     },
 
