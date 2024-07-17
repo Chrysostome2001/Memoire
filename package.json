@@ -9,7 +9,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "start": "concurrently \"npm run start-api\" \"npm run start-nuxt\"",
-    "start-api": "node server.cjs",  
+    "start-api": "nodemon server.cjs",
     "start-nuxt": "npm run dev"
   },
   "dependencies": {
@@ -26,6 +26,7 @@
   "devDependencies": {
     "@types/node": "^20.14.10",
     "concurrently": "^8.2.2",
+    "nodemon": "^3.1.4",
     "prisma": "^5.16.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3",

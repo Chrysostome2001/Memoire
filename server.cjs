@@ -2,6 +2,8 @@ const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const cors = require('cors'); // Importer le package CORS
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const app = express();
 const port = 8080;
 
@@ -262,39 +264,46 @@ app.get('/api/classes/:id', (req, res) => {
 });
 
 app.get('/api/notes', (req, res) => {
-  const classeId = req.query.classe_id
-  const enseignantId = req.query.enseignant_id; // ID de la matière pour le devoir
+  const classeId = req.query.classe_id;
+  const enseignantId = req.query.enseignant_id;
+  const trimestreId = req.query.trimestre_id;
 
   const sql = `
-   SELECT
-  Eleve.nom AS eleve_nom,
-  Eleve.prenom AS eleve_prenom,
-  Note_inter.inter AS note_interrogation,
-  Note_devoir.devoir AS note_devoir,
-  Matiere.id_coefficient AS coefficient,
-  Matiere.matiere AS matiere_nom
-FROM 
-  Eleve
-JOIN 
-  Classe ON Eleve.id_classe = Classe.id
-JOIN 
-  Enseignant_Classe ON Classe.id = Enseignant_Classe.id_classe
-JOIN 
-  Enseignant ON Enseignant_Classe.id_enseignant = Enseignant.id
-JOIN 
-  Matiere ON Matiere.id = Enseignant.id_matiere
-LEFT JOIN 
-  Note_inter ON Eleve.id = Note_inter.id_eleve AND Note_inter.id_enseignant = Enseignant.id
-LEFT JOIN 
-  Note_devoir ON Eleve.id = Note_devoir.id_eleve AND Note_devoir.id_enseignant = Enseignant.id
-WHERE 
-  Classe.id = ?
-  AND Enseignant.id = ?
- 
-
+    SELECT
+      Eleve.nom AS eleve_nom,
+      Eleve.prenom AS eleve_prenom,
+      Eleve.id AS eleve_id,
+      Matiere.id_coefficient AS coefficient,
+      Matiere.matiere AS matiere_nom,
+      Matiere.id AS matiere_id,
+      Trimestre.nom AS trimestre_nom,
+      Trimestre.id AS trimestre_id,
+      GROUP_CONCAT(DISTINCT IF(Note_inter.id_trimestre = ?, Note_inter.inter, NULL)) AS note_interrogation,
+      GROUP_CONCAT(DISTINCT IF(Note_devoir.id_trimestre = ?, Note_devoir.devoir, NULL)) AS note_devoir
+    FROM 
+      Eleve
+    JOIN 
+      Classe ON Eleve.id_classe = Classe.id
+    JOIN 
+      Trimestre ON Trimestre.id = ?
+    JOIN 
+      Enseignant_Classe ON Classe.id = Enseignant_Classe.id_classe
+    JOIN 
+      Enseignant ON Enseignant_Classe.id_enseignant = Enseignant.id
+    JOIN 
+      Matiere ON Matiere.id = Enseignant.id_matiere
+    LEFT JOIN 
+      Note_inter ON Eleve.id = Note_inter.id_eleve AND Note_inter.id_enseignant = Enseignant.id
+    LEFT JOIN 
+      Note_devoir ON Eleve.id = Note_devoir.id_eleve AND Note_devoir.id_enseignant = Enseignant.id
+    WHERE 
+      Classe.id = ?
+      AND Enseignant.id = ?
+    GROUP BY 
+      Eleve.id
   `;
 
-  db.query(sql, [classeId, enseignantId], (error, results) => {
+  db.query(sql, [trimestreId, trimestreId, trimestreId, classeId, enseignantId], (error, results) => {
     if (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -305,22 +314,43 @@ WHERE
   });
 });
 
-app.post('/api/enregistrer-note/:id', (req, res) => {
-  const enseignantId = req.params.id;
-  const classeId = req.query.classe_id;
-  const sql = ``;
 
-  db.query(sql, [classeId, enseignantId], (error, results) => {
-    if (error) {
-      return res.status(500).json({ message: error.message });
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'Erreur d\'enregistrement des notes' });
-    }
-    res.json(results);
-  });
-})
+app.post('/api/save-notes', async (req, res) => {
+  const notesToSave = req.body;
 
+  try {
+    // Enregistrement des notes d'interrogation
+    await Promise.all(notesToSave.map(async (note) => {
+      await prisma.Note_inter.create({
+        data: {
+          inter: parseFloat(note.note_inter),
+          id_eleve: note.id_eleve,
+          id_enseignant: note.enseignant_id,
+          id_matiere: note.matiere_id,
+          id_trimestre: note.trimestre_id,
+        },
+      });
+    }));
+
+    // Enregistrement des notes de devoir
+    await Promise.all(notesToSave.map(async (note) => {
+      await prisma.Note_devoir.create({
+        data: {
+          devoir: parseFloat(note.note_devoir),
+          id_eleve: note.id_eleve,
+          id_enseignant: note.enseignant_id,
+          id_matiere: note.matiere_id,
+          id_trimestre: note.trimestre_id,
+        },
+      });
+    }));
+
+    res.status(200).send('Notes enregistrées avec succès !');
+  } catch (error) {
+    console.error('Erreur lors de l\'enregistrement des notes :', error);
+    res.status(500).send('Une erreur est survenue lors de l\'enregistrement des notes.');
+  }
+});
 
 /*************************************************Connexion*************************************************/
 

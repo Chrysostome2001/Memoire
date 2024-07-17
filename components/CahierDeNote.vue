@@ -10,7 +10,7 @@
         <v-toolbar flat>
           <v-toolbar-title>Cahier de note</v-toolbar-title>
           <span>{{ matiereNom }}</span>
-          <span class="ml-9">Trimestre</span>
+          <span class="ml-9">{{ trimestre_nom }}</span>
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" @click="validateNotes">Valider les notes</v-btn>
         </v-toolbar>
@@ -152,6 +152,10 @@ export default {
       type: Number,
       required: true,
     },
+    trimester:{
+      type: String,
+      required: true,
+    }
   },
   data: () => ({
     dialog: false,
@@ -159,6 +163,7 @@ export default {
     search: '',
     inter: null,
     matiereNom: '',
+    trimestre_nom: '',
     headers: [
       { title: "Nom/Prénom", key: 'name', sortable: false },
       { title: 'Coef', key: 'coef' },
@@ -204,6 +209,7 @@ export default {
       averageDevoir: 0,
       finalRank: 0,
     },
+    trimesterId: Number,
   }),
 
   computed: {
@@ -219,6 +225,11 @@ export default {
     dialogDelete(val) {
       val || this.closeDelete();
     },
+
+    trimester(newTrimester) {
+      this.setTrimesterId(newTrimester);
+      this.fetchStudentsData();
+    },
     classeId(newClasseId) {
       this.fetchStudentsData();
     },
@@ -226,7 +237,8 @@ export default {
 
   created() {
     this.initialize();
-    this.fetchStudentsData()
+    this.setTrimesterId(this.trimester);
+    this.fetchStudentsData();
   },
 
   methods: {
@@ -237,31 +249,61 @@ export default {
       ];
       this.updateAverages();
     },
+    setTrimesterId(trimester) {
+      switch (trimester) {
+        case 'Trimestre1':
+          this.trimesterId = 1;
+          break;
+        case 'Trimestre2':
+          this.trimesterId = 2;
+          break;
+        case 'Trimestre3':
+          this.trimesterId = 3;
+          break;
+        default:
+          this.trimesterId = null;
+          break;
+      }
+    },
     fetchStudentsData() {
-      console.log(this.$props.classeId)
-    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${this.$route.query.param}`)
+      console.log(this.trimesterId)
+    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${this.$route.query.param}&trimestre_id=${this.trimesterId}`)
       .then(response => {
         this.students = response.data.map(student => ({
           name: student.eleve_nom,
           prenom: student.eleve_prenom,
+          eleveId: student.eleve_id,
           nomMatiere: student.matiere_nom,
+          matiereId: student.matiere_id,
+          enseignantId: student.enseignant_id,
+          trimestreNom: student.trimestre_nom,
+          trimestreId: student.trimestre_id,
           coef: student.coefficient,
-          interro1: student.note_interrogation || null,
-          devoir1: student.note_devoir || null,
+          interro1: this.splitNotes(student.note_interrogation, 1), // Pass index for each note
+          interro2: this.splitNotes(student.note_interrogation, 2),
+          interro3: this.splitNotes(student.note_interrogation, 3),
+          interro4: this.splitNotes(student.note_interrogation, 4),
+          devoir1: this.splitNotes(student.note_devoir, 1),
+          devoir2: this.splitNotes(student.note_devoir, 2),
           averageInterro: 0,
           averageDevoir: 0,
           finalRank: 0,
         }));
         if (response.data.length > 0) {
         this.matiereNom = response.data[0].matiere_nom;
+        this.trimestre_nom = response.data[0].trimestreNom;
       }
         this.updateAverages();
       })
       .catch(error => {
         console.error('Error fetching students data:', error);
       });
-      
-  },
+    },
+    splitNotes(notesString, index) {
+      if (!notesString) return null;
+      const notesArray = notesString.split(',').map(note => parseFloat(note.trim()));
+      return notesArray.length >= index ? notesArray[index - 1] : null;
+    },
     editField(item, field) {
       this.editedIndex = this.students.indexOf(item);
       this.editedItem = { ...item };
@@ -338,8 +380,23 @@ export default {
     },
 
     validateNotes() {
-      // Logique pour valider les notes (par exemple, envoyer au serveur)
-      console.log('Notes validées !');
+      const notesToSave = this.students.map(student => ({
+        id_eleve: student.eleveId, // Ajoutez la propriété id ou un identifiant unique pour chaque étudiant
+        enseignant_id: student.enseignantId,/* Remplacez par l'ID de l'enseignant */
+        matiere_id: student.matiereId, /* Remplacez par l'ID de la matière */
+        trimestre_id: student.trimestreId,
+        note_inter: student.interro2, // Exemple pour l'interrogation 1
+        note_devoir: student.devoir2, // Exemple pour le devoir 1
+      }));
+
+      axios.post('http://localhost:8080/api/save-notes', notesToSave)
+        .then(response => {
+          console.log('Notes enregistrées avec succès !');
+          // Ajoutez ici toute logique de traitement après l'enregistrement
+        })
+        .catch(error => {
+          console.error('Erreur lors de l\'enregistrement des notes :', error);
+        });
     },
   },
 };

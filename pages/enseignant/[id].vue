@@ -31,7 +31,7 @@
                     @click="changeView('DashboardEnseignant'), loadId(classe.classe_id)"
                   >
                     <v-list-item-content>
-                      <v-list-item-title>{{ classe.classe_nom }} {{ classe.classe_id }}</v-list-item-title>
+                      <v-list-item-title>{{ classe.classe_nom }}</v-list-item-title>
                     </v-list-item-content>
                   </v-list-item>
                 </v-list>
