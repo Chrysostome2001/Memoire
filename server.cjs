@@ -319,38 +319,116 @@ app.post('/api/save-notes', async (req, res) => {
   const notesToSave = req.body;
 
   try {
-    // Enregistrement des notes d'interrogation
-    await Promise.all(notesToSave.map(async (note) => {
-      await prisma.Note_inter.create({
-        data: {
-          inter: parseFloat(note.note_inter),
-          id_eleve: note.id_eleve,
-          id_enseignant: note.enseignant_id,
-          id_matiere: note.matiere_id,
-          id_trimestre: note.trimestre_id,
-        },
-      });
-    }));
+    for (const note of notesToSave) {
+      // Vérification et enregistrement des notes d'interrogation
+      if (note.note_inter1 || note.note_inter2 || note.note_inter3 || note.note_inter4) {
+        const existingInter = await prisma.Note_inter.findFirst({
+          where: {
+            id_eleve: note.id_eleve,
+            id_enseignant: parseInt(note.enseignant_id),
+            id_matiere: note.matiere_id,
+            id_trimestre: note.trimestre_id,
+          },
+        });
 
-    // Enregistrement des notes de devoir
-    await Promise.all(notesToSave.map(async (note) => {
-      await prisma.Note_devoir.create({
-        data: {
-          devoir: parseFloat(note.note_devoir),
-          id_eleve: note.id_eleve,
-          id_enseignant: note.enseignant_id,
-          id_matiere: note.matiere_id,
-          id_trimestre: note.trimestre_id,
-        },
-      });
-    }));
+        if (!existingInter) {
+          await prisma.Note_inter.create({
+            data: {
+              eleve: { connect: { id: note.id_eleve } },
+              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+              matiere: { connect: { id: note.matiere_id } },
+              trimestre: { connect: { id: note.trimestre_id } },
+              inter: parseFloat(note.note_inter1),
+            },
+          });
+
+          // Vous pouvez ajouter des entrées distinctes pour chaque note d'interrogation
+          if (note.note_inter2) {
+            await prisma.Note_inter.create({
+              data: {
+                eleve: { connect: { id: note.id_eleve } },
+                enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+                matiere: { connect: { id: note.matiere_id } },
+                trimestre: { connect: { id: note.trimestre_id } },
+                inter: parseFloat(note.note_inter2),
+              },
+            });
+          }
+          if (note.note_inter3) {
+            await prisma.Note_inter.create({
+              data: {
+                eleve: { connect: { id: note.id_eleve } },
+                enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+                matiere: { connect: { id: note.matiere_id } },
+                trimestre: { connect: { id: note.trimestre_id } },
+                inter: parseFloat(note.note_inter3),
+              },
+            });
+          }
+          if (note.note_inter4) {
+            await prisma.Note_inter.create({
+              data: {
+                eleve: { connect: { id: note.id_eleve } },
+                enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+                matiere: { connect: { id: note.matiere_id } },
+                trimestre: { connect: { id: note.trimestre_id } },
+                inter: parseFloat(note.note_inter4),
+              },
+            });
+          }
+        }
+      }
+
+      // Vérification et enregistrement des notes de devoir
+      if (note.note_devoir1 || note.note_devoir2) {
+        const existingDevoir = await prisma.Note_devoir.findFirst({
+          where: {
+            id_eleve: note.id_eleve,
+            id_enseignant: parseInt(note.enseignant_id),
+            id_matiere: note.matiere_id,
+            id_trimestre: note.trimestre_id,
+            devoir: parseFloat(note.note_devoir1)
+          },
+        });
+
+        if (!existingDevoir) {
+          await prisma.Note_devoir.create({
+            data: {
+              eleve: { connect: { id: note.id_eleve } },
+              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+              matiere: { connect: { id: note.matiere_id } },
+              trimestre: { connect: { id: note.trimestre_id } },
+              devoir: parseFloat(note.note_devoir1),
+            },
+          });
+
+          if (note.note_devoir2) {
+            await prisma.Note_devoir.create({
+              data: {
+                eleve: { connect: { id: note.id_eleve } },
+                enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+                matiere: { connect: { id: note.matiere_id } },
+                trimestre: { connect: { id: note.trimestre_id } },
+                devoir: parseFloat(note.note_devoir2),
+              },
+            });
+          }
+        }
+      }
+    }
 
     res.status(200).send('Notes enregistrées avec succès !');
   } catch (error) {
     console.error('Erreur lors de l\'enregistrement des notes :', error);
     res.status(500).send('Une erreur est survenue lors de l\'enregistrement des notes.');
+  } finally {
+    await prisma.$disconnect();
   }
 });
+
+
+
+
 
 /*************************************************Connexion*************************************************/
 

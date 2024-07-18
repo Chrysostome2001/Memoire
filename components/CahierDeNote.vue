@@ -185,7 +185,7 @@ export default {
       name: '',
       prenom: '',
       coef: 0,
-      interro1: '',
+      interro1: null, 
       interro2: null,
       interro3: null,
       interro4: null,
@@ -382,11 +382,15 @@ export default {
     validateNotes() {
       const notesToSave = this.students.map(student => ({
         id_eleve: student.eleveId, // Ajoutez la propriété id ou un identifiant unique pour chaque étudiant
-        enseignant_id: student.enseignantId,/* Remplacez par l'ID de l'enseignant */
+        enseignant_id: this.$route.query.param,/* Remplacez par l'ID de l'enseignant */
         matiere_id: student.matiereId, /* Remplacez par l'ID de la matière */
         trimestre_id: student.trimestreId,
-        note_inter: student.interro2, // Exemple pour l'interrogation 1
-        note_devoir: student.devoir2, // Exemple pour le devoir 1
+        note_inter1: student.interro1,
+        note_inter2: student.interro2,
+        note_inter3: student.interro3,
+        note_inter4: student.interro4,
+        note_devoir1: student.devoir1,
+        note_devoir2: student.devoir2,
       }));
 
       axios.post('http://localhost:8080/api/save-notes', notesToSave)
