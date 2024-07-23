@@ -127,17 +127,24 @@ app.get('/api/eleve/:id', (req, res) => {
 });
 
 // Route to get a student by ID
-app.get('/Eleve/:id', (req, res) => {
-  const sql = 'SELECT * FROM Eleve WHERE id = ?';
-  const id = req.params.id;
-  db.query(sql, [id], (error, results) => {
+app.get('/api/eleves/', (req, res) => {
+  const sql = `
+              SELECT 
+                    Eleve.nom AS eleve_nom,
+                    Eleve.prenom AS eleve_prenom,
+                    Classe.nom AS classe_nom
+                  FROM
+                      Eleve
+                  JOIN Classe ON Classe.id = Eleve.id_classe`
+                  ;
+  db.query(sql, (error, results) => {
     if (error) {
       return res.status(500).json({ message: error.message });
     }
     if (results.length === 0) {
-      return res.status(404).json({ message: 'Eleve not found' });
+      return res.status(404).json({ message: 'Eleves not found' });
     }
-    res.json(results[0]);
+    res.json(results);
   });
 });
 
@@ -427,9 +434,101 @@ app.post('/api/save-notes', async (req, res) => {
 });
 
 
+/**************************************************Administrateur**********************************************/
 
+app.get("/api/classes/", (req, res) => {
+  const query =`
+                SELECT 
+                      Classe.id AS classe_id,
+                      Classe.nom AS classe_nom,
+                      COUNT(Eleve.id) AS nombre_eleve
+                  FROM 
+                      Classe
+                  LEFT JOIN 
+                      Eleve ON Classe.id = Eleve.id_classe
+                  GROUP BY 
+                      Classe.id, Classe.nom;
+                                            `;
+  db.query(query, (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else {
+      res.json(results); // Assuming you want to return the first result
+    }
+  });
+});
 
+app.get("/api/classe-eleves/:id", (req, res) => {
+  const classeId = req.params.id;
+  const query =`
+              SELECT
+                  Eleve.id AS eleve_id,
+                  Eleve.nom AS eleve_nom,
+                  Eleve.prenom AS eleve_prenom,
+                  Eleve.photo AS eleve_photo
+                FROM
+                  Classe
+                JOIN Eleve ON Eleve.id_classe = Classe.id
+                WHERE Classe.id = ?
+`;
+  db.query(query, [classeId], (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else {
+      res.json(results); // Assuming you want to return the first result
+    }
+  });
+});
 
+app.get('/api/eleves-classe/:id', (req, res) => {
+  const id = req.params.id;
+  const query = `
+                  SELECT
+                        Eleve.nom AS eleve_nom,
+                        Eleve.prenom AS eleve_prenom,
+                        Eleve.photo AS image
+                      FROM
+                        Eleve
+                      WHERE
+                        Eleve.id_classe = ?`;
+  db.query(query, [id], (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else {
+      res.json(results); // Assuming you want to return the first result
+    }
+  });
+});
+
+app.get('/api/eleve-notes/:eleveId/:matiereId', (req, res) => {
+  const { eleveId, matiereId } = req.params;
+  const query = `
+                  SELECT 
+    t.nom AS trimestre,
+    n.inter AS note_interro,
+    d.devoir AS note_devoir
+FROM 
+    Note_inter n
+JOIN 
+    Trimestre t ON n.id_trimestre = t.id
+LEFT JOIN 
+    Note_devoir d ON n.id_eleve = d.id_eleve 
+                   AND n.id_matiere = d.id_matiere 
+                   AND n.id_trimestre = d.id_trimestre
+WHERE 
+    n.id_eleve = ? 
+    AND n.id_matiere = ?
+ORDER BY 
+    t.nom;
+`;
+  db.query(query, [eleveId, matiereId], (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else {
+      res.json(results); // Assuming you want to return the first result
+    }
+  });
+});
 /*************************************************Connexion*************************************************/
 
 

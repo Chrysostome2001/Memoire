@@ -291,7 +291,7 @@ export default {
         }));
         if (response.data.length > 0) {
         this.matiereNom = response.data[0].matiere_nom;
-        this.trimestre_nom = response.data[0].trimestreNom;
+        this.trimestre_nom = response.data[0].trimestre_nom;
       }
         this.updateAverages();
       })

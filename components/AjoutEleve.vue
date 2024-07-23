@@ -20,6 +20,7 @@
   </template>
   
   <script>
+  import axios from 'axios';
   export default {
     data() {
       return {
@@ -28,11 +29,7 @@
           surname: '',
           className: null  // Assuming you will populate this with available class options
         },
-        classOptions: [  // Example array of class options, you can fetch this dynamically
-          'Classe A',
-          'Classe B',
-          'Classe C'
-        ]
+        classOptions: []
       };
     },
     methods: {
@@ -44,6 +41,15 @@
         this.student.surname = '';
         this.student.className = null;
       }
+    },
+    mounted(){
+      axios.get(`http://localhost:8080/api/classes/`)
+      .then(response => {
+        this.classOptions = response.data.map(classOption => classOption.classe_nom)
+      })
+      .catch(error => {
+        console.error('Error class not found', error);
+      });
     }
   };
   </script>
