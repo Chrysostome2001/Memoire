@@ -500,33 +500,111 @@ app.get('/api/eleves-classe/:id', (req, res) => {
   });
 });
 
-app.get('/api/eleve-notes/:eleveId/:matiereId', (req, res) => {
-  const { eleveId, matiereId } = req.params;
+app.get('/api/student-grades/:studentId', (req, res) => {
+  const studentId = req.params.studentId;
+
   const query = `
-                  SELECT 
-    t.nom AS trimestre,
-    n.inter AS note_interro,
-    d.devoir AS note_devoir
+    SELECT 
+    m.id AS matiere_id,
+    m.matiere AS matiere_name,
+    t.nom AS trimestre_name,
+    (CASE WHEN t.id = 1 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro1,
+    (CASE WHEN t.id = 1 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro2,
+    (CASE WHEN t.id = 1 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro3,
+    (CASE WHEN t.id = 1 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro4,
+    (CASE WHEN t.id = 1 AND nd.id IS NOT NULL THEN nd.devoir  END) AS devoir1,
+    (CASE WHEN t.id = 1 AND nd.id IS NOT NULL THEN nd.devoir  END) AS devoir2,
+
+    (CASE WHEN t.id = 2 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro1,
+    (CASE WHEN t.id = 2 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro2,
+    (CASE WHEN t.id = 2 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro3,
+    (CASE WHEN t.id = 2 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro4,
+    (CASE WHEN t.id = 2 AND nd.id IS NOT NULL THEN nd.devoir END) AS devoir1,
+    (CASE WHEN t.id = 2 AND nd.id IS NOT NULL THEN nd.devoir END) AS devoir2,
+    
+    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN nd.devoir  END) AS devoir1,
+    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro2,
+    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro3,
+    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro1,
+    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro3,
+    (CASE WHEN t.id = 3 AND nd.id IS NOT NULL THEN nd.devoir  END) AS devoir1,
+    MAX(CASE WHEN t.id = 3 AND nd.id IS NOT NULL THEN nd.devoir END) AS devoir2
 FROM 
-    Note_inter n
-JOIN 
-    Trimestre t ON n.id_trimestre = t.id
+    Eleve e
 LEFT JOIN 
-    Note_devoir d ON n.id_eleve = d.id_eleve 
-                   AND n.id_matiere = d.id_matiere 
-                   AND n.id_trimestre = d.id_trimestre
+    Note_inter ni ON ni.id_eleve = e.id
+LEFT JOIN 
+    Note_devoir nd ON nd.id_eleve = e.id AND nd.id_matiere = ni.id_matiere AND nd.id_trimestre = ni.id_trimestre
+LEFT JOIN 
+    Matiere m ON ni.id_matiere = m.id OR nd.id_matiere = m.id
+LEFT JOIN 
+    Trimestre t ON ni.id_trimestre = t.id OR nd.id_trimestre = t.id
 WHERE 
-    n.id_eleve = ? 
-    AND n.id_matiere = ?
+    e.id = ?
+GROUP BY 
+    m.id, t.id
 ORDER BY 
-    t.nom;
-`;
-  db.query(query, [eleveId, matiereId], (error, results) => {
+    m.id, t.id;
+
+  `;
+
+  db.query(query, [studentId], (error, results) => {
     if (error) {
-      res.status(500).send(error);
-    } else {
-      res.json(results); // Assuming you want to return the first result
+      console.error('Erreur lors de la récupération des notes :', error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des notes' });
+      return;
     }
+
+    // Organiser les résultats dans le format requis
+    const formattedResults = results.reduce((acc, row) => {
+      const { matiere_id, matiere_name, trimestre_name, interro1, interro2, interro3, interro4, devoir1, devoir2 } = row;
+
+      if (!acc[matiere_id]) {
+        acc[matiere_id] = { name: matiere_name, terms: {} };
+      }
+
+      if (!acc[matiere_id].terms[trimestre_name]) {
+        acc[matiere_id].terms[trimestre_name] = { interro1, interro2, interro3, interro4, devoir1, devoir2 };
+      } else {
+        acc[matiere_id].terms[trimestre_name] = {
+          interro1: acc[matiere_id].terms[trimestre_name].interro1 || interro1,
+          interro2: acc[matiere_id].terms[trimestre_name].interro2 || interro2,
+          interro3: acc[matiere_id].terms[trimestre_name].interro3 || interro3,
+          interro4: acc[matiere_id].terms[trimestre_name].interro4 || interro4,
+          devoir1: acc[matiere_id].terms[trimestre_name].devoir1 || devoir1,
+          devoir2: acc[matiere_id].terms[trimestre_name].devoir2 || devoir2,
+        };
+      }
+
+      return acc;
+    }, {});
+
+    res.json(formattedResults);
+  });
+});
+
+app.get('/api/matiere/:matiereId', (req, res) => {
+  const { matiereId } = req.params;
+  const query = `
+    SELECT
+      id AS matiere_id,
+      matiere AS name
+    FROM Matiere
+    WHERE id = ?;
+  `;
+
+  db.query(query, [matiereId], (error, results) => {
+    if (error) {
+      console.error('Erreur lors de la récupération de la matière:', error);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Matière non trouvée' });
+    }
+
+    // Envoyer les données de la matière en réponse
+    res.json(results[0]);
   });
 });
 /*************************************************Connexion*************************************************/

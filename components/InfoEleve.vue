@@ -60,58 +60,54 @@
         <v-card-title>{{ selectedStudent.name }} {{ selectedStudent.surname }}</v-card-title>
         <v-card-subtitle>{{ selectedClass.name }}</v-card-subtitle>
         <v-card-text>
-          <v-list>
-            <v-list-item-group v-model="selectedSubject" @change="fetchGrades">
-              <v-list-item v-for="(grades, subject) in selectedStudent.grades" :key="subject">
-                <v-list-item-content>
-                  <v-list-item-title>{{ subject }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list-item-group>
-          </v-list>
-          <v-expansion-panels v-if="selectedSubject">
-            <v-expansion-panel v-for="(terms, trimester) in selectedStudent.grades[selectedSubject]" :key="trimester">
-              <v-expansion-panel-title>{{ trimester }}</v-expansion-panel-title>
+          <v-expansion-panels>
+            <v-expansion-panel
+              v-for="(grades, subjectId) in gradesData"
+              :key="subjectId"
+            >
+              <v-expansion-panel-title @click="fetchGrades(subjectId)">
+                {{ grades.subjectName }}
+              </v-expansion-panel-title>
               <v-expansion-panel-text>
                 <v-data-table
                   :headers="headers"
-                  :items="prepareGradesTable(terms)"
+                  :items="prepareGradesTable(grades.data)"
                   class="elevation-1"
                 >
                   <template v-slot:item.interro1="{ item }">
                     <v-text-field
                       v-model="item.interro1"
-                      @change="updateGrade(selectedSubject, trimester, 'interro1', item.interro1)"
+                      @change="updateGrade(subjectId, item.term, 'interro1', item.interro1)"
                     ></v-text-field>
                   </template>
                   <template v-slot:item.interro2="{ item }">
                     <v-text-field
                       v-model="item.interro2"
-                      @change="updateGrade(selectedSubject, trimester, 'interro2', item.interro2)"
+                      @change="updateGrade(subjectId, item.term, 'interro2', item.interro2)"
                     ></v-text-field>
                   </template>
                   <template v-slot:item.interro3="{ item }">
                     <v-text-field
                       v-model="item.interro3"
-                      @change="updateGrade(selectedSubject, trimester, 'interro3', item.interro3)"
+                      @change="updateGrade(subjectId, item.term, 'interro3', item.interro3)"
                     ></v-text-field>
                   </template>
                   <template v-slot:item.interro4="{ item }">
                     <v-text-field
                       v-model="item.interro4"
-                      @change="updateGrade(selectedSubject, trimester, 'interro4', item.interro4)"
+                      @change="updateGrade(subjectId, item.term, 'interro4', item.interro4)"
                     ></v-text-field>
                   </template>
                   <template v-slot:item.devoir1="{ item }">
                     <v-text-field
                       v-model="item.devoir1"
-                      @change="updateGrade(selectedSubject, trimester, 'devoir1', item.devoir1)"
+                      @change="updateGrade(subjectId, item.term, 'devoir1', item.devoir1)"
                     ></v-text-field>
                   </template>
                   <template v-slot:item.devoir2="{ item }">
                     <v-text-field
                       v-model="item.devoir2"
-                      @change="updateGrade(selectedSubject, trimester, 'devoir2', item.devoir2)"
+                      @change="updateGrade(subjectId, item.term, 'devoir2', item.devoir2)"
                     ></v-text-field>
                   </template>
                   <template v-slot:item.interroAverage="{ item }">
@@ -140,11 +136,11 @@ export default {
       studentSearch: '',
       selectedClass: null,
       selectedStudent: null,
-      selectedSubject: null,
       classes: [],
       students: [],
       filteredClasses: [],
       filteredStudents: [],
+      gradesData: {}, // Object to hold grades data for each subject
       headers: [
         { text: 'Trimestre', value: 'term' },
         { text: 'Interrogation 1', value: 'interro1' },
@@ -175,30 +171,14 @@ export default {
     async fetchStudents(classId) {
       try {
         const response = await axios.get(`http://localhost:8080/api/classe-eleves/${classId}`);
-        this.students = response.data.map(student => ({
+        this.filteredStudents = response.data.map(student => ({
           id: student.eleve_id,
           name: student.eleve_nom,
           surname: student.eleve_prenom,
-          age: student.eleve_age,
-          image: student.eleve_photo,
-          grades: {}  // Initialise les notes vides
+          image: student.eleve_photo
         }));
-        this.filteredStudents = this.students;
       } catch (error) {
         console.error('Erreur lors de la récupération des élèves:', error);
-      }
-    },
-    async fetchGrades() {
-      if (this.selectedStudent && this.selectedSubject) {
-        try {
-          const response = await axios.get(`http://localhost:8080/api/eleve-notes/${this.selectedStudent.id}/${this.selectedSubject}`);
-          this.$set(this.selectedStudent, 'grades', {
-            ...this.selectedStudent.grades,
-            [this.selectedSubject]: response.data
-          });
-        } catch (error) {
-          console.error('Erreur lors de la récupération des notes:', error);
-        }
       }
     },
     filterClasses() {
@@ -217,49 +197,46 @@ export default {
     },
     filterStudents() {
       const searchTerm = this.studentSearch.toLowerCase();
-      this.filteredStudents = this.students.filter(student =>
+      this.filteredStudents = this.filteredStudents.filter(student =>
         student.name.toLowerCase().includes(searchTerm) ||
         student.surname.toLowerCase().includes(searchTerm)
       );
     },
     selectStudent(student) {
       this.selectedStudent = student;
+      this.gradesData = {}; // Clear previous grades data
     },
     deselectStudent() {
       this.selectedStudent = null;
     },
+    
     prepareGradesTable(grades) {
       return Object.entries(grades).map(([term, grade]) => ({
         term,
-        interro1: grade.interro1,
-        interro2: grade.interro2,
-        interro3: grade.interro3,
-        interro4: grade.interro4,
-        devoir1: grade.devoir1,
-        devoir2: grade.devoir2,
+        ...grade,
+        interroAverage: this.calculateAverage([grade.interro1, grade.interro2, grade.interro3, grade.interro4]),
+        devoirAverage: this.calculateAverage([grade.devoir1, grade.devoir2]),
       }));
     },
-    updateGrade(subject, term, type, value) {
-      this.$set(this.selectedStudent.grades[subject][term], type, parseFloat(value));
-    },
     calculateAverage(grades) {
-      const sum = grades.reduce((acc, grade) => acc + parseFloat(grade), 0);
-      return (sum / grades.length).toFixed(2);
+      const validGrades = grades.filter(grade => grade !== null && grade !== undefined);
+      if (validGrades.length === 0) return 0;
+      const total = validGrades.reduce((sum, grade) => sum + grade, 0);
+      return (total / validGrades.length).toFixed(2);
     },
   },
-  mounted() {
-    this.fetchClasses(); // Affiche toutes les classes au départ
-  }
+  created() {
+    this.fetchClasses();
+  },
 };
 </script>
 
-  
-  <style scoped>
-  .v-list-item {
-    cursor: pointer;
-  }
-  .block{
-    display: flex;
-    flex-direction: column;
-  }
-  </style>
+<style scoped>
+.v-list-item {
+  cursor: pointer;
+}
+.block {
+  display: flex;
+  flex-direction: column;
+}
+</style>
