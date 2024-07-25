@@ -8,8 +8,8 @@
     <v-row>
       <v-col v-for="student in filteredStudents" :key="student.id" cols="12" sm="6" md="4">
         <v-card @click="viewStudent(student)">
-          <v-card-title>{{ student.eleve_nom }} {{ student.eleve_prenom }}</v-card-title>
-          <v-card-subtitle>Classe : {{ student.classe_nom }}</v-card-subtitle>
+          <v-card-title>{{ student.nom }} {{ student.prenom }}</v-card-title>
+          <v-card-subtitle>Classe : {{ student.classeNom }}</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -21,7 +21,7 @@
         <v-card-text>
           <v-text-field v-model="editedStudent.eleve_nom" label="Nom"></v-text-field>
           <v-text-field v-model="editedStudent.eleve_prenom" label="Prénom"></v-text-field>
-          <v-select v-model="editedStudent.classe_nom" :items="classOptions" label="Classe"></v-select>
+          <v-select v-model="editedStudent.classe_id" :items="classOptions" label="Classe"></v-select>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -30,6 +30,11 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- Message d'alerte de mise à jour réussie -->
+    <v-snackbar v-model="alertSnackbar" :timeout="3000" color="success">
+      Mise à jour des informations réussie avec succès.
+      <v-btn color="white" text @click="alertSnackbar = false">Fermer</v-btn>
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -47,16 +52,24 @@ export default {
         id: '',
         eleve_nom: '',
         eleve_prenom: '',
-        classe_nom: ''
+        classe_nom: '',
+        classe_id: '',
       },
-      classOptions: [] // Vous devez également récupérer les options de classe
+      alertSnackbar: false,
+      classOptions: [], // Vous devez également récupérer les options de classe
     };
   },
   methods: {
     fetchStudents() {
       axios.get(`http://localhost:8080/api/eleves/`)
         .then(response => {
-          this.students = response.data;
+          this.students = response.data.map(student => ({
+            id: student.eleve_id,
+            nom: student.eleve_nom,
+            prenom: student.eleve_prenom,
+            classeNom: student.classe_nom,
+            classeId: student.classe_id
+          }))
           this.filteredStudents = this.students;
         })
         .catch(error => {
@@ -72,27 +85,38 @@ export default {
     viewStudent(student) {
       // Ouvrir la boîte de dialogue et charger les données de l'étudiant sélectionné
       this.editedStudent.id = student.id;
-      this.editedStudent.eleve_nom = student.eleve_nom;
-      this.editedStudent.eleve_prenom = student.eleve_prenom;
-      this.editedStudent.classe_nom = student.classe_nom;
+      this.editedStudent.eleve_nom = student.nom;
+      this.editedStudent.eleve_prenom = student.prenom;
+      this.editedStudent.classe_nom = student.classeNom;
       this.dialog = true;
     },
+    updateStudent(student) {
+      return axios.put(`http://localhost:8080/api/miseajoureleve/${student.id}`, {
+        nom: student.eleve_nom,
+        prenom: student.eleve_prenom,
+        id_classe: student.classe_id,
+      });
+    },
     saveChanges() {
-      // Mettre à jour les informations de l'étudiant dans `students` (simulé ici)
-      const index = this.students.findIndex(student => student.id === this.editedStudent.id);
-      if (index !== -1) {
-        this.students[index].eleve_nom = this.editedStudent.eleve_nom;
-        this.students[index].eleve_prenom = this.editedStudent.eleve_prenom;
-        this.students[index].classe_nom = this.editedStudent.classe_nom;
-      }
-      // Fermer la boîte de dialogue après enregistrement
-      this.dialog = false;
-    }
+      this.updateStudent(this.editedStudent)
+        .then(() => {
+          // Mettre à jour les informations de l'étudiant dans `students`
+          const index = this.students.findIndex(student => student.id === this.editedStudent.id);
+          if (index !== -1) {
+            this.students[index].eleve_nom = this.editedStudent.eleve_nom;
+            this.students[index].eleve_prenom = this.editedStudent.eleve_prenom;
+            this.students[index].classe_nom = this.editedStudent.classe_nom;
+          }
+          // Fermer la boîte de dialogue et afficher le snackbar après enregistrement
+          this.dialog = false;
+          this.alertSnackbar = true;
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    },
   },
-  created() {
-    this.fetchStudents();
-  },
-  mounted(){
+    mounted(){
       axios.get(`http://localhost:8080/api/classes/`)
       .then(response => {
         this.classOptions = response.data.map(classOption => classOption.classe_nom)
@@ -100,7 +124,10 @@ export default {
       .catch(error => {
         console.error('Error class not found', error);
       });
-    }
+    },
+  created() {
+    this.fetchStudents();
+  },
 };
 </script>
 

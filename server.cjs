@@ -1,4 +1,6 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto'); 
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const cors = require('cors'); // Importer le package CORS
@@ -6,7 +8,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const app = express();
 const port = 8080;
-
+const saltRounds = 10;
 // Connect to MySQL database
 const db = mysql.createConnection({
   host: 'localhost',
@@ -25,8 +27,13 @@ app.use(cors());
 
 /****************************************************Parents********************************************************/
 // Route to get all parents
-app.get('/api/parents', (req, res) => {
-  const sql = 'SELECT * FROM Parent';
+app.get('/api/parents/', (req, res) => {
+  const sql = `
+                SELECT 
+                      Parent.id AS parent_id,
+                      Parent.nom AS parent_nom,
+                      Parent.prenom AS parent_prenom
+                    FROM Parent`;
   db.query(sql, (error, results) => {
     if (error) {
       return res.status(500).json({ message: error.message });
@@ -126,12 +133,14 @@ app.get('/api/eleve/:id', (req, res) => {
   });
 });
 
-// Route to get a student by ID
+
 app.get('/api/eleves/', (req, res) => {
   const sql = `
               SELECT 
+                    Eleve.id AS eleve_id,
                     Eleve.nom AS eleve_nom,
                     Eleve.prenom AS eleve_prenom,
+                    Eleve.id_classe AS classe_id,
                     Classe.nom AS classe_nom
                   FROM
                       Eleve
@@ -607,6 +616,92 @@ app.get('/api/matiere/:matiereId', (req, res) => {
     res.json(results[0]);
   });
 });
+
+
+app.use(express.json());
+
+// Fonction pour générer une chaîne aléatoire
+function generateRandomString(length) {
+  return crypto.randomBytes(length).toString('hex');
+}
+
+app.post('/api/students', async (req, res) => {
+  try {
+    const { nom, prenom, photo, id_parent, id_classe } = req.body;
+
+    // Validation de la requête
+    if (!nom || !prenom || !photo || !id_parent || !id_classe) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+
+    // Générer un username et un mot de passe aléatoires
+    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
+
+    // Hachage du mot de passe
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Ajout de l'étudiant dans la base de données avec le mot de passe haché
+    const newStudent = await prisma.eleve.create({
+      data: {
+        nom,
+        prenom,
+        photo,
+        id_parent,
+        id_classe,
+        username,
+        password: hashedPassword
+      }
+    });
+
+    res.status(201).json({ 
+      ...newStudent,
+      generatedUsername: username,
+      generatedPassword: password
+    });
+  } catch (error) {
+    console.error('Error adding student:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'étudiant' });
+  }
+});
+
+
+// Exemple de route DELETE pour supprimer un élève
+app.delete('/api/supprimereleve/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.eleve.delete({
+      where: { id: parseInt(id) }
+    });
+    res.status(200).json({ message: 'Élève supprimé avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'élève:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'élève.' });
+  }
+});
+
+
+// Endpoint pour mettre à jour un élève
+app.put('/api/miseajoureleve/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nom, prenom, id_classe } = req.body;
+
+  try {
+    const updatedEleve = await prisma.eleve.update({
+      where: { id: parseInt(id) },
+      data: {
+        nom,
+        prenom,
+        id_classe,
+      },
+    });
+    res.json(updatedEleve);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'élève' });
+  }
+});
+
 /*************************************************Connexion*************************************************/
 
 
@@ -703,30 +798,39 @@ app.post('/api/login/Enseignant', (req, res) => {
 });
 
 //Endpoint pour la connexion de l'élève
-app.post('/api/login/eleve', (req, res) => {
+app.post('/api/login/eleve', async (req, res) => {
   const { username, password } = req.body;
   const role = 'eleve';
   
-  // Requête SQL paramétrée pour éviter les injections SQL
-  const query = 'SELECT * FROM Eleve WHERE username = ? AND password = ? AND role = ?';
-  
-  db.query(query, [username, password, role], (err, results) => {
-    if (err) {
-      console.error('Erreur lors de la récupération des données depuis la base de données', err);
-      res.status(500).send('Erreur lors de la récupération des données depuis la base de données');
-      return;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe requis' });
+  }
+
+  try {
+    // Rechercher l'utilisateur par username et role
+    const user = await prisma.eleve.findUnique({
+      where: { username },
+    });
+
+    if (!user || user.role !== role) {
+      return res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
     }
 
-    if (results.length > 0) {
-      const user = results[0];
+    // Comparer le mot de passe fourni avec le mot de passe haché
+    const match = await bcrypt.compare(password, user.password);
+
+    if (match) {
       res.json({ 
         role: user.role,
         userId: user.id
-       });
+      });
     } else {
-      res.status(401).send('Nom d\'utilisateur ou mot de passe incorrect.');
+      res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
     }
-  });
+  } catch (err) {
+    console.error('Erreur lors de la connexion', err);
+    res.status(500).json({ error: 'Erreur lors de la connexion' });
+  }
 });
 
 
@@ -750,3 +854,14 @@ app.get('/api/admin/:id', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+
+
+
+
+
+
+
+
+
+

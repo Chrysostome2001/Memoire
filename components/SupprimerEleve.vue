@@ -41,14 +41,11 @@
   </template>
   
   <script>
+  import axios from 'axios';
   export default {
     data() {
       return {
-        students: [
-          { id: 1, name: 'Jean', surname: 'Dupont', className: 'Classe A' },
-          { id: 2, name: 'Marie', surname: 'Durand', className: 'Classe B' },
-          { id: 3, name: 'Paul', surname: 'Lefevre', className: 'Classe A' }
-        ],
+        students: [],
         filteredStudents: [],
         search: '',
         confirmDialog: false,
@@ -69,9 +66,13 @@
       },
       cancelDelete() {
         this.confirmDialog = false;
-        this.studentToDelete = null;
       },
       deleteStudent() {
+  if (this.studentToDelete) {
+    // Envoyer la requête DELETE à l'API
+    axios.delete(`http://localhost:8080/api/supprimereleve/${this.studentToDelete.id}`)
+      .then(response => {
+        // Supprimer l'élève de la liste locale
         const index = this.students.findIndex(student => student.id === this.studentToDelete.id);
         if (index !== -1) {
           this.students.splice(index, 1);
@@ -80,8 +81,36 @@
           this.alertSnackbar = true;
         }
         this.confirmDialog = false;
+      })
+      .catch(error => {
+        console.error('Erreur lors de la suppression de l\'élève', error);
+        this.confirmDialog = false;
         this.studentToDelete = null;
+      });
+  } else {
+    this.confirmDialog = false;
+  }
+}
+
+    },
+    mounted(){
+      axios.get('http://localhost:8080/api/eleves/')
+      .then(response => {
+        if (response.data && response.data.length > 0) {
+          this.students = response.data.map(student => ({
+          id: student.eleve_id,
+          name: student.eleve_nom,
+          surname: student.eleve_prenom,
+          className: student.classe_nom
+        }));
+        console.log(this.students)
+      }else {
+        console.warn('No eleve data found');
       }
+      })
+      .catch(error => {
+        console.error('Error lors de la recuperation des élèves', error)
+      });
     }
   };
   </script>
