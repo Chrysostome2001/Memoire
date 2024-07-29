@@ -74,11 +74,11 @@
                     :key="term"
                     class="mt-2 mb-2"
                   >
-                    <v-expansion-panel-title>Trimestre {{ term }}</v-expansion-panel-title>
+                    <v-expansion-panel-title> Trimestre {{ term }}</v-expansion-panel-title>
                     <v-expansion-panel-text>
                       <v-data-table
                         :headers="headers"
-                        :items="prepareGradesTable(grades)"
+                        :items="prepareGradesTable(subject.terms)"
                         height="400"
                         class="elevation-1"
                       >
@@ -90,7 +90,7 @@
                             max="20"
                             min="0"
                             step="0.01"
-                          >{{ grades.interro1  ?? 'null' }}</v-text-field>
+                          >{{ item.interro1 ?? 'null' }}</v-text-field>
                         </template>
                         <template v-slot:item.interro2="{ item }">
                           <v-text-field
@@ -100,7 +100,7 @@
                             max="20"
                             min="0"
                             step="0.01"
-                          >{{ grades.interro2  ?? 'null' }}</v-text-field>
+                          >{{ item.interro2 ?? 'null' }}</v-text-field>
                         </template>
                         <template v-slot:item.interro3="{ item }">
                           <v-text-field
@@ -110,7 +110,7 @@
                             max="20"
                             min="0"
                             step="0.01"
-                          >{{ grades.interro3  ?? 'null' }}</v-text-field>
+                          >{{ item.interro3 ?? 'null' }}</v-text-field>
                         </template>
                         <template v-slot:item.interro4="{ item }">
                           <v-text-field
@@ -120,7 +120,7 @@
                             max="20"
                             min="0"
                             step="0.01"
-                          >{{ grades.interro4  ?? 'null' }}</v-text-field>
+                          >{{ item.interro4 ?? 'null' }}</v-text-field>
                         </template>
                         <template v-slot:item.devoir1="{ item }">
                           <v-text-field
@@ -130,7 +130,7 @@
                             max="20"
                             min="0"
                             step="0.01"
-                          >{{ grades.devoir1  ?? 'null' }}</v-text-field>
+                          >{{ item.devoir1 ?? 'null' }}</v-text-field>
                         </template>
                         <template v-slot:item.devoir2="{ item }">
                           <v-text-field
@@ -140,7 +140,7 @@
                             max="20"
                             min="0"
                             step="0.01"
-                          >{{ grades.devoir2  ?? 'null' }}</v-text-field>
+                          >{{ item.devoir2 ?? 'null' }}</v-text-field>
                         </template>
                         <template v-slot:item.interroAverage="{ item }">
                           <span>{{ calculateAverage([item.interro1, item.interro2, item.interro3, item.interro4]) }}</span>
@@ -191,7 +191,7 @@ export default {
   methods: {
     async fetchClasses() {
       try {
-        const response = await axios.get('http://localhost:8080/api/classes');
+        const response = await axios.get('http://localhost:8080/api/classes-eleves');
         this.classes = response.data.map(classe => ({
           id: classe.classe_id,
           name: classe.classe_nom,
@@ -211,6 +211,7 @@ export default {
           surname: student.eleve_prenom,
           image: student.eleve_photo
         }));
+        this.students = this.filteredStudents;
       } catch (error) {
         console.error('Erreur lors de la récupération des élèves:', error);
       }
@@ -218,17 +219,10 @@ export default {
     async fetchGrades(studentId) {
       try {
         const response = await axios.get(`http://localhost:8080/api/student-grades/${studentId}`);
-        console.log(response.data)
         this.gradesData = response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération des notes:', error);
       }
-    },
-    filterClasses() {
-      const searchTerm = this.search.toLowerCase();
-      this.filteredClasses = this.classes.filter(classe =>
-        classe.name.toLowerCase().includes(searchTerm)
-      );
     },
     selectClass(classe) {
       this.selectedClass = classe;
@@ -236,55 +230,70 @@ export default {
     },
     deselectClass() {
       this.selectedClass = null;
-      this.studentSearch = '';
-    },
-    filterStudents() {
-      const searchTerm = this.studentSearch.toLowerCase();
-      this.filteredStudents = this.filteredStudents.filter(student =>
-        student.name.toLowerCase().includes(searchTerm) ||
-        student.surname.toLowerCase().includes(searchTerm)
-      );
+      this.selectedStudent = null;
+      this.filteredStudents = [];
     },
     selectStudent(student) {
       this.selectedStudent = student;
-      this.fetchGrades(student.id); // Fetch grades for the selected student
+      this.fetchGrades(student.id);
     },
     deselectStudent() {
       this.selectedStudent = null;
     },
-    updateGrade(subjectId, term, gradeType, value) {
-      // Update grade via API or local state
-      const floatValue = parseFloat(value);
-      console.log(`Updating grade for subject ${subjectId}, term ${term}, type ${gradeType} to ${floatValue}`);
+    filterClasses() {
+      this.filteredClasses = this.classes.filter(classe => 
+        classe.name.toLowerCase().includes(this.search.toLowerCase())
+      );
     },
-    prepareGradesTable(grades) {
-      console.log('Grades in prepareGradesTable:', grades);
-      return Object.entries(grades).map(([term, grade]) => ({
-        term,
-        ...grade,
-        interroAverage: this.calculateAverage([grade.interro1, grade.interro2, grade.interro3, grade.interro4]),
-        devoirAverage: this.calculateAverage([grade.devoir1, grade.devoir2]),
-      }));
+    filterStudents() {
+      this.filteredStudents = this.students.filter(student =>
+        student.name.toLowerCase().includes(this.studentSearch.toLowerCase()) ||
+        student.surname.toLowerCase().includes(this.studentSearch.toLowerCase())
+      );
     },
-    calculateAverage(grades) {
-      const validGrades = grades.filter(grade => grade !== null && grade !== undefined);
-      if (validGrades.length === 0) return 0;
-      const total = validGrades.reduce((sum, grade) => sum + grade, 0);
-      return (total / validGrades.length).toFixed(2);
+    prepareGradesTable(terms) {
+      // Préparer les données pour le tableau
+      return Object.keys(terms).map(term => {
+        const grades = terms[term];
+        return {
+          term: term,
+          interro1: grades.interro1,
+          interro2: grades.interro2,
+          interro3: grades.interro3,
+          interro4: grades.interro4,
+          devoir1: grades.devoir1,
+          devoir2: grades.devoir2,
+          interroAverage: this.calculateAverage([grades.interro1, grades.interro2, grades.interro3, grades.interro4]),
+          devoirAverage: this.calculateAverage([grades.devoir1, grades.devoir2])
+        };
+      });
     },
+    calculateAverage(values) {
+      // Calculer la moyenne des notes
+      const validValues = values.filter(v => v !== null && v !== undefined);
+      const total = validValues.reduce((sum, value) => sum + parseFloat(value), 0);
+      return validValues.length > 0 ? (total / validValues.length).toFixed(2) : 'N/A';
+    },
+    updateGrade(subjectId, term, gradeType, newValue) {
+      // Mettre à jour la note dans le backend
+      axios.put(`http://localhost:8080/api/update-grade/${subjectId}/${term}/${gradeType}`, {
+        grade: newValue
+      }).then(response => {
+        console.log('Grade updated successfully');
+      }).catch(error => {
+        console.error('Error updating grade:', error);
+      });
+    }
   },
   created() {
     this.fetchClasses();
-  },
+  }
 };
 </script>
 
 <style scoped>
-.v-list-item {
+/* Styles pour améliorer l'apparence */
+.v-card {
   cursor: pointer;
-}
-.block {
-  display: flex;
-  flex-direction: column;
 }
 </style>

@@ -13,17 +13,17 @@
             v-model="selectedParent"
             :items="parents"
             item-value="id"
-            item-text="fullName"
+            item-title="fullName"
             label="Nom et prénom du parent"
             required
           ></v-combobox>
         </v-col>
         <v-col cols="12">
           <v-combobox 
-            v-model="selectedClass" 
+            v-model="selectedClass"
             :items="classOptions" 
             item-value="id"
-            item-text="classeNom"
+            item-title="classeNom"
             label="Classe" 
             required
           ></v-combobox>

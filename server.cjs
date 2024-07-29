@@ -279,6 +279,26 @@ app.get('/api/classes/:id', (req, res) => {
   });
 });
 
+app.get('/api/classes/', (req, res) => {
+  const sql = `
+              SELECT 
+                  Classe.nom AS classe_nom, 
+                  Classe.id AS classe_id 
+              FROM Classe  
+  `;
+  
+  db.query(sql, (error, results) => {
+    if (error) {
+      return res.status(500).json({ message: error.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Aucune classe trouvée' });
+    }
+    res.json(results);
+  });
+});
+
+
 app.get('/api/notes', (req, res) => {
   const classeId = req.query.classe_id;
   const enseignantId = req.query.enseignant_id;
@@ -445,7 +465,7 @@ app.post('/api/save-notes', async (req, res) => {
 
 /**************************************************Administrateur**********************************************/
 
-app.get("/api/classes/", (req, res) => {
+app.get("/api/classes-eleves/", (req, res) => {
   const query =`
                 SELECT 
                       Classe.id AS classe_id,
@@ -457,6 +477,52 @@ app.get("/api/classes/", (req, res) => {
                       Eleve ON Classe.id = Eleve.id_classe
                   GROUP BY 
                       Classe.id, Classe.nom;
+                                            `;
+  db.query(query, (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else {
+      res.json(results); // Assuming you want to return the first result
+    }
+  });
+});
+
+
+app.get("/api/enseignants/", (req, res) => {
+  const query =`
+                SELECT
+                      Enseignant.id AS enseignant_id,
+                      Enseignant.nom AS enseignant_nom,
+                      Enseignant.prenom AS enseignant_prenom,
+                      Enseignant.email AS enseignant_email
+                  FROM 
+                      Enseignant
+
+                                            `;
+  db.query(query, (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else {
+      res.json(results); // Assuming you want to return the first result
+    }
+  });
+});
+
+
+app.get("/api/enseignants-classe/", (req, res) => {
+  const query =`
+                SELECT 
+                      Enseignant_Classe.id AS enseignant_classe_id,
+                      Classe.id AS classe_id,
+                      Classe.nom AS classe_nom,
+                      Enseignant.id AS enseignant_id,
+                      Enseignant.nom AS enseignant_nom,
+                      Enseignant.prenom AS enseignant_prenom
+                  FROM 
+                      Enseignant_Classe
+                  JOIN Enseignant ON Enseignant.id = Enseignant_Classe.id_enseignant
+                  JOIN Classe ON Classe.id = Enseignant_Classe.id_classe
+
                                             `;
   db.query(query, (error, results) => {
     if (error) {
@@ -509,88 +575,95 @@ app.get('/api/eleves-classe/:id', (req, res) => {
   });
 });
 
-app.get('/api/student-grades/:studentId', (req, res) => {
-  const studentId = req.params.studentId;
-
-  const query = `
-    SELECT 
-    m.id AS matiere_id,
-    m.matiere AS matiere_name,
-    t.nom AS trimestre_name,
-    (CASE WHEN t.id = 1 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro1,
-    (CASE WHEN t.id = 1 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro2,
-    (CASE WHEN t.id = 1 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro3,
-    (CASE WHEN t.id = 1 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro4,
-    (CASE WHEN t.id = 1 AND nd.id IS NOT NULL THEN nd.devoir  END) AS devoir1,
-    (CASE WHEN t.id = 1 AND nd.id IS NOT NULL THEN nd.devoir  END) AS devoir2,
-
-    (CASE WHEN t.id = 2 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro1,
-    (CASE WHEN t.id = 2 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro2,
-    (CASE WHEN t.id = 2 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro3,
-    (CASE WHEN t.id = 2 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro4,
-    (CASE WHEN t.id = 2 AND nd.id IS NOT NULL THEN nd.devoir END) AS devoir1,
-    (CASE WHEN t.id = 2 AND nd.id IS NOT NULL THEN nd.devoir END) AS devoir2,
-    
-    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN nd.devoir  END) AS devoir1,
-    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro2,
-    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro3,
-    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro1,
-    (CASE WHEN t.id = 3 AND ni.id IS NOT NULL THEN ni.inter  END) AS interro3,
-    (CASE WHEN t.id = 3 AND nd.id IS NOT NULL THEN nd.devoir  END) AS devoir1,
-    MAX(CASE WHEN t.id = 3 AND nd.id IS NOT NULL THEN nd.devoir END) AS devoir2
-FROM 
-    Eleve e
-LEFT JOIN 
-    Note_inter ni ON ni.id_eleve = e.id
-LEFT JOIN 
-    Note_devoir nd ON nd.id_eleve = e.id AND nd.id_matiere = ni.id_matiere AND nd.id_trimestre = ni.id_trimestre
-LEFT JOIN 
-    Matiere m ON ni.id_matiere = m.id OR nd.id_matiere = m.id
-LEFT JOIN 
-    Trimestre t ON ni.id_trimestre = t.id OR nd.id_trimestre = t.id
-WHERE 
-    e.id = ?
-GROUP BY 
-    m.id, t.id
-ORDER BY 
-    m.id, t.id;
-
-  `;
-
-  db.query(query, [studentId], (error, results) => {
-    if (error) {
-      console.error('Erreur lors de la récupération des notes :', error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des notes' });
-      return;
-    }
-
-    // Organiser les résultats dans le format requis
-    const formattedResults = results.reduce((acc, row) => {
-      const { matiere_id, matiere_name, trimestre_name, interro1, interro2, interro3, interro4, devoir1, devoir2 } = row;
-
-      if (!acc[matiere_id]) {
-        acc[matiere_id] = { name: matiere_name, terms: {} };
+// Exemple de route pour récupérer les notes d'un élève par matière et trimestre
+app.get('/api/student-grades/:studentId', async (req, res) => {
+  const { studentId } = req.params;
+  
+  try {
+    // Récupérer les notes d'interrogation
+    const interros = await prisma.note_inter.findMany({
+      where: { id_eleve: parseInt(studentId) },
+      include: {
+        matiere: true,
+        trimestre: true
       }
+    });
 
-      if (!acc[matiere_id].terms[trimestre_name]) {
-        acc[matiere_id].terms[trimestre_name] = { interro1, interro2, interro3, interro4, devoir1, devoir2 };
-      } else {
-        acc[matiere_id].terms[trimestre_name] = {
-          interro1: acc[matiere_id].terms[trimestre_name].interro1 || interro1,
-          interro2: acc[matiere_id].terms[trimestre_name].interro2 || interro2,
-          interro3: acc[matiere_id].terms[trimestre_name].interro3 || interro3,
-          interro4: acc[matiere_id].terms[trimestre_name].interro4 || interro4,
-          devoir1: acc[matiere_id].terms[trimestre_name].devoir1 || devoir1,
-          devoir2: acc[matiere_id].terms[trimestre_name].devoir2 || devoir2,
+    // Récupérer les notes de devoirs
+    const devoirs = await prisma.note_devoir.findMany({
+      where: { id_eleve: parseInt(studentId) },
+      include: {
+        matiere: true,
+        trimestre: true
+      }
+    });
+
+    // Organiser les données
+    const gradesData = {};
+    
+    // Traiter les notes d'interrogation
+    interros.forEach(note => {
+      const { matiere, trimestre, inter } = note;
+      if (!gradesData[matiere.id]) {
+        gradesData[matiere.id] = { name: matiere.matiere, terms: {} };
+      }
+      if (!gradesData[matiere.id].terms[trimestre.id]) {
+        gradesData[matiere.id].terms[trimestre.id] = {
+          
         };
       }
+      // Ajouter la note à l'emplacement approprié
+      gradesData[matiere.id].terms[trimestre.id][`interro${inter}`] = inter;
+    });
 
-      return acc;
-    }, {});
+    // Traiter les notes de devoirs
+    devoirs.forEach(note => {
+      const { matiere, trimestre, devoir } = note;
+      if (!gradesData[matiere.id]) {
+        gradesData[matiere.id] = { name: matiere.matiere, terms: {} };
+      }
+      if (!gradesData[matiere.id].terms[trimestre.id]) {
+        gradesData[matiere.id].terms[trimestre.id] = {
+          
+        };
+      }
+      // Ajouter la note à l'emplacement approprié
+      gradesData[matiere.id].terms[trimestre.id][`devoir${devoir}`] = devoir;
+    });
 
-    res.json(formattedResults);
+    res.json(gradesData);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des notes:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des notes' });
+  }
+});
+
+
+
+
+app.get('/api/matieres/', (req, res) => {
+  const query = `
+    SELECT
+      id AS matiere_id,
+      matiere AS matiere_nom
+    FROM Matiere
+  `;
+
+  db.query(query, (error, results) => {
+    if (error) {
+      console.error('Erreur lors de la récupération de la matière:', error);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Matière non trouvée' });
+    }
+
+    // Envoyer les données de la matière en réponse
+    res.json(results);
   });
 });
+
 
 app.get('/api/matiere/:matiereId', (req, res) => {
   const { matiereId } = req.params;
@@ -614,6 +687,29 @@ app.get('/api/matiere/:matiereId', (req, res) => {
 
     // Envoyer les données de la matière en réponse
     res.json(results[0]);
+  });
+});
+
+app.get('/api/trimesters/', (req, res) => {
+  const query = `
+    SELECT
+      id AS trimestre_id,
+      nom AS trimestre_nom
+    FROM Trimestre
+  `;
+
+  db.query(query, (error, results) => {
+    if (error) {
+      console.error('Erreur lors de la récupération des trimestres:', error);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Trimestres non trouvée' });
+    }
+
+    // Envoyer les données de la matière en réponse
+    res.json(results);
   });
 });
 
@@ -665,6 +761,96 @@ app.post('/api/students', async (req, res) => {
   }
 });
 
+app.post('/api/enseignants', async (req, res) => {
+  try {
+    const { nom, prenom, photo, email, id_matiere } = req.body;
+
+    // Validation de la requête
+    if (!nom || !prenom || !photo || !email || !id_matiere) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+
+    // Générer un username et un mot de passe aléatoires
+    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
+
+    // Hachage du mot de passe
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Ajout de l'enseignant dans la base de données avec le mot de passe haché
+    const newEnseignant = await prisma.enseignant.create({
+      data: {
+        nom,
+        prenom,
+        photo,
+        email,
+        id_matiere,
+        username,
+        password: hashedPassword
+      }
+    });
+
+    res.status(201).json({ 
+      ...newEnseignant,
+      generatedUsername: username,
+      generatedPassword: password,
+    });
+  } catch (error) {
+    console.error('Error adding enseignant:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'enseignant' });
+  }
+});
+
+app.post('/api/enseignant-classe', async (req, res) => {
+  try {
+    const { id_enseignant, id_classe } = req.body;
+
+    // Validation de la requête
+    if (!id_enseignant || !id_classe) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+
+    const newEnseignant = await prisma.enseignant_Classe.create({
+      data: {
+        id_classe,
+        id_enseignant,
+      }
+    });
+
+    res.status(201).json({ 
+      ...newEnseignant,
+    });
+  } catch (error) {
+    console.error('Error adding enseignant in the class:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'enseignant dans la classe.' });
+  }
+});
+
+app.post('/api/classes', async (req, res) => {
+  try {
+    const { nom } = req.body;
+
+    // Validation de la requête
+    if (!nom) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+
+    // Ajout de l'étudiant dans la base de données avec le mot de passe haché
+    const newClass = await prisma.classe.create({
+      data: {
+        nom,
+      }
+    });
+
+    res.status(201).json({ 
+      ...newClass,
+    });
+  } catch (error) {
+    console.error('Error adding class:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout de la classe' });
+  }
+});
+
 
 // Exemple de route DELETE pour supprimer un élève
 app.delete('/api/supprimereleve/:id', async (req, res) => {
@@ -677,6 +863,33 @@ app.delete('/api/supprimereleve/:id', async (req, res) => {
   } catch (error) {
     console.error('Erreur lors de la suppression de l\'élève:', error);
     res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'élève.' });
+  }
+});
+
+app.delete('/api/supprimerenseignant/:id/', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.enseignant_Classe.delete({
+      where: { id: parseInt(id) }
+    });
+    res.status(200).json({ message: 'Ensseignant supprimé avec succès de la classe.' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'enseignant:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'enseignant de la classe.' });
+  }
+});
+
+// Exemple de route DELETE pour supprimer une classe
+app.delete('/api/supprimerclasse/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.classe.delete({
+      where: { id: parseInt(id) }
+    });
+    res.status(200).json({ message: 'Classe supprimé avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la classe:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression de la classe .' });
   }
 });
 
@@ -701,6 +914,28 @@ app.put('/api/miseajoureleve/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'élève' });
   }
 });
+
+// Endpoint pour mettre à jour un enseignant
+app.put('/api/miseajourenseignant/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nom, prenom, email } = req.body;
+
+  try {
+    const updatedEnseignant = await prisma.enseignant.update({
+      where: { id: parseInt(id) },
+      data: {
+        nom,
+        prenom,
+        email,
+      },
+    });
+    res.json(updatedEnseignant);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'enseignant' });
+  }
+});
+
 
 /*************************************************Connexion*************************************************/
 

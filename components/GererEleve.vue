@@ -32,7 +32,7 @@
 
 <script>
 import InfoEleve from '@/components/InfoEleve.vue';
-import AjoutEleve from '@/components/AjoutEleve';
+import AjoutEleve from './AjoutEleve.vue';
 import SupprimerEleve from '@/components/SupprimerEleve';
 import EditerInfoEleve from '@/components/EditerInfoEleve';
 export default {

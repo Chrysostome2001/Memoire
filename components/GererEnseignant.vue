@@ -3,22 +3,22 @@
       <v-row justify="center">
         <v-col cols="12" sm="6" md="3">
           <v-card @click="showAddClasssForm" class="dashboard-card add-card" color="primary">
-            <v-card-title class="white--text">Creer classe</v-card-title>
+            <v-card-title class="white--text">Creer enseignant</v-card-title>
           </v-card>
         </v-col>
         <v-col cols="12" sm="6" md="3">
           <v-card @click="showDeleteClassForm" class="dashboard-card delete-card" color="error">
-            <v-card-title class="white--text">Supprimer classe</v-card-title>
+            <v-card-title class="white--text">Supprimer enseignant</v-card-title>
           </v-card>
         </v-col>
         <v-col cols="12" sm="6" md="3">
           <v-card @click="showModifyClassForm" class="dashboard-card modify-card" color="warning">
-            <v-card-title class="white--text">Creer cahier de note pour le trimestre</v-card-title>
+            <v-card-title class="white--text">Editer infos enseignant</v-card-title>
           </v-card>
         </v-col>
         <v-col cols="12" sm="6" md="3">
           <v-card @click="showClassInfo" class="dashboard-card info-card" color="info">
-            <v-card-title class="white--text">Rien</v-card-title>
+            <v-card-title class="white--text">Ajouter enseignant dans une classe</v-card-title>
           </v-card>
         </v-col>
       </v-row>
@@ -31,16 +31,16 @@
   </template>
   
   <script>
-  import InfoEleve from '@/components/InfoEleve.vue';
-  import CreerClasse from './CreerClasse.vue';
-  import SupprimerClasse from './SupprimerClasse.vue';
-  import EditerInfoEleve from '@/components/EditerInfoEleve';
+  import AjouterEnseignant from './AjouterEnseignant.vue';
+  import CreerEnseignant from './CreerEnseignant.vue';
+  import EditerInfosEnseignant from './EditerInfosEnseignant.vue';
+  import SupprimerEnseignant from './SupprimerEnseignant.vue';
   export default {
     components: {
-      InfoEleve,
-      CreerClasse,
-      SupprimerClasse,
-      EditerInfoEleve,
+      AjouterEnseignant,
+      CreerEnseignant,
+      SupprimerEnseignant,
+      EditerInfosEnseignant,
     },
     data() {
       return {
@@ -49,16 +49,16 @@
     },
     methods: {
       showAddClasssForm() {
-        this.currentComponent = 'CreerClasse';
+        this.currentComponent = 'CreerEnseignant';
       },
       showDeleteClassForm() {
-        this.currentComponent = 'SupprimerClasse';
+        this.currentComponent = 'SupprimerEnseignant';
       },
       showModifyClassForm() {
-        this.currentComponent = 'EditerInfoEleve';
+        this.currentComponent = 'EditerInfosEnseignant';
       },
       showClassInfo() {
-        this.currentComponent = 'InfoEleve';
+        this.currentComponent = 'AjouterEnseignant';
       }
     }
   };

@@ -22,6 +22,9 @@
           <v-list-item link @click="changeView('GererClasse')" class="mt-5">
             <v-list-item-title>Gerer classe</v-list-item-title>
           </v-list-item>
+          <v-list-item link @click="changeView('GererEnseignant')" class="mt-5">
+            <v-list-item-title>Gerer enseignant</v-list-item-title>
+          </v-list-item>
           <v-list-item link @click="changeView('Home')">
             <v-list-item-content>
               <v-list-item-title>Home</v-list-item-title>
@@ -65,6 +68,7 @@
   import GererEleve from '@/components/GererEleve';
   import SupprimerEleve from '@/components/SupprimerEleve';
   import GererClasse from '@/components/GererClasse';
+  import GererEnseignant from '~/components/GererEnseignant.vue';
   export default {
     data() {
       return {
@@ -82,6 +86,7 @@
       SupprimerEleve,
       GererEleve,
       GererClasse,
+      GererEnseignant,
     },
     created() {
       this.fetchData();

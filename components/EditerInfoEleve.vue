@@ -2,14 +2,14 @@
   <v-container>
     <v-row>
       <v-col cols="12">
-        <v-text-field v-model="search" label="Rechercher un élève" clearable @input="searchStudents"></v-text-field>
+        <v-text-field v-model="search" label="Rechercher un élève" clearable @input="searchEleves"></v-text-field>
       </v-col>
     </v-row>
     <v-row>
-      <v-col v-for="student in filteredStudents" :key="student.id" cols="12" sm="6" md="4">
-        <v-card @click="viewStudent(student)">
-          <v-card-title>{{ student.nom }} {{ student.prenom }}</v-card-title>
-          <v-card-subtitle>Classe : {{ student.classeNom }}</v-card-subtitle>
+      <v-col v-for="eleve in filteredEleves" :key="eleve.id" cols="12" sm="6" md="4">
+        <v-card @click="viewEleve(eleve)">
+          <v-card-title>{{ eleve.nom }} {{ eleve.prenom }}</v-card-title>
+          <v-card-subtitle>Classe : {{ eleve.classeNom }}</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -17,11 +17,11 @@
     <!-- Modal pour modifier les informations de l'étudiant -->
     <v-dialog v-model="dialog" max-width="600px">
       <v-card>
-        <v-card-title>Modifier les informations de l'étudiant</v-card-title>
+        <v-card-title>Modifier les informations de l'élève</v-card-title>
         <v-card-text>
-          <v-text-field v-model="editedStudent.eleve_nom" label="Nom"></v-text-field>
-          <v-text-field v-model="editedStudent.eleve_prenom" label="Prénom"></v-text-field>
-          <v-select v-model="editedStudent.classe_id" :items="classOptions" label="Classe"></v-select>
+          <v-text-field v-model="editedEleve.eleve_nom" label="Nom"></v-text-field>
+          <v-text-field v-model="editedEleve.eleve_prenom" label="Prénom"></v-text-field>
+          <v-text-field v-model="editedEleve.classe_nom" label="Nom des classes"></v-text-field>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -44,68 +44,66 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      filteredStudents: [],
+      filteredEleves: [],
       search: '',
       dialog: false,
-      students: [],
-      editedStudent: {
+      eleves: [],
+      editedEleve: {
         id: '',
         eleve_nom: '',
         eleve_prenom: '',
         classe_nom: '',
-        classe_id: '',
       },
       alertSnackbar: false,
-      classOptions: [], // Vous devez également récupérer les options de classe
     };
   },
   methods: {
-    fetchStudents() {
+    fetchEleve() {
       axios.get(`http://localhost:8080/api/eleves/`)
         .then(response => {
-          this.students = response.data.map(student => ({
-            id: student.eleve_id,
-            nom: student.eleve_nom,
-            prenom: student.eleve_prenom,
-            classeNom: student.classe_nom,
-            classeId: student.classe_id
+          this.eleves = response.data.map(eleve => ({
+            id: eleve.eleve_id,
+            nom: eleve.eleve_nom,
+            prenom: eleve.eleve_prenom,
+            classeId: eleve.classe_id,
+            classeNom: eleve.classe_nom,
           }))
-          this.filteredStudents = this.students;
+          this.filteredEleves = this.eleves;
         })
         .catch(error => {
           console.error(error);
         });
     },
-    searchStudents() {
-      this.filteredStudents = this.students.filter(student =>
-        student.eleve_nom.toLowerCase().includes(this.search.toLowerCase()) ||
-        student.eleve_prenom.toLowerCase().includes(this.search.toLowerCase())
+    searchEleves() {
+      this.filteredEleves = this.eleves.filter(eleve =>
+      eleve.eleve_nom.toLowerCase().includes(this.search.toLowerCase()) ||
+      eleve.eleve_prenom.toLowerCase().includes(this.search.toLowerCase())
       );
     },
-    viewStudent(student) {
+    viewEleve(eleve) {
       // Ouvrir la boîte de dialogue et charger les données de l'étudiant sélectionné
-      this.editedStudent.id = student.id;
-      this.editedStudent.eleve_nom = student.nom;
-      this.editedStudent.eleve_prenom = student.prenom;
-      this.editedStudent.classe_nom = student.classeNom;
+      this.editedEleve.id = eleve.id;
+      this.editedEleve.eleve_nom = eleve.nom;
+      this.editedEleve.eleve_prenom = eleve.prenom;
+      this.editedEleve.classe_nom = eleve.classeNom;
       this.dialog = true;
     },
-    updateStudent(student) {
-      return axios.put(`http://localhost:8080/api/miseajoureleve/${student.id}`, {
-        nom: student.eleve_nom,
-        prenom: student.eleve_prenom,
-        id_classe: student.classe_id,
+    updateEleve(eleve) {
+      return axios.put(`http://localhost:8080/api/miseajoureleve/${eleve.id}`, {
+        nom: eleve.eleve_nom,
+        prenom: eleve.eleve_prenom,
+        id_classe: eleve.classe_id,
       });
     },
     saveChanges() {
-      this.updateStudent(this.editedStudent)
+      this.updateEleve(this.editedEleve)
         .then(() => {
           // Mettre à jour les informations de l'étudiant dans `students`
-          const index = this.students.findIndex(student => student.id === this.editedStudent.id);
+          const index = this.eleves.findIndex(eleve => eleve.id === this.editedEleve.id);
           if (index !== -1) {
-            this.students[index].eleve_nom = this.editedStudent.eleve_nom;
-            this.students[index].eleve_prenom = this.editedStudent.eleve_prenom;
-            this.students[index].classe_nom = this.editedStudent.classe_nom;
+            this.eleves[index].eleve_nom = this.editedEleve.eleve_nom;
+            this.eleves[index].eleve_prenom = this.editedEleve.eleve_prenom;
+            this.eleves[index].classe_id = this.editedEleve.classe_nom;
           }
           // Fermer la boîte de dialogue et afficher le snackbar après enregistrement
           this.dialog = false;
@@ -116,18 +114,9 @@ export default {
         });
     },
   },
-    mounted(){
-      axios.get(`http://localhost:8080/api/classes/`)
-      .then(response => {
-        this.classOptions = response.data.map(classOption => classOption.classe_nom)
-      })
-      .catch(error => {
-        console.error('Error class not found', error);
-      });
-    },
   created() {
-    this.fetchStudents();
-  },
+  this.fetchEleve();
+},
 };
 </script>
 
