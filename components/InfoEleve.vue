@@ -74,81 +74,90 @@
                     :key="term"
                     class="mt-2 mb-2"
                   >
-                    <v-expansion-panel-title>Trimestre {{ term }}</v-expansion-panel-title>
+                    <v-expansion-panel-title> Trimestre {{ term }}</v-expansion-panel-title>
                     <v-expansion-panel-text>
-                      <v-data-table
-                        :headers="headers"
-                        :items="prepareGradesTable(grades)"
-                        height="400"
-                        class="elevation-1"
-                      >
-                        <template v-slot:item.interro1="{ item }">
-                          <v-text-field
-                            v-model="item.interro1"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'interro1', item.interro1)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ grades.interro1  ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.interro2="{ item }">
-                          <v-text-field
-                            v-model="item.interro2"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'interro2', item.interro2)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ grades.interro2  ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.interro3="{ item }">
-                          <v-text-field
-                            v-model="item.interro3"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'interro3', item.interro3)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ grades.interro3  ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.interro4="{ item }">
-                          <v-text-field
-                            v-model="item.interro4"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'interro4', item.interro4)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ grades.interro4  ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.devoir1="{ item }">
-                          <v-text-field
-                            v-model="item.devoir1"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'devoir1', item.devoir1)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ grades.devoir1  ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.devoir2="{ item }">
-                          <v-text-field
-                            v-model="item.devoir2"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'devoir2', item.devoir2)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ grades.devoir2  ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.interroAverage="{ item }">
-                          <span>{{ calculateAverage([item.interro1, item.interro2, item.interro3, item.interro4]) }}</span>
-                        </template>
-                        <template v-slot:item.devoirAverage="{ item }">
-                          <span>{{ calculateAverage([item.devoir1, item.devoir2]) }}</span>
-                        </template>
-                      </v-data-table>
+                      <table class="v-data-table elevation-1">
+                        <thead>
+                          <tr>
+                            <th>Interro 1</th>
+                            <th>Interro 2</th>
+                            <th>Interro 3</th>
+                            <th>Interro 4</th>
+                            <th>Devoir 1</th>
+                            <th>Devoir 2</th>
+                            <th>Moy Interros</th>
+                            <th>Moy Devoirs</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="item in prepareGradesTable(subject.terms)" :key="item.term">
+                            <td>
+                              <v-text-field
+      v-model="currentGrade"
+      type="number"
+      max="20"
+      min="0"
+      step="0.01"
+      @input="handleInput"
+    ></v-text-field>
+    <!-- Affiche la valeur initiale uniquement si l'utilisateur n'a pas encore modifié le champ -->
+    <div v-if="!isEditing">Valeur initiale: {{ item.interro1.grade }}</div>
+    <!-- Affiche la valeur actuelle uniquement si l'utilisateur a modifié le champ -->
+    <div v-if="isEditing">Valeur actuelle: {{ currentGrade }}</div>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.interro2.grade"
+                                type="number"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              ></v-text-field>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.interro3.grade"
+                                type="number"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              ></v-text-field>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.interro4.grade"
+                                type="number"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              ></v-text-field>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.devoir1.grade"
+                                type="number"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              ></v-text-field>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.devoir2.grade"
+                                type="number"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              ></v-text-field>
+                            </td>
+                            <td>{{ item.interroAverage }}</td>
+                            <td>{{ item.devoirAverage }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <v-btn @click="validateGrades(subjectId, term)" color="primary" class="mt-4">
+                        Valider
+                      </v-btn>
                     </v-expansion-panel-text>
                   </v-expansion-panel>
                 </v-expansion-panels>
@@ -158,8 +167,14 @@
         </v-card-text>
       </v-card>
     </div>
+    <!-- Snackbar pour afficher le message de validation -->
+    <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" :color="snackbar.color">
+      {{ snackbar.message }}
+      <v-btn color="white" text @click="snackbar.visible = false">Fermer</v-btn>
+    </v-snackbar>
   </v-container>
 </template>
+
 
 <script>
 import axios from 'axios';
@@ -167,6 +182,8 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      currentGrade: null, // Valeur modifiée par l'utilisateur
+      isEditing: false, // Indicateur pour savoir si l'utilisateur a modifié l'entrée
       search: '',
       studentSearch: '',
       selectedClass: null,
@@ -186,9 +203,24 @@ export default {
         { title: 'Moy Interros', value: 'interroAverage' },
         { title: 'Moy Devoirs', value: 'devoirAverage' },
       ],
+      snackbar: {
+        visible: false,
+        message: '',
+        timeout: 3000,
+        color: 'success' // Vous pouvez changer la couleur selon le contexte (success, error, etc.)
+      },
     };
   },
   methods: {
+    handleInput() {
+      if (!this.isEditing) {
+        this.isEditing = true; // Met à jour l'indicateur lorsque l'utilisateur commence à modifier le champ
+      }
+      this.updateGrade(); // Met à jour item.interro1.grade avec la valeur modifiée
+    },
+    updateGrade() {
+      this.item.interro1.grade = this.currentGrade; // Met à jour item.interro1.grade avec la valeur modifiée
+    },
     async fetchClasses() {
       try {
         const response = await axios.get('http://localhost:8080/api/classes-eleves');
@@ -211,6 +243,7 @@ export default {
           surname: student.eleve_prenom,
           image: student.eleve_photo
         }));
+        this.students = this.filteredStudents;
       } catch (error) {
         console.error('Erreur lors de la récupération des élèves:', error);
       }
@@ -218,17 +251,11 @@ export default {
     async fetchGrades(studentId) {
       try {
         const response = await axios.get(`http://localhost:8080/api/student-grades/${studentId}`);
-        console.log(response.data)
         this.gradesData = response.data;
+        console.log(this.gradesData)
       } catch (error) {
         console.error('Erreur lors de la récupération des notes:', error);
       }
-    },
-    filterClasses() {
-      const searchTerm = this.search.toLowerCase();
-      this.filteredClasses = this.classes.filter(classe =>
-        classe.name.toLowerCase().includes(searchTerm)
-      );
     },
     selectClass(classe) {
       this.selectedClass = classe;
@@ -236,55 +263,132 @@ export default {
     },
     deselectClass() {
       this.selectedClass = null;
-      this.studentSearch = '';
-    },
-    filterStudents() {
-      const searchTerm = this.studentSearch.toLowerCase();
-      this.filteredStudents = this.filteredStudents.filter(student =>
-        student.name.toLowerCase().includes(searchTerm) ||
-        student.surname.toLowerCase().includes(searchTerm)
-      );
+      this.selectedStudent = null;
+      this.filteredStudents = [];
     },
     selectStudent(student) {
       this.selectedStudent = student;
-      this.fetchGrades(student.id); // Fetch grades for the selected student
+      this.fetchGrades(student.id);
     },
     deselectStudent() {
       this.selectedStudent = null;
     },
-    updateGrade(subjectId, term, gradeType, value) {
-      // Update grade via API or local state
-      const floatValue = parseFloat(value);
-      console.log(`Updating grade for subject ${subjectId}, term ${term}, type ${gradeType} to ${floatValue}`);
+    filterClasses() {
+      this.filteredClasses = this.classes.filter(classe => 
+        classe.name.toLowerCase().includes(this.search.toLowerCase())
+      );
     },
-    prepareGradesTable(grades) {
-      console.log('Grades in prepareGradesTable:', grades);
-      return Object.entries(grades).map(([term, grade]) => ({
-        term,
-        ...grade,
-        interroAverage: this.calculateAverage([grade.interro1, grade.interro2, grade.interro3, grade.interro4]),
-        devoirAverage: this.calculateAverage([grade.devoir1, grade.devoir2]),
-      }));
+    filterStudents() {
+      this.filteredStudents = this.students.filter(student =>
+        student.name.toLowerCase().includes(this.studentSearch.toLowerCase()) ||
+        student.surname.toLowerCase().includes(this.studentSearch.toLowerCase())
+      );
     },
-    calculateAverage(grades) {
-      const validGrades = grades.filter(grade => grade !== null && grade !== undefined);
-      if (validGrades.length === 0) return 0;
-      const total = validGrades.reduce((sum, grade) => sum + grade, 0);
-      return (total / validGrades.length).toFixed(2);
+    prepareGradesTable(terms) {
+      // Préparer les données pour le tableau
+      return Object.keys(terms).map((term, index) => {
+        if (index === 1) return null;
+        const grades = terms[term];
+        console.log('Grades pour le trimestre', term, grades); 
+        return {
+          term: term,
+          interro1: grades.interro1 ? { grade: grades.interro1.grade, id: grades.interro1.id } : { grade: null, id: null },
+          interro2: grades.interro2 ? { grade: grades.interro2.grade, id: grades.interro2.id } : { grade: null, id: null },
+          interro3: grades.interro3 ? { grade: grades.interro3.grade, id: grades.interro3.id } : { grade: null, id: null },
+          interro4: grades.interro4 ? { grade: grades.interro4.grade, id: grades.interro4.id } : { grade: null, id: null },
+          devoir1: grades.devoir1 ? { grade: grades.devoir1.grade, id: grades.devoir1.id } : { grade: null, id: null },
+          devoir2: grades.devoir2 ? { grade: grades.devoir2.grade, id: grades.devoir2.id } : { grade: null, id: null },
+          interroAverage: this.calculateAverage([grades.interro1?.grade, grades.interro2?.grade, grades.interro3?.grade, grades.interro4?.grade]),
+          devoirAverage: this.calculateAverage([grades.devoir1?.grade, grades.devoir2?.grade])
+        };
+      }).filter(item => item !== null);
+    },
+    calculateAverage(values) {
+      // Calculer la moyenne des notes
+      const validValues = values.filter(v => v !== null && v !== undefined);
+      const total = validValues.reduce((sum, value) => sum + parseFloat(value), 0);
+      return validValues.length > 0 ? (total / validValues.length).toFixed(2) : 'N/A';
+    },
+    async validateGrades(subjectId, term) {
+      // Préparer les données à envoyer
+      const grades = this.prepareGradesTable(this.gradesData[subjectId].terms).find(g => g.term === term);
+
+      if (!grades) {
+        console.error('Aucune note trouvée pour le trimestre spécifié');
+        return;
+      }
+
+      // Filtrer les notes non nulles
+      const filteredInterroGrades = {
+        interro1: grades.interro1 ? { grade: grades.interro1.grade, id: grades.interro1.id } : undefined,
+        interro2: grades.interro2 ? { grade: grades.interro2.grade, id: grades.interro2.id } : undefined,
+        interro3: grades.interro3 ? { grade: grades.interro3.grade, id: grades.interro3.id } : undefined,
+        interro4: grades.interro4 ? { grade: grades.interro4.grade, id: grades.interro4.id } : undefined,
+      };
+
+      const filteredDevoirGrades = {
+        devoir1: grades.devoir1 ? { grade: grades.devoir1.grade, id: grades.devoir1.id } : undefined,
+        devoir2: grades.devoir2 ? { grade: grades.devoir2.grade, id: grades.devoir2.id } : undefined,
+      };
+
+      // Retirer les propriétés undefined
+      const cleanInterroGrades = Object.fromEntries(
+        Object.entries(filteredInterroGrades).filter(([_, value]) => value !== undefined)
+      );
+
+      const cleanDevoirGrades = Object.fromEntries(
+        Object.entries(filteredDevoirGrades).filter(([_, value]) => value !== undefined)
+      );
+
+      try {
+        // Envoyer les mises à jour pour les interrogations
+        if (Object.keys(cleanInterroGrades).length > 0) {
+          console.log('Données envoyées pour les interrogations:', cleanInterroGrades);
+          await axios.put(`http://localhost:8080/api/miseajourinter/${subjectId}/${term}`, cleanInterroGrades);
+        }
+        
+        // Envoyer les mises à jour pour les devoirs
+        if (Object.keys(cleanDevoirGrades).length > 0) {
+          await axios.put(`http://localhost:8080/api/miseajourdevoir/${subjectId}/${term}`, cleanDevoirGrades);
+        }
+
+        // Afficher le message de succès
+        this.snackbar.message = 'Notes mises à jour avec succès';
+        this.snackbar.color = 'success';
+        this.snackbar.visible = true;
+        console.log('Notes mises à jour avec succès');
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour des notes:', error);
+        // Afficher le message d'erreur
+        this.snackbar.message = 'Erreur lors de la mise à jour des notes';
+        this.snackbar.color = 'error';
+        this.snackbar.visible = true;
+      }
     },
   },
   created() {
     this.fetchClasses();
-  },
+  }
 };
 </script>
 
 <style scoped>
-.v-list-item {
+/* Styles pour améliorer l'apparence */
+.v-card {
   cursor: pointer;
 }
-.block {
-  display: flex;
-  flex-direction: column;
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+th {
+  background-color: #f4f4f4;
+}
+.v-text-field {
+  width: 100%;
 }
 </style>

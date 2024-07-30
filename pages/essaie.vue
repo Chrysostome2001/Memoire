@@ -76,79 +76,86 @@
                   >
                     <v-expansion-panel-title> Trimestre {{ term }}</v-expansion-panel-title>
                     <v-expansion-panel-text>
-                      <v-data-table
-                        :headers="headers"
-                        :items="prepareGradesTable(subject.terms)"
-                        height="400"
-                        class="elevation-1"
-                      >
-                        <template v-slot:item.interro1="{ item }">
-                          <v-text-field
-                            v-model="item.interro1"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'interro1', item.interro1)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ item.interro1 ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.interro2="{ item }">
-                          <v-text-field
-                            v-model="item.interro2"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'interro2', item.interro2)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ item.interro2 ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.interro3="{ item }">
-                          <v-text-field
-                            v-model="item.interro3"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'interro3', item.interro3)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ item.interro3 ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.interro4="{ item }">
-                          <v-text-field
-                            v-model="item.interro4"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'interro4', item.interro4)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ item.interro4 ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.devoir1="{ item }">
-                          <v-text-field
-                            v-model="item.devoir1"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'devoir1', item.devoir1)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ item.devoir1 ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.devoir2="{ item }">
-                          <v-text-field
-                            v-model="item.devoir2"
-                            type="number"
-                            @change="updateGrade(subjectId, term, 'devoir2', item.devoir2)"
-                            max="20"
-                            min="0"
-                            step="0.01"
-                          >{{ item.devoir2 ?? 'null' }}</v-text-field>
-                        </template>
-                        <template v-slot:item.interroAverage="{ item }">
-                          <span>{{ calculateAverage([item.interro1, item.interro2, item.interro3, item.interro4]) }}</span>
-                        </template>
-                        <template v-slot:item.devoirAverage="{ item }">
-                          <span>{{ calculateAverage([item.devoir1, item.devoir2]) }}</span>
-                        </template>
-                      </v-data-table>
+                      <table class="v-data-table elevation-1">
+                        <thead>
+                          <tr>
+                            <th>Interro 1</th>
+                            <th>Interro 2</th>
+                            <th>Interro 3</th>
+                            <th>Interro 4</th>
+                            <th>Devoir 1</th>
+                            <th>Devoir 2</th>
+                            <th>Moy Interros</th>
+                            <th>Moy Devoirs</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="item in prepareGradesTable(subject.terms)" :key="item.term">
+                            <td>
+                              <v-text-field
+                                v-model="item.interro1"
+                                type="number"
+                                @change="updateGrade(subjectId, item.term, 'interro1', item.interro1)"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              >{{ item.interro1 ?? 'null' }}</v-text-field>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.interro2"
+                                type="number"
+                                @change="updateGrade(subjectId, item.term, 'interro2', item.interro2)"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              >{{ item.interro2 ?? 'null' }}</v-text-field>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.interro3"
+                                type="number"
+                                @change="updateGrade(subjectId, item.term, 'interro3', item.interro3)"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              >{{ item.interro3 ?? 'null' }}</v-text-field>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.interro4"
+                                type="number"
+                                @change="updateGrade(subjectId, item.term, 'interro4', item.interro4)"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              >{{ item.interro4 ?? 'null' }}</v-text-field>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.devoir1"
+                                type="number"
+                                @change="updateGrade(subjectId, item.term, 'devoir1', item.devoir1)"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              >{{ item.devoir1 ?? 'null' }}</v-text-field>
+                            </td>
+                            <td>
+                              <v-text-field
+                                v-model="item.devoir2"
+                                type="number"
+                                @change="updateGrade(subjectId, item.term, 'devoir2', item.devoir2)"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                              >{{ item.devoir2 ?? 'null' }}</v-text-field>
+                            </td>
+                            <td>{{ item.interroAverage }}</td>
+                            <td>{{ item.devoirAverage }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </v-expansion-panel-text>
                   </v-expansion-panel>
                 </v-expansion-panels>
@@ -220,6 +227,7 @@ export default {
       try {
         const response = await axios.get(`http://localhost:8080/api/student-grades/${studentId}`);
         this.gradesData = response.data;
+        console.log(this.gradesData)
       } catch (error) {
         console.error('Erreur lors de la récupération des notes:', error);
       }
@@ -253,7 +261,8 @@ export default {
     },
     prepareGradesTable(terms) {
       // Préparer les données pour le tableau
-      return Object.keys(terms).map(term => {
+      return Object.keys(terms).map((term, index) => {
+        if (index === 1) return null;
         const grades = terms[term];
         return {
           term: term,
@@ -266,7 +275,7 @@ export default {
           interroAverage: this.calculateAverage([grades.interro1, grades.interro2, grades.interro3, grades.interro4]),
           devoirAverage: this.calculateAverage([grades.devoir1, grades.devoir2])
         };
-      });
+      }).filter(item => item !== null);
     },
     calculateAverage(values) {
       // Calculer la moyenne des notes
@@ -295,5 +304,19 @@ export default {
 /* Styles pour améliorer l'apparence */
 .v-card {
   cursor: pointer;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+th {
+  background-color: #f4f4f4;
+}
+.v-text-field {
+  width: 100%;
 }
 </style>

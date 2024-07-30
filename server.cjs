@@ -578,7 +578,7 @@ app.get('/api/eleves-classe/:id', (req, res) => {
 // Exemple de route pour récupérer les notes d'un élève par matière et trimestre
 app.get('/api/student-grades/:studentId', async (req, res) => {
   const { studentId } = req.params;
-  
+
   try {
     // Récupérer les notes d'interrogation
     const interros = await prisma.note_inter.findMany({
@@ -600,35 +600,41 @@ app.get('/api/student-grades/:studentId', async (req, res) => {
 
     // Organiser les données
     const gradesData = {};
-    
+
+    // Objets pour stocker les compteurs par matière
+    const interroCounters = {};
+    const devoirCounters = {};
+
     // Traiter les notes d'interrogation
     interros.forEach(note => {
-      const { matiere, trimestre, inter } = note;
+      const { matiere, trimestre, inter, id } = note;  // Ajouter l'ID de la note d'interrogation
       if (!gradesData[matiere.id]) {
         gradesData[matiere.id] = { name: matiere.matiere, terms: {} };
+        // Initialiser les compteurs pour cette matière
+        interroCounters[matiere.id] = 1;
+        devoirCounters[matiere.id] = 1;
       }
       if (!gradesData[matiere.id].terms[trimestre.id]) {
-        gradesData[matiere.id].terms[trimestre.id] = {
-          
-        };
+        gradesData[matiere.id].terms[trimestre.id] = {};
       }
-      // Ajouter la note à l'emplacement approprié
-      gradesData[matiere.id].terms[trimestre.id][`interro${inter}`] = inter;
+      // Ajouter la note à l'emplacement approprié avec clé incrémentale pour chaque matière
+      gradesData[matiere.id].terms[trimestre.id][`interro${interroCounters[matiere.id]++}`] = { grade: inter, id: id };
     });
 
     // Traiter les notes de devoirs
     devoirs.forEach(note => {
-      const { matiere, trimestre, devoir } = note;
+      const { matiere, trimestre, devoir, id } = note;  // Ajouter l'ID de la note de devoir
       if (!gradesData[matiere.id]) {
         gradesData[matiere.id] = { name: matiere.matiere, terms: {} };
+        // Initialiser les compteurs pour cette matière
+        interroCounters[matiere.id] = 1;
+        devoirCounters[matiere.id] = 1;
       }
       if (!gradesData[matiere.id].terms[trimestre.id]) {
-        gradesData[matiere.id].terms[trimestre.id] = {
-          
-        };
+        gradesData[matiere.id].terms[trimestre.id] = {};
       }
-      // Ajouter la note à l'emplacement approprié
-      gradesData[matiere.id].terms[trimestre.id][`devoir${devoir}`] = devoir;
+      // Ajouter la note à l'emplacement approprié avec clé incrémentale pour chaque matière
+      gradesData[matiere.id].terms[trimestre.id][`devoir${devoirCounters[matiere.id]++}`] = { grade: devoir, id: id };
     });
 
     res.json(gradesData);
@@ -637,8 +643,6 @@ app.get('/api/student-grades/:studentId', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la récupération des notes' });
   }
 });
-
-
 
 
 app.get('/api/matieres/', (req, res) => {
@@ -935,6 +939,97 @@ app.put('/api/miseajourenseignant/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'enseignant' });
   }
 });
+
+app.put('/api/miseajourinter/:subjectId/:term', async (req, res) => {
+  const { subjectId, term } = req.params;
+  const { interro1, interro2, interro3, interro4 } = req.body;
+
+  try {
+    // Mettre à jour chaque note d'interrogation individuellement
+    const updates = [];
+
+    if (interro1 && interro1.id) {
+      updates.push(
+        prisma.note_inter.update({
+          where: { id: interro1.id },
+          data: { inter: interro1.grade }
+        })
+      );
+    }
+
+    if (interro2 && interro2.id) {
+      updates.push(
+        prisma.note_inter.update({
+          where: { id: interro2.id },
+          data: { inter: interro2.grade }
+        })
+      );
+    }
+
+    if (interro3 && interro3.id) {
+      updates.push(
+        prisma.note_inter.update({
+          where: { id: interro3.id },
+          data: { inter: interro3.grade }
+        })
+      );
+    }
+
+    if (interro4 && interro4.id) {
+      updates.push(
+        prisma.note_inter.update({
+          where: { id: interro4.id },
+          data: { inter: interro4.grade }
+        })
+      );
+    }
+
+    // Exécuter toutes les mises à jour
+    await Promise.all(updates);
+
+    res.status(200).json({ message: 'Notes d\'interrogation mises à jour avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour des notes d\'interrogation:', error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour des notes d\'interrogation' });
+  }
+});
+
+app.put('/api/miseajourdevoir/:subjectId/:term', async (req, res) => {
+  const { subjectId, term } = req.params;
+  const { devoir1, devoir2 } = req.body;
+
+  try {
+    // Mettre à jour chaque note de devoir individuellement
+    const updates = [];
+
+    if (devoir1 && devoir1.id) {
+      updates.push(
+        prisma.note_devoir.update({
+          where: { id: devoir1.id },
+          data: { devoir: devoir1.grade }
+        })
+      );
+    }
+
+    if (devoir2 && devoir2.id) {
+      updates.push(
+        prisma.note_devoir.update({
+          where: { id: devoir2.id },
+          data: { devoir: devoir2.grade }
+        })
+      );
+    }
+
+    // Exécuter toutes les mises à jour
+    await Promise.all(updates);
+
+    res.status(200).json({ message: 'Notes de devoir mises à jour avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour des notes de devoir:', error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour des notes de devoir' });
+  }
+});
+
 
 
 /*************************************************Connexion*************************************************/
