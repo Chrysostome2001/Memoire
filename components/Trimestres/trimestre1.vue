@@ -46,14 +46,12 @@
 
 <script>
 import axios from 'axios';
+import { set } from '~/node_modules/nuxt/dist/app/compat/capi';
 
 export default {
   props: ['trimestre', 'studentId'],
   data() {
     return {
-      headers: [
-        // Les headers ne sont pas nécessaires ici, car nous utilisons un tableau HTML standard
-      ],
       notes: [],
       studentName: '',
     };
@@ -62,7 +60,7 @@ export default {
   computed: {
     formattedNotes() {
       const formatted = {};
-
+      const seenNoteInterIds = new Set(); // Ensemble pour suivre les IDs de notes déjà vues
       this.notes.forEach(note => {
         if (!formatted[note.matiere]) {
           formatted[note.matiere] = {
@@ -80,7 +78,9 @@ export default {
           };
         }
 
-        if (note.note_inter) {
+        if (note.note_inter && !seenNoteInterIds.has(note.note_inter_id)) {
+          // Vérifier si la note a déjà été ajoutée
+          seenNoteInterIds.add(note.note_inter_id)
           if (!formatted[note.matiere].note_inter_1) {
             formatted[note.matiere].note_inter_1 = note.note_inter;
           } else if (!formatted[note.matiere].note_inter_2) {
@@ -105,6 +105,7 @@ export default {
             formatted[note.matiere].coefficient = note.coef;
           }
         }
+        
       });
 
       // Calcul des moyennes d'interrogations et de devoirs
@@ -128,33 +129,30 @@ export default {
   },
 
   mounted() {
-    // Exemple pour un élève spécifique
     const name = this.$route.query.name
-      if(name === "eleve"){
-        axios.get(`http://localhost:8080/api/eleve/${this.$route.query.param}/notes?trimestre_id=1`)
+    if(name === "eleve"){
+      axios.get(`http://localhost:8080/api/eleve/${this.$route.query.param}/notes?trimestre_id=1`)
         .then(response => {
           if (response.data.length > 0) {
             this.studentName = response.data[0].nom_eleve;
             this.notes = response.data;
-            
           }
         })
         .catch(error => {
           console.error('Erreur lors de la récupération des notes:', error);
         });
-      }else if(name === "parent"){
-        axios.get(`http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`)
-      .then(response => {
-        if (response.data.length > 0) {
-          this.studentName = response.data[0].nom_eleve;
-          this.notes = response.data;
-        }
-      })
-      .catch(error => {
-        console.error('Erreur lors de la récupération des notes:', error);
-      });
-      }
-    
+    } else if(name === "parent"){
+      axios.get(`http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`)
+        .then(response => {
+          if (response.data.length > 0) {
+            this.studentName = response.data[0].nom_eleve;
+            this.notes = response.data;
+          }
+        })
+        .catch(error => {
+          console.error('Erreur lors de la récupération des notes:', error);
+        });
+    }
   },
 
   watch: {
@@ -175,6 +173,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 table {

@@ -390,9 +390,11 @@ export default {
     },
 
     validateNotes() {
-      const notesToSave = this.students.map(student => ({
+    // Filtrer les étudiants dont les notes n'ont pas d'ID
+    const notesToSave = this.students 
+      .map(student => ({
         id_eleve: student.eleveId, // Ajoutez la propriété id ou un identifiant unique pour chaque étudiant
-        enseignant_id: this.$route.query.param,/* Remplacez par l'ID de l'enseignant */
+        enseignant_id: this.$route.query.param, /* Remplacez par l'ID de l'enseignant */
         matiere_id: student.matiereId, /* Remplacez par l'ID de la matière */
         trimestre_id: student.trimestreId,
         note_inter1: student.interro1,
@@ -403,22 +405,28 @@ export default {
         note_devoir2: student.devoir2,
       }));
 
+    if (notesToSave.length > 0) {
       axios.post('http://localhost:8080/api/save-notes', notesToSave)
         .then(response => {
           console.log('Notes enregistrées avec succès !');
-          // Ajoutez ici toute logique de traitement après l'enregistrement
-           // Mise à jour du snackbar pour le succès
-      this.snackbar.message = 'Notes enregistrées avec succès!';
-      this.snackbar.color = 'success';
-      this.snackbar.show = true;
+          // Mise à jour du snackbar pour le succès
+          this.snackbar.message = 'Notes enregistrées avec succès!';
+          this.snackbar.color = 'success';
+          this.snackbar.show = true;
         })
         .catch(error => {
           console.error('Erreur lors de l\'enregistrement des notes :', error);
           this.snackbar.message = 'Erreur lors de l\'enregistrement des notes.';
-      this.snackbar.color = 'error';
-      this.snackbar.show = true;
+          this.snackbar.color = 'error';
+          this.snackbar.show = true;
         });
-    },
+    } else {
+      console.log('Aucune note à enregistrer.');
+      this.snackbar.message = 'Aucune note à enregistrer.';
+      this.snackbar.color = 'info';
+      this.snackbar.show = true;
+    }
+  },
   },
 };
 </script>

@@ -173,45 +173,55 @@ app.get('/api/eleve/:id/notes', (req, res) => {
 
   const sql = `
     SELECT 
-        Eleve.nom AS nom_eleve, 
-        Parent.nom AS nom_parent,
-        Matiere.matiere AS matiere,
-        NI.inter AS note_inter,
-        ND.devoir AS note_devoir,
-        Coefficient.coefficient AS coef,
-        Trimestre.id AS trimestre_id
+    Eleve.nom AS nom_eleve, 
+    Parent.nom AS nom_parent,
+    Matiere.matiere AS matiere,
+    NI.inter AS note_inter,
+    ND.devoir AS note_devoir,
+    NI.id AS note_inter_id,
+    ND.id AS note_devoir_id,
+    Coefficient.coefficient AS coef,
+    Trimestre.id AS trimestre_id,
+    Enseignant.nom AS nom_enseignant
+FROM 
+    Eleve
+LEFT JOIN 
+    Parent ON Parent.id = Eleve.id_parent
+CROSS JOIN
+    Matiere
+LEFT JOIN (
+    SELECT 
+        id,
+        id_eleve,
+        id_matiere,
+        inter,
+        id_enseignant
     FROM 
-        Eleve
-    LEFT JOIN 
-        Parent ON Parent.id = Eleve.id_parent
-    CROSS JOIN
-        Matiere
-    LEFT JOIN (
-        SELECT 
-            id_eleve,
-            id_matiere,
-            inter
-        FROM 
-            Note_inter
-        WHERE 
-            id_trimestre = ?
-    ) AS NI ON Eleve.id = NI.id_eleve AND Matiere.id = NI.id_matiere
-    LEFT JOIN (
-        SELECT 
-            id_eleve,
-            id_matiere,
-            devoir
-        FROM 
-            Note_devoir
-        WHERE 
-            id_trimestre = ?
-    ) AS ND ON Eleve.id = ND.id_eleve AND Matiere.id = ND.id_matiere
-    LEFT JOIN 
-        Coefficient ON Coefficient.id = Matiere.id_coefficient
-    LEFT JOIN 
-        Trimestre ON Trimestre.id = ?
+        Note_inter
     WHERE 
-        Eleve.id = ?;
+        id_trimestre = ?
+) AS NI ON Eleve.id = NI.id_eleve AND Matiere.id = NI.id_matiere
+LEFT JOIN (
+    SELECT 
+        id,
+        id_eleve,
+        id_matiere,
+        devoir,
+        id_enseignant
+    FROM 
+        Note_devoir
+    WHERE 
+        id_trimestre = ?
+) AS ND ON Eleve.id = ND.id_eleve AND Matiere.id = ND.id_matiere
+LEFT JOIN 
+    Coefficient ON Coefficient.id = Matiere.id_coefficient
+LEFT JOIN 
+    Trimestre ON Trimestre.id = ?
+LEFT JOIN 
+    Enseignant ON Enseignant.id = NI.id_enseignant OR Enseignant.id = ND.id_enseignant
+WHERE 
+    Eleve.id = ?;
+
   `;
 
   db.query(sql, [trimestreId, trimestreId, trimestreId, id], (error, results) => {
@@ -364,20 +374,36 @@ app.post('/api/save-notes', async (req, res) => {
   const notesToSave = req.body;
 
   try {
+    // Suppression des anciennes notes
+    for (const note of notesToSave) {
+      // Suppression des notes d'interrogation existantes
+      await prisma.note_inter.deleteMany({
+        where: {
+          id_eleve: parseInt(note.id_eleve),
+          id_enseignant: parseInt(note.enseignant_id),
+          id_matiere: parseInt(note.matiere_id),
+          id_trimestre: parseInt(note.trimestre_id),
+        },
+      });
+
+      // Suppression des notes de devoir existantes
+      await prisma.note_devoir.deleteMany({
+        where: {
+          id_eleve: parseInt(note.id_eleve),
+          id_enseignant: parseInt(note.enseignant_id),
+          id_matiere: parseInt(note.matiere_id),
+          id_trimestre: parseInt(note.trimestre_id),
+        },
+      });
+    }
+
+    // Enregistrement des nouvelles notes
     for (const note of notesToSave) {
       // Vérification et enregistrement des notes d'interrogation
       if (note.note_inter1 || note.note_inter2 || note.note_inter3 || note.note_inter4) {
-        const existingInter = await prisma.Note_inter.findFirst({
-          where: {
-            id_eleve: note.id_eleve,
-            id_enseignant: parseInt(note.enseignant_id),
-            id_matiere: note.matiere_id,
-            id_trimestre: note.trimestre_id,
-          },
-        });
-
-        if (!existingInter) {
-          await prisma.Note_inter.create({
+        // Créez une entrée pour chaque note d'interrogation
+        if (note.note_inter1) {
+          await prisma.note_inter.create({
             data: {
               eleve: { connect: { id: note.id_eleve } },
               enseignant: { connect: { id: parseInt(note.enseignant_id) } },
@@ -386,58 +412,47 @@ app.post('/api/save-notes', async (req, res) => {
               inter: parseFloat(note.note_inter1),
             },
           });
-
-          // Vous pouvez ajouter des entrées distinctes pour chaque note d'interrogation
-          if (note.note_inter2) {
-            await prisma.Note_inter.create({
-              data: {
-                eleve: { connect: { id: note.id_eleve } },
-                enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-                matiere: { connect: { id: note.matiere_id } },
-                trimestre: { connect: { id: note.trimestre_id } },
-                inter: parseFloat(note.note_inter2),
-              },
-            });
-          }
-          if (note.note_inter3) {
-            await prisma.Note_inter.create({
-              data: {
-                eleve: { connect: { id: note.id_eleve } },
-                enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-                matiere: { connect: { id: note.matiere_id } },
-                trimestre: { connect: { id: note.trimestre_id } },
-                inter: parseFloat(note.note_inter3),
-              },
-            });
-          }
-          if (note.note_inter4) {
-            await prisma.Note_inter.create({
-              data: {
-                eleve: { connect: { id: note.id_eleve } },
-                enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-                matiere: { connect: { id: note.matiere_id } },
-                trimestre: { connect: { id: note.trimestre_id } },
-                inter: parseFloat(note.note_inter4),
-              },
-            });
-          }
+        }
+        if (note.note_inter2) {
+          await prisma.note_inter.create({
+            data: {
+              eleve: { connect: { id: note.id_eleve } },
+              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+              matiere: { connect: { id: note.matiere_id } },
+              trimestre: { connect: { id: note.trimestre_id } },
+              inter: parseFloat(note.note_inter2),
+            },
+          });
+        }
+        if (note.note_inter3) {
+          await prisma.note_inter.create({
+            data: {
+              eleve: { connect: { id: note.id_eleve } },
+              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+              matiere: { connect: { id: note.matiere_id } },
+              trimestre: { connect: { id: note.trimestre_id } },
+              inter: parseFloat(note.note_inter3),
+            },
+          });
+        }
+        if (note.note_inter4) {
+          await prisma.note_inter.create({
+            data: {
+              eleve: { connect: { id: note.id_eleve } },
+              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+              matiere: { connect: { id: note.matiere_id } },
+              trimestre: { connect: { id: note.trimestre_id } },
+              inter: parseFloat(note.note_inter4),
+            },
+          });
         }
       }
 
       // Vérification et enregistrement des notes de devoir
       if (note.note_devoir1 || note.note_devoir2) {
-        const existingDevoir = await prisma.Note_devoir.findFirst({
-          where: {
-            id_eleve: note.id_eleve,
-            id_enseignant: parseInt(note.enseignant_id),
-            id_matiere: note.matiere_id,
-            id_trimestre: note.trimestre_id,
-            devoir: parseFloat(note.note_devoir1)
-          },
-        });
-
-        if (!existingDevoir) {
-          await prisma.Note_devoir.create({
+        // Créez une entrée pour chaque note de devoir
+        if (note.note_devoir1) {
+          await prisma.note_devoir.create({
             data: {
               eleve: { connect: { id: note.id_eleve } },
               enseignant: { connect: { id: parseInt(note.enseignant_id) } },
@@ -446,18 +461,17 @@ app.post('/api/save-notes', async (req, res) => {
               devoir: parseFloat(note.note_devoir1),
             },
           });
-
-          if (note.note_devoir2) {
-            await prisma.Note_devoir.create({
-              data: {
-                eleve: { connect: { id: note.id_eleve } },
-                enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-                matiere: { connect: { id: note.matiere_id } },
-                trimestre: { connect: { id: note.trimestre_id } },
-                devoir: parseFloat(note.note_devoir2),
-              },
-            });
-          }
+        }
+        if (note.note_devoir2) {
+          await prisma.note_devoir.create({
+            data: {
+              eleve: { connect: { id: note.id_eleve } },
+              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
+              matiere: { connect: { id: note.matiere_id } },
+              trimestre: { connect: { id: note.trimestre_id } },
+              devoir: parseFloat(note.note_devoir2),
+            },
+          });
         }
       }
     }
@@ -472,7 +486,20 @@ app.post('/api/save-notes', async (req, res) => {
 });
 
 
+
 /**************************************************Administrateur**********************************************/
+app.get('/api/admin/:id', (req, res) => {
+  const id = req.params.id;
+  const query = 'SELECT * FROM Admin WHERE id = ?';
+
+  db.query(query, [id], (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else {
+      res.json(results[0]); 
+    }
+  });
+});
 
 app.get("/api/classes-eleves/", (req, res) => {
   const query =`
@@ -1137,6 +1164,7 @@ app.post('/api/login/Enseignant', (req, res) => {
 });
 
 //Endpoint pour la connexion de l'élève
+/*
 app.post('/api/login/eleve', async (req, res) => {
   const { username, password } = req.body;
   const role = 'eleve';
@@ -1170,23 +1198,12 @@ app.post('/api/login/eleve', async (req, res) => {
     console.error('Erreur lors de la connexion', err);
     res.status(500).json({ error: 'Erreur lors de la connexion' });
   }
-});
+});*/
 
 
 /***************************************************Admin*************************************************/
 
-app.get('/api/admin/:id', (req, res) => {
-  const id = req.params.id;
-  const query = 'SELECT * FROM Admin WHERE id = ?';
 
-  db.query(query, [id], (error, results) => {
-    if (error) {
-      res.status(500).send(error);
-    } else {
-      res.json(results[0]); // Assuming you want to return the first result
-    }
-  });
-});
 
 
 // Start the server
@@ -1200,7 +1217,31 @@ app.listen(port, () => {
 
 
 
+app.post('/api/login/Eleve', (req, res) => {
+  const { username, password } = req.body;
+  const role = 'eleve';
+  
+  // Requête SQL paramétrée pour éviter les injections SQL
+  const query = 'SELECT * FROM Eleve WHERE username = ? AND password = ? AND role = ?';
+  
+  db.query(query, [username, password, role], (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la récupération des données depuis la base de données', err);
+      res.status(500).send('Erreur lors de la récupération des données depuis la base de données');
+      return;
+    }
 
+    if (results.length > 0) {
+      const user = results[0];
+      res.json({ 
+        role: user.role,
+        userId: user.id
+       });
+    } else {
+      res.status(401).send('Nom d\'utilisateur ou mot de passe incorrect.');
+    }
+  });
+});
 
 
 

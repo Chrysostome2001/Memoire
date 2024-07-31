@@ -27,12 +27,21 @@
                 <v-text-field
                   v-model="password"
                   :rules="passwordRules"
+                  :type="showPassword ? 'text' : 'password'"
                   label="Mot de passe"
-                  type="password"
                   hide-details
                   required
                   class="mb-2"
-                ></v-text-field>
+                >
+                  <template v-slot:append>
+                    <v-icon
+                      @click="showPassword = !showPassword"
+                      :class="{'cursor-pointer': true}"
+                    >
+                      {{ showPassword ? 'mdi-eye' : 'mdi-eye-off' }}
+                    </v-icon>
+                  </template>
+                </v-text-field>
 
                 <v-btn :disabled="!valid" color="primary" @click="login">
                   Se connecter
@@ -57,6 +66,7 @@ export default {
     valid: false,
     username: '',
     password: '',
+    showPassword: false, // Nouvelle propriété pour contrôler la visibilité du mot de passe
     selectedRole: null,
     roles: ['admin', 'eleve', 'enseignant', 'parent'],
     loginError: null,
@@ -113,5 +123,8 @@ export default {
 <style scoped>
 .fill-height {
   height: 100vh;
+}
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>

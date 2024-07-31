@@ -62,7 +62,7 @@ export default {
   computed: {
     formattedNotes() {
       const formatted = {};
-
+      const seenNoteInterIds = new Set();
       this.notes.forEach(note => {
         if (!formatted[note.matiere]) {
           formatted[note.matiere] = {
@@ -80,7 +80,7 @@ export default {
           };
         }
 
-        if (note.note_inter) {
+        if (note.note_inter && !seenNoteInterIds.has(note.note_inter_id)) {
           if (!formatted[note.matiere].note_inter_1) {
             formatted[note.matiere].note_inter_1 = note.note_inter;
           } else if (!formatted[note.matiere].note_inter_2) {
