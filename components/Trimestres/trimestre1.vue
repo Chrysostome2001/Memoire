@@ -1,14 +1,48 @@
 <template>
   <div>
     <h1>Notes de {{ studentName }}</h1>
-    <v-data-table
-      :headers="headers"
-      :items="formattedNotes"
-      height="400"
-      item-value="matiere"
-    ></v-data-table>
+    <table>
+      <thead>
+        <tr>
+          <th>Matière</th>
+          <th>Coefficient</th>
+          <th colspan="4">Interrogations</th>
+          <th>Moyenne Interrogations</th>
+          <th colspan="2">Devoirs</th>
+          <th>Moyenne Générale</th>
+          <th>Rang</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th></th>
+          <th>N°1</th>
+          <th>N°2</th>
+          <th>N°3</th>
+          <th>N°4</th>
+          <th></th>
+          <th>N°1</th>
+          <th>N°2</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in formattedNotes" :key="item.matiere">
+          <td>{{ item.matiere }}</td>
+          <td>{{ item.coefficient }}</td>
+          <td>{{ item.note_inter_1 }}</td>
+          <td>{{ item.note_inter_2 }}</td>
+          <td>{{ item.note_inter_3 }}</td>
+          <td>{{ item.note_inter_4 }}</td>
+          <td>{{ item.moy_Inter }}</td>
+          <td>{{ item.note_devoir_1 }}</td>
+          <td>{{ item.note_devoir_2 }}</td>
+          <td>{{ item.moy_gen }}</td>
+          <td>{{ item.rang }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
+
 
 <script>
 import axios from 'axios';
@@ -18,29 +52,7 @@ export default {
   data() {
     return {
       headers: [
-        { title: 'Matière', align: 'start', key: 'matiere' },
-        { title: 'Coefficient', align: 'end', key: 'coefficient' },
-        {
-          title:'Interrogations',
-          align:'start',
-          children:[
-            { title: 'N°1', align: 'end', key: 'note_inter_1' },
-            { title: 'N°2', align: 'end', key: 'note_inter_2' },
-            { title: 'N°3', align: 'end', key: 'note_inter_3' },
-            { title: 'N°4', align: 'end', key: 'note_inter_4' },
-          ]
-        },
-        { title: 'Moyenne Interrogations', align: 'end', key: 'moy_Inter' },
-        {
-          title:'Devoirs',
-          align:'start',
-          children:[
-            { title: 'N°1', align: 'end', key: 'note_devoir_1' },
-            { title: 'N°2', align: 'end', key: 'note_devoir_2' },
-          ]
-        },
-        { title: 'Moyenne Générale', align: 'end', key: 'moy_gen' },
-        { title: 'Rang', align: 'end', key: 'rang' },   
+        // Les headers ne sont pas nécessaires ici, car nous utilisons un tableau HTML standard
       ],
       notes: [],
       studentName: '',
@@ -163,3 +175,18 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+th {
+  background-color: #f4f4f4;
+}
+</style>

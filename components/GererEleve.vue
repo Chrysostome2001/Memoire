@@ -2,24 +2,16 @@
   <v-container>
     <v-row justify="center">
       <v-col cols="12" sm="6" md="3">
-        <v-card @click="showAddStudentForm" class="dashboard-card add-card" color="primary">
-          <v-card-title class="white--text">Ajouter Élève</v-card-title>
-        </v-card>
+        <v-btn size="x-large" @click="showAddStudentForm" color="primary" variant="text">Ajouter Élève</v-btn>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card @click="showDeleteStudentForm" class="dashboard-card delete-card" color="error">
-          <v-card-title class="white--text">Supprimer Élève</v-card-title>
-        </v-card>
+        <v-btn size="x-large" @click="showDeleteStudentForm" color="error" variant="text">Supprimer Élève</v-btn>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card @click="showModifyStudentForm" class="dashboard-card modify-card" color="warning">
-          <v-card-title class="white--text">Modifier Info Élève</v-card-title>
-        </v-card>
+        <v-btn size="x-large" @click="showModifyStudentForm" color="warning" variant="text">Modifier Info Élève</v-btn>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card @click="showStudentInfo" class="dashboard-card info-card" color="info">
-          <v-card-title class="white--text">Info Élève</v-card-title>
-        </v-card>
+        <v-btn size="x-large" @click="showStudentInfo" color="info" variant="text">Editer une note</v-btn>
       </v-col>
     </v-row>
 

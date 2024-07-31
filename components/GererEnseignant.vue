@@ -2,24 +2,16 @@
     <v-container>
       <v-row justify="center">
         <v-col cols="12" sm="6" md="3">
-          <v-card @click="showAddClasssForm" class="dashboard-card add-card" color="primary">
-            <v-card-title class="white--text">Creer enseignant</v-card-title>
-          </v-card>
+          <v-btn size="x-large" @click="showAddEnseignantForm" color="primary" variant="text">Creer enseignant</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-card @click="showDeleteClassForm" class="dashboard-card delete-card" color="error">
-            <v-card-title class="white--text">Supprimer enseignant</v-card-title>
-          </v-card>
+          <v-btn size="x-large" @click="showDeleteEnseignantForm" color="error" variant="text">Supprimer enseignant</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-card @click="showModifyClassForm" class="dashboard-card modify-card" color="warning">
-            <v-card-title class="white--text">Editer infos enseignant</v-card-title>
-          </v-card>
+          <v-btn size="x-large" @click="showModifyEnseignantForm" color="warning" variant="text">Editer infos enseignant</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-card @click="showClassInfo" class="dashboard-card info-card" color="info">
-            <v-card-title class="white--text">Ajouter enseignant dans une classe</v-card-title>
-          </v-card>
+          <v-btn size="x-large" @click="showEnseignantInfo" color="info" variant="text">Ajouter enseignant</v-btn>
         </v-col>
       </v-row>
   
@@ -48,16 +40,16 @@
       };
     },
     methods: {
-      showAddClasssForm() {
+      showAddEnseignantForm() {
         this.currentComponent = 'CreerEnseignant';
       },
-      showDeleteClassForm() {
+      showDeleteEnseignantForm() {
         this.currentComponent = 'SupprimerEnseignant';
       },
-      showModifyClassForm() {
+      showModifyEnseignantForm() {
         this.currentComponent = 'EditerInfosEnseignant';
       },
-      showClassInfo() {
+      showEnseignantInfo() {
         this.currentComponent = 'AjouterEnseignant';
       }
     }

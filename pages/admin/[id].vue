@@ -14,7 +14,7 @@
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center">User Name</v-list-item-title>
+            <v-list-item-title class="d-flex align-center ml-9 mt-2" >{{ admin.username }}</v-list-item-title>
           </v-list-item>
           <v-list-item link @click="changeView('GererEleve')" class="mt-5">
             <v-list-item-title>Gerer eleve</v-list-item-title>
@@ -73,7 +73,7 @@
     data() {
       return {
         id: null,
-        data: null,
+        admin: {},
         drawer: false,
         currentView: 'Home',
       };
@@ -96,7 +96,10 @@
         const { id } = this.$route.params;
         try {
           const response = await axios.get(`http://localhost:8080/api/admin/${id}`);
-          this.data = response.data;
+          this.admin = {
+            id: response.data.id,
+            username: response.data.username,
+          };
         } catch (error) {
           console.error(error);
         }

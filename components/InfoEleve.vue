@@ -93,17 +93,13 @@
                           <tr v-for="item in prepareGradesTable(subject.terms)" :key="item.term">
                             <td>
                               <v-text-field
-      v-model="currentGrade"
-      type="number"
-      max="20"
-      min="0"
-      step="0.01"
-      @input="handleInput"
-    ></v-text-field>
-    <!-- Affiche la valeur initiale uniquement si l'utilisateur n'a pas encore modifié le champ -->
-    <div v-if="!isEditing">Valeur initiale: {{ item.interro1.grade }}</div>
-    <!-- Affiche la valeur actuelle uniquement si l'utilisateur a modifié le champ -->
-    <div v-if="isEditing">Valeur actuelle: {{ currentGrade }}</div>
+                                v-model="item.interro1.grade"
+                                type="number"
+                                max="20"
+                                min="0"
+                                step="0.01"
+                                @input="updateGrade(subjectId, term, 'interro1', $event)"
+                              ></v-text-field>
                             </td>
                             <td>
                               <v-text-field
@@ -112,6 +108,7 @@
                                 max="20"
                                 min="0"
                                 step="0.01"
+                                @input="updateGrade(subjectId, term, 'interro2', $event)"
                               ></v-text-field>
                             </td>
                             <td>
@@ -121,6 +118,7 @@
                                 max="20"
                                 min="0"
                                 step="0.01"
+                                @input="updateGrade(subjectId, term, 'interro3', $event)"
                               ></v-text-field>
                             </td>
                             <td>
@@ -130,6 +128,7 @@
                                 max="20"
                                 min="0"
                                 step="0.01"
+                                @input="updateGrade(subjectId, term, 'interro4', $event)"
                               ></v-text-field>
                             </td>
                             <td>
@@ -139,6 +138,7 @@
                                 max="20"
                                 min="0"
                                 step="0.01"
+                                @input="updateGrade(subjectId, term, 'devoir1', $event)"
                               ></v-text-field>
                             </td>
                             <td>
@@ -148,6 +148,7 @@
                                 max="20"
                                 min="0"
                                 step="0.01"
+                                @input="updateGrade(subjectId, term, 'devoir2', $event)"
                               ></v-text-field>
                             </td>
                             <td>{{ item.interroAverage }}</td>
@@ -182,8 +183,6 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      currentGrade: null, // Valeur modifiée par l'utilisateur
-      isEditing: false, // Indicateur pour savoir si l'utilisateur a modifié l'entrée
       search: '',
       studentSearch: '',
       selectedClass: null,
@@ -212,14 +211,16 @@ export default {
     };
   },
   methods: {
-    handleInput() {
-      if (!this.isEditing) {
-        this.isEditing = true; // Met à jour l'indicateur lorsque l'utilisateur commence à modifier le champ
+     // Méthode pour mettre à jour les notes
+     updateGrade(subjectId, term, type, event) {
+      const newValue = parseFloat(event.target.value);
+      if (isNaN(newValue)) return;
+
+      // Accédez à la structure de données appropriée
+      const grades = this.gradesData[subjectId].terms[term];
+      if (grades) {
+        grades[type].grade = newValue;
       }
-      this.updateGrade(); // Met à jour item.interro1.grade avec la valeur modifiée
-    },
-    updateGrade() {
-      this.item.interro1.grade = this.currentGrade; // Met à jour item.interro1.grade avec la valeur modifiée
     },
     async fetchClasses() {
       try {
@@ -349,6 +350,7 @@ export default {
         
         // Envoyer les mises à jour pour les devoirs
         if (Object.keys(cleanDevoirGrades).length > 0) {
+          console.log('Données envoyées pour les devoirs:', cleanDevoirGrades);
           await axios.put(`http://localhost:8080/api/miseajourdevoir/${subjectId}/${term}`, cleanDevoirGrades);
         }
 

@@ -14,7 +14,7 @@
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center">User Name</v-list-item-title>
+            <v-list-item-title class="d-flex align-center">{{ eleve.username }}</v-list-item-title>
           </v-list-item>
           <v-list-item link @click="changeView('DashboardEleve')" class="mt-5">
             <v-list-item-title>Consulter note</v-list-item-title>
@@ -54,6 +54,7 @@
   </template>
   
   <script>
+  import axios from 'axios';
   import Home from '~/components/Home.vue';
   import About from '~/components/About.vue';
   import Contact from '~/components/Contact.vue';
@@ -62,7 +63,7 @@
     data() {
       return {
         id: null,
-        data: null,
+        eleve: {},
         drawer: false,
         currentView: 'Home',
       };
@@ -81,7 +82,10 @@
         const { id } = this.$route.params;
         try {
           const response = await axios.get(`http://localhost:8080/api/eleve/${id}`);
-          this.data = response.data;
+          this.eleve = {
+            id: response.data.eleve_id,
+            username: response.data.eleve_username,
+          };
         } catch (error) {
           console.error(error);
         }

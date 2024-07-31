@@ -1,5 +1,5 @@
 <template>
-    <v-container>
+    <v-container class="mt-5">
       <v-form @submit.prevent="addClass">
         <v-row>
           <v-col cols="12" sm="6">

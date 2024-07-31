@@ -14,7 +14,7 @@
           </v-avatar>
         </v-list-item>
         <v-list-item>
-          <v-list-item-title class="d-flex align-center">User Name</v-list-item-title>
+          <v-list-item-title class="d-flex align-center ml-9 mt-2">{{ enseignant.username }}</v-list-item-title>
         </v-list-item>
         <v-list-item class="mt-5">
           <v-expansion-panels>
@@ -83,7 +83,7 @@ export default {
   data() {
     return {
       id: null,
-      data: null,
+      enseignant: {},
       drawer: false,
       currentView: 'Home',
       classes: [], // Utiliser un tableau vide pour stocker les classes récupérées
@@ -108,7 +108,10 @@ export default {
       const { id } = this.$route.params;
       try {
         const response = await axios.get(`http://localhost:8080/api/enseignant/${id}`);
-        this.data = response.data;
+        this.enseignant = {
+          id: response.data.id,
+          username: response.data.username,
+        };
       } catch (error) {
         console.error(error);
       }

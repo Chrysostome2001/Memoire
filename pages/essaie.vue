@@ -93,69 +93,72 @@
                           <tr v-for="item in prepareGradesTable(subject.terms)" :key="item.term">
                             <td>
                               <v-text-field
-                                v-model="item.interro1"
+                                v-model="item.interro1.grade"
                                 type="number"
-                                @change="updateGrade(subjectId, item.term, 'interro1', item.interro1)"
                                 max="20"
                                 min="0"
                                 step="0.01"
-                              >{{ item.interro1 ?? 'null' }}</v-text-field>
+                                @input="updateGrade(subjectId, term, 'interro1', $event)"
+                              ></v-text-field>
                             </td>
                             <td>
                               <v-text-field
-                                v-model="item.interro2"
+                                v-model="item.interro2.grade"
                                 type="number"
-                                @change="updateGrade(subjectId, item.term, 'interro2', item.interro2)"
                                 max="20"
                                 min="0"
                                 step="0.01"
-                              >{{ item.interro2 ?? 'null' }}</v-text-field>
+                                @input="updateGrade(subjectId, term, 'interro2', $event)"
+                              ></v-text-field>
                             </td>
                             <td>
                               <v-text-field
-                                v-model="item.interro3"
+                                v-model="item.interro3.grade"
                                 type="number"
-                                @change="updateGrade(subjectId, item.term, 'interro3', item.interro3)"
                                 max="20"
                                 min="0"
                                 step="0.01"
-                              >{{ item.interro3 ?? 'null' }}</v-text-field>
+                                @input="updateGrade(subjectId, term, 'interro3', $event)"
+                              ></v-text-field>
                             </td>
                             <td>
                               <v-text-field
-                                v-model="item.interro4"
+                                v-model="item.interro4.grade"
                                 type="number"
-                                @change="updateGrade(subjectId, item.term, 'interro4', item.interro4)"
                                 max="20"
                                 min="0"
                                 step="0.01"
-                              >{{ item.interro4 ?? 'null' }}</v-text-field>
+                                @input="updateGrade(subjectId, term, 'interro4', $event)"
+                              ></v-text-field>
                             </td>
                             <td>
                               <v-text-field
-                                v-model="item.devoir1"
+                                v-model="item.devoir1.grade"
                                 type="number"
-                                @change="updateGrade(subjectId, item.term, 'devoir1', item.devoir1)"
                                 max="20"
                                 min="0"
                                 step="0.01"
-                              >{{ item.devoir1 ?? 'null' }}</v-text-field>
+                                @input="updateGrade(subjectId, term, 'devoir1', $event)"
+                              ></v-text-field>
                             </td>
                             <td>
                               <v-text-field
-                                v-model="item.devoir2"
+                                v-model="item.devoir2.grade"
                                 type="number"
-                                @change="updateGrade(subjectId, item.term, 'devoir2', item.devoir2)"
                                 max="20"
                                 min="0"
                                 step="0.01"
-                              >{{ item.devoir2 ?? 'null' }}</v-text-field>
+                                @input="updateGrade(subjectId, term, 'devoir2', $event)"
+                              ></v-text-field>
                             </td>
                             <td>{{ item.interroAverage }}</td>
                             <td>{{ item.devoirAverage }}</td>
                           </tr>
                         </tbody>
                       </table>
+                      <v-btn @click="validateGrades(subjectId, term)" color="primary" class="mt-4">
+                        Valider
+                      </v-btn>
                     </v-expansion-panel-text>
                   </v-expansion-panel>
                 </v-expansion-panels>
@@ -165,8 +168,14 @@
         </v-card-text>
       </v-card>
     </div>
+    <!-- Snackbar pour afficher le message de validation -->
+    <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" :color="snackbar.color">
+      {{ snackbar.message }}
+      <v-btn color="white" text @click="snackbar.visible = false">Fermer</v-btn>
+    </v-snackbar>
   </v-container>
 </template>
+
 
 <script>
 import axios from 'axios';
@@ -193,9 +202,26 @@ export default {
         { title: 'Moy Interros', value: 'interroAverage' },
         { title: 'Moy Devoirs', value: 'devoirAverage' },
       ],
+      snackbar: {
+        visible: false,
+        message: '',
+        timeout: 3000,
+        color: 'success' // Vous pouvez changer la couleur selon le contexte (success, error, etc.)
+      },
     };
   },
   methods: {
+     // Méthode pour mettre à jour les notes
+     updateGrade(subjectId, term, type, event) {
+      const newValue = parseFloat(event.target.value);
+      if (isNaN(newValue)) return;
+
+      // Accédez à la structure de données appropriée
+      const grades = this.gradesData[subjectId].terms[term];
+      if (grades) {
+        grades[type].grade = newValue;
+      }
+    },
     async fetchClasses() {
       try {
         const response = await axios.get('http://localhost:8080/api/classes-eleves');
@@ -264,16 +290,17 @@ export default {
       return Object.keys(terms).map((term, index) => {
         if (index === 1) return null;
         const grades = terms[term];
+        console.log('Grades pour le trimestre', term, grades); 
         return {
           term: term,
-          interro1: grades.interro1,
-          interro2: grades.interro2,
-          interro3: grades.interro3,
-          interro4: grades.interro4,
-          devoir1: grades.devoir1,
-          devoir2: grades.devoir2,
-          interroAverage: this.calculateAverage([grades.interro1, grades.interro2, grades.interro3, grades.interro4]),
-          devoirAverage: this.calculateAverage([grades.devoir1, grades.devoir2])
+          interro1: grades.interro1 ? { grade: grades.interro1.grade, id: grades.interro1.id } : { grade: null, id: null },
+          interro2: grades.interro2 ? { grade: grades.interro2.grade, id: grades.interro2.id } : { grade: null, id: null },
+          interro3: grades.interro3 ? { grade: grades.interro3.grade, id: grades.interro3.id } : { grade: null, id: null },
+          interro4: grades.interro4 ? { grade: grades.interro4.grade, id: grades.interro4.id } : { grade: null, id: null },
+          devoir1: grades.devoir1 ? { grade: grades.devoir1.grade, id: grades.devoir1.id } : { grade: null, id: null },
+          devoir2: grades.devoir2 ? { grade: grades.devoir2.grade, id: grades.devoir2.id } : { grade: null, id: null },
+          interroAverage: this.calculateAverage([grades.interro1?.grade, grades.interro2?.grade, grades.interro3?.grade, grades.interro4?.grade]),
+          devoirAverage: this.calculateAverage([grades.devoir1?.grade, grades.devoir2?.grade])
         };
       }).filter(item => item !== null);
     },
@@ -283,16 +310,63 @@ export default {
       const total = validValues.reduce((sum, value) => sum + parseFloat(value), 0);
       return validValues.length > 0 ? (total / validValues.length).toFixed(2) : 'N/A';
     },
-    updateGrade(subjectId, term, gradeType, newValue) {
-      // Mettre à jour la note dans le backend
-      axios.put(`http://localhost:8080/api/update-grade/${subjectId}/${term}/${gradeType}`, {
-        grade: newValue
-      }).then(response => {
-        console.log('Grade updated successfully');
-      }).catch(error => {
-        console.error('Error updating grade:', error);
-      });
-    }
+    async validateGrades(subjectId, term) {
+      // Préparer les données à envoyer
+      const grades = this.prepareGradesTable(this.gradesData[subjectId].terms).find(g => g.term === term);
+
+      if (!grades) {
+        console.error('Aucune note trouvée pour le trimestre spécifié');
+        return;
+      }
+
+      // Filtrer les notes non nulles
+      const filteredInterroGrades = {
+        interro1: grades.interro1 ? { grade: grades.interro1.grade, id: grades.interro1.id } : undefined,
+        interro2: grades.interro2 ? { grade: grades.interro2.grade, id: grades.interro2.id } : undefined,
+        interro3: grades.interro3 ? { grade: grades.interro3.grade, id: grades.interro3.id } : undefined,
+        interro4: grades.interro4 ? { grade: grades.interro4.grade, id: grades.interro4.id } : undefined,
+      };
+
+      const filteredDevoirGrades = {
+        devoir1: grades.devoir1 ? { grade: grades.devoir1.grade, id: grades.devoir1.id } : undefined,
+        devoir2: grades.devoir2 ? { grade: grades.devoir2.grade, id: grades.devoir2.id } : undefined,
+      };
+
+      // Retirer les propriétés undefined
+      const cleanInterroGrades = Object.fromEntries(
+        Object.entries(filteredInterroGrades).filter(([_, value]) => value !== undefined)
+      );
+
+      const cleanDevoirGrades = Object.fromEntries(
+        Object.entries(filteredDevoirGrades).filter(([_, value]) => value !== undefined)
+      );
+
+      try {
+        // Envoyer les mises à jour pour les interrogations
+        if (Object.keys(cleanInterroGrades).length > 0) {
+          console.log('Données envoyées pour les interrogations:', cleanInterroGrades);
+          await axios.put(`http://localhost:8080/api/miseajourinter/${subjectId}/${term}`, cleanInterroGrades);
+        }
+        
+        // Envoyer les mises à jour pour les devoirs
+        if (Object.keys(cleanDevoirGrades).length > 0) {
+          console.log('Données envoyées pour les devoirs:', cleanDevoirGrades);
+          await axios.put(`http://localhost:8080/api/miseajourdevoir/${subjectId}/${term}`, cleanDevoirGrades);
+        }
+
+        // Afficher le message de succès
+        this.snackbar.message = 'Notes mises à jour avec succès';
+        this.snackbar.color = 'success';
+        this.snackbar.visible = true;
+        console.log('Notes mises à jour avec succès');
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour des notes:', error);
+        // Afficher le message d'erreur
+        this.snackbar.message = 'Erreur lors de la mise à jour des notes';
+        this.snackbar.color = 'error';
+        this.snackbar.visible = true;
+      }
+    },
   },
   created() {
     this.fetchClasses();

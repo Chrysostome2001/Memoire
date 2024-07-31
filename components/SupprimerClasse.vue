@@ -1,5 +1,5 @@
 <template>
-    <v-container>
+    <v-container class="mt-5">
       <v-row>
         <v-col cols="12">
           <v-text-field v-model="search" label="Rechercher une classe" clearable @input="searchClass"></v-text-field>

@@ -141,6 +141,11 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
+  {{ snackbar.message }}
+  <v-btn text @click="snackbar.show = false">Fermer</v-btn>
+</v-snackbar>
+
   </v-app>
 </template>
 
@@ -178,6 +183,11 @@ export default {
       { title: 'Rang Final', key: 'finalRank' },
       { title: 'Actions', key: 'actions', sortable: false },
     ],
+    snackbar: {
+      show: false,
+      message: '',
+      color: 'success' 
+    },
     students: [],
     editedIndex: -1,
     editedField: '',
@@ -397,9 +407,16 @@ export default {
         .then(response => {
           console.log('Notes enregistrées avec succès !');
           // Ajoutez ici toute logique de traitement après l'enregistrement
+           // Mise à jour du snackbar pour le succès
+      this.snackbar.message = 'Notes enregistrées avec succès!';
+      this.snackbar.color = 'success';
+      this.snackbar.show = true;
         })
         .catch(error => {
           console.error('Erreur lors de l\'enregistrement des notes :', error);
+          this.snackbar.message = 'Erreur lors de l\'enregistrement des notes.';
+      this.snackbar.color = 'error';
+      this.snackbar.show = true;
         });
     },
   },

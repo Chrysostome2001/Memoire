@@ -14,7 +14,7 @@
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center">User Name</v-list-item-title>
+            <v-list-item-title class="d-flex align-center ml-9 mt-2">{{ parent.username }}</v-list-item-title>
           </v-list-item>
           <v-list-item link @click="changeView('DashboardParent')" class="mt-5">
             <v-list-item-title>Consulter note</v-list-item-title>
@@ -61,6 +61,7 @@
   </template>
   
   <script>
+  import axios from 'axios';
   import Home from '~/components/Home.vue';
   import About from '~/components/About.vue';
   import Contact from '~/components/Contact.vue';
@@ -69,7 +70,7 @@
     data() {
       return {
         id: null,
-        data: null,
+        parent: {},
         drawer: false,
         currentView: 'Home',
       };
@@ -88,7 +89,11 @@
         const { id } = this.$route.params;
         try {
           const response = await axios.get(`http://localhost:8080/api/parent/${id}`);
-          this.data = response.data;
+          this.parent = {
+            id: response.data.parent_id,
+            username: response.data.parent_username,
+          }
+          console.log(this.parent)
         } catch (error) {
           console.error(error);
         }

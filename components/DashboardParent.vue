@@ -2,16 +2,15 @@
   <v-app>
     <v-layout class="rounded-md">
       <v-main>
-        <v-card class="vcard mt-5 ml-5 mb-5" variant="elevated" color="indigo-darken-3" outlined>
+        <v-card class="vcard mt-5 ml-5 mb-5" variant="elevated" color="white" outlined>
           <v-expansion-panels>
-            <v-expansion-panel v-for="(enfant, i) in enfants" :key="i">
+            <v-expansion-panel v-for="(enfant, i) in enfants" :key="i" class="mt-6">
               <v-expansion-panel-title @click="loadNotes(enfant.id)">
                 {{ enfant.nom }} {{ enfant.prenom }}
               </v-expansion-panel-title>
               <v-expansion-panel-text>
                 <v-card-text>
                   <div>Classe: {{ enfant.classe }}</div>
-                  <div>Téléphone:</div>
                 </v-card-text>
                 <v-expansion-panels>
                   <v-expansion-panel class="mt-6 mb-6" v-for="(TrimestreComponent, index) in TrimestreComponents" :key="index">

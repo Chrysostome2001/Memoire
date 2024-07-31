@@ -43,8 +43,12 @@ app.get('/api/parents/', (req, res) => {
 });
 
 // Route to get a parent by ID
-app.get('/parent/:id', (req, res) => {
-  const sql = 'SELECT * FROM Parent WHERE id = ?';
+app.get('/api/parent/:id', (req, res) => {
+  const sql = `SELECT 
+                      Parent.id AS parent_id,
+                      Parent.username AS parent_username 
+                    FROM Parent 
+                       WHERE id = ?`;
   const id = req.params.id;
   db.query(sql, [id], (error, results) => {
     if (error) {
@@ -121,7 +125,12 @@ app.get('/api/parent-enfant/:id', (req, res) => {
 
 /*********************************************Eleves***********************************************************/
 app.get('/api/eleve/:id', (req, res) => {
-  const query = 'SELECT * FROM Eleve WHERE id = ?';
+  const query = `
+                  SELECT 
+                          Eleve.id AS eleve_id,
+                          Eleve.username AS eleve_username
+                         FROM Eleve 
+                          WHERE id = ?`;
   const id = req.params.id;
 
   db.query(query, [id], (error, results) => {
