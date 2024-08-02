@@ -21,7 +21,16 @@
         <v-card-text>
           <v-text-field v-model="editedEleve.eleve_nom" label="Nom"></v-text-field>
           <v-text-field v-model="editedEleve.eleve_prenom" label="Prénom"></v-text-field>
-          <v-text-field v-model="editedEleve.classe_nom" label="Nom des classes"></v-text-field>
+          <v-col cols="12">
+          <v-combobox 
+            v-model="selectedClass"
+            :items="classOptions" 
+            item-value="id"
+            item-title="classeNom"
+            label="Classe" 
+            required
+          ></v-combobox>
+        </v-col>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -54,6 +63,8 @@ export default {
         eleve_prenom: '',
         classe_nom: '',
       },
+      classOptions: [],
+      selectedClass: null,
       alertSnackbar: false,
     };
   },
@@ -89,10 +100,11 @@ export default {
       this.dialog = true;
     },
     updateEleve(eleve) {
+      const classId = this.selectedClass ? this.selectedClass.id : null;
       return axios.put(`http://localhost:8080/api/miseajoureleve/${eleve.id}`, {
         nom: eleve.eleve_nom,
         prenom: eleve.eleve_prenom,
-        id_classe: eleve.classe_id,
+        id_classe: classId,
       });
     },
     saveChanges() {
@@ -113,6 +125,23 @@ export default {
           console.error(error);
         });
     },
+  },
+  mounted() {
+    axios.get('http://localhost:8080/api/classes/')
+    .then(response => {
+      console.log('Classes data:', response.data);  // Log class data
+      if (response.data && response.data.length > 0) {
+        this.classOptions = response.data.map(classOption => ({
+          id: classOption.classe_id,
+          classeNom: classOption.classe_nom
+        }));
+      }else {
+        console.warn('No class data found');
+      }
+    })
+    .catch(error => {
+      console.error('Error class not found', error);
+    });
   },
   created() {
   this.fetchEleve();

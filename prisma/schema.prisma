@@ -75,7 +75,7 @@ model Eleve {
   updatedAt    DateTime  @updatedAt
   nom String
   prenom String
-  photo String?
+  photo Bytes?
   classe Classe @relation(fields: [id_classe], references: [id])
   parent Parent @relation(fields: [id_parent], references: [id])
   id_classe Int

@@ -5,6 +5,8 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const cors = require('cors'); // Importer le package CORS
 const { PrismaClient } = require('@prisma/client');
+const fs = require('fs');
+const path = require('path');
 const prisma = new PrismaClient();
 const app = express();
 const port = 8080;
@@ -569,14 +571,37 @@ app.get("/api/enseignants-classe/", (req, res) => {
   });
 });
 
+
+app.get('/api/:id/photo', (req, res) => {
+  const eleveId = req.params.id;
+  const query = `
+    SELECT photo FROM Eleve WHERE id = ?
+  `;
+  db.query(query, [eleveId], (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else if (results.length > 0) {
+      const photo = results[0].photo;
+      if (photo) {
+        res.setHeader('Content-Type', 'image/jpeg'); // Ajustez le type MIME si nécessaire
+        res.send(photo);
+      } else {
+        res.status(404).send('Photo not found');
+      }
+    } else {
+      res.status(404).send('Eleve not found');
+    }
+  });
+});
+
+
 app.get("/api/classe-eleves/:id", (req, res) => {
   const classeId = req.params.id;
   const query =`
               SELECT
                   Eleve.id AS eleve_id,
                   Eleve.nom AS eleve_nom,
-                  Eleve.prenom AS eleve_prenom,
-                  Eleve.photo AS eleve_photo
+                  Eleve.prenom AS eleve_prenom
                 FROM
                   Classe
                 JOIN Eleve ON Eleve.id_classe = Classe.id
@@ -586,7 +611,11 @@ app.get("/api/classe-eleves/:id", (req, res) => {
     if (error) {
       res.status(500).send(error);
     } else {
-      res.json(results); // Assuming you want to return the first result
+      const response = results.map(eleve => ({
+        ...eleve,
+        photoUrl: `http://localhost:8080/api/${eleve.eleve_id}/photo` // URL de la photo
+      }));
+      res.json(response); // Assuming you want to return the first result
     }
   });
 });
@@ -684,9 +713,12 @@ app.get('/api/student-grades/:studentId', async (req, res) => {
 app.get('/api/matieres/', (req, res) => {
   const query = `
     SELECT
-      id AS matiere_id,
-      matiere AS matiere_nom
-    FROM Matiere
+  Matiere.id AS matiere_id,
+  Matiere.matiere AS matiere_nom,
+  Coefficient.coefficient AS matiere_coef
+FROM Matiere
+LEFT JOIN Coefficient ON Coefficient.id = Matiere.id_coefficient
+ 
   `;
 
   db.query(query, (error, results) => {
@@ -763,26 +795,42 @@ function generateRandomString(length) {
 
 app.post('/api/students', async (req, res) => {
   try {
-    const { nom, prenom, photo, id_parent, id_classe } = req.body;
+    const { nom, prenom, id_parent, id_classe } = req.body;
 
     // Validation de la requête
-    if (!nom || !prenom || !photo || !id_parent || !id_classe) {
+    if (!nom || !prenom || !id_parent || !id_classe) {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
+    const username = generateRandomString(2); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(2); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Fonction pour lire une image en binaire
+const convertImageToBinary = (imagePath) => {
+  const filePath = path.resolve(__dirname, imagePath);
+  
+  // Vérifiez si le fichier existe avant de tenter de le lire
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`File not found: ${filePath}`);
+  }
+
+  return fs.readFileSync(filePath);
+};
+const photoPath = path.join(__dirname, 'public/00014372.jpg');
+const photoData = fs.readFileSync(photoPath);
+
+//const imagePath = '/home/chrysostome/project/public/00014372.jpg'; // Chemin relatif ou absolu vers votre image
+//const photoBinary = convertImageToBinary(imagePath);
     // Ajout de l'étudiant dans la base de données avec le mot de passe haché
     const newStudent = await prisma.eleve.create({
       data: {
         nom,
         prenom,
-        photo,
+        photo: photoData, // Utiliser la données binaires
         id_parent,
         id_classe,
         username,
@@ -801,6 +849,44 @@ app.post('/api/students', async (req, res) => {
   }
 });
 
+app.post('/api/parent', async (req, res) => {
+  try {
+    const { nom, prenom, photo } = req.body;
+
+    // Validation de la requête
+    if (!nom || !prenom || !photo) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+
+    // Générer un username et un mot de passe aléatoires
+    const username = generateRandomString(2); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(2); // Par exemple, 12 octets en hexadécimal
+
+    // Hachage du mot de passe
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Ajout du parent dans la base de données avec le mot de passe haché
+    const newParent = await prisma.parent.create({
+      data: {
+        nom,
+        prenom,
+        photo,
+        username,
+        password: hashedPassword
+      }
+    });
+
+    res.status(201).json({ 
+      ...newParent,
+      generatedUsername: username,
+      generatedPassword: password
+    });
+  } catch (error) {
+    console.error('Error adding parent:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout du parent' });
+  }
+});
+
 app.post('/api/enseignants', async (req, res) => {
   try {
     const { nom, prenom, photo, email, id_matiere } = req.body;
@@ -811,8 +897,8 @@ app.post('/api/enseignants', async (req, res) => {
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
+    const username = generateRandomString(2); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(2); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -840,6 +926,47 @@ app.post('/api/enseignants', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'enseignant' });
   }
 });
+
+
+app.post('/api/matiere', async (req, res) => {
+  try {
+    const { matiere, coefficientValue } = req.body;
+
+    // Validation de la requête
+    if (!matiere || coefficientValue === undefined) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+
+    // Vérifiez si le coefficient existe déjà
+    let coefficient = await prisma.coefficient.findFirst({
+      where: { coefficient: parseInt(coefficientValue) },
+    });
+
+    // Si le coefficient n'existe pas, créez-le
+    if (!coefficient) {
+      coefficient = await prisma.coefficient.create({
+        data: {
+          coefficient: parseInt(coefficientValue),
+        },
+      });
+    }
+
+    const newMatiere = await prisma.matiere.create({
+      data: {
+        matiere,
+        id_coefficient: parseInt(coefficient.id),
+      }
+    });
+
+    res.status(201).json({ 
+      ...newMatiere,
+    });
+  } catch (error) {
+    console.error('Error create new matiere:', error);
+    res.status(500).json({ error: 'Erreur lors de la creation d\'une nouvelle matiere.' });
+  }
+});
+
 
 app.post('/api/enseignant-classe', async (req, res) => {
   try {
@@ -892,6 +1019,8 @@ app.post('/api/classes', async (req, res) => {
 });
 
 
+
+
 // Exemple de route DELETE pour supprimer un élève
 app.delete('/api/supprimereleve/:id', async (req, res) => {
   try {
@@ -903,6 +1032,33 @@ app.delete('/api/supprimereleve/:id', async (req, res) => {
   } catch (error) {
     console.error('Erreur lors de la suppression de l\'élève:', error);
     res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'élève.' });
+  }
+});
+
+
+app.delete('/api/supprimerparent/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.parent.delete({
+      where: { id: parseInt(id) }
+    });
+    res.status(200).json({ message: 'parent supprimé avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du parent:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression du parent.' });
+  }
+});
+
+app.delete('/api/supprimermatiere/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.matiere.delete({
+      where: { id: parseInt(id) }
+    });
+    res.status(200).json({ message: 'matiere supprimé avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la matiere:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression du matiere.' });
   }
 });
 
@@ -952,6 +1108,27 @@ app.put('/api/miseajoureleve/:id', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'élève' });
+  }
+});
+
+
+// Endpoint pour mettre à jour un parent
+app.put('/api/miseajourparent/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nom, prenom } = req.body;
+
+  try {
+    const updatedParent = await prisma.parent.update({
+      where: { id: parseInt(id) },
+      data: {
+        nom,
+        prenom,
+      },
+    });
+    res.json(updatedParent);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour du parent' });
   }
 });
 

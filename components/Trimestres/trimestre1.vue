@@ -61,6 +61,7 @@ export default {
     formattedNotes() {
       const formatted = {};
       const seenNoteInterIds = new Set(); // Ensemble pour suivre les IDs de notes déjà vues
+      const seenNoteDevoirIds = new Set()
       this.notes.forEach(note => {
         if (!formatted[note.matiere]) {
           formatted[note.matiere] = {
@@ -92,7 +93,8 @@ export default {
           }
         }
 
-        if (note.note_devoir) {
+        if (note.note_devoir && !seenNoteDevoirIds.has(note.note_devoir_id)) {
+          seenNoteDevoirIds.add(note.note_devoir_id)
           if (!formatted[note.matiere].note_devoir_1) {
             formatted[note.matiere].note_devoir_1 = note.note_devoir;
           } else if (!formatted[note.matiere].note_devoir_2) {

@@ -29,6 +29,10 @@
        <!-- Message d'alerte d'ajout réussie -->
        <v-snackbar v-model="alertSnackbar" :timeout="3000" color="success">
           L'enseignant a été ajouter avec succès.
+          <div v-if="generatedUsername && generatedPassword">
+            <p>Nom d'utilisateur: {{ generatedUsername }}</p>
+            <p>Mot de passe: {{ generatedPassword }}</p>
+          </div>
           <v-btn color="white" text @click="alertSnackbar = false">Fermer</v-btn>
         </v-snackbar>
     </v-container>
@@ -62,10 +66,11 @@
           prenom: this.enseignant.surname,
           id_matiere: matiereID,
           email: this.enseignant.email,
-          photo: `../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg`,
         })
         .then(response => {
           console.log('Enseignant added successfully:', response.data);
+          this.generatedUsername = response.data.generatedUsername;
+          this.generatedPassword = response.data.generatedPassword;
           this.alertSnackbar = true;
           // Reset form fields after submission
           this.enseignant.name = '';

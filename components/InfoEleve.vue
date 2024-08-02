@@ -43,6 +43,7 @@
             <v-img
               :src="student.image"
               height="200px"
+              alt="Student Photo"
             ></v-img>
             <v-card-title>{{ student.name }} {{ student.surname }}</v-card-title>
             <v-card-subtitle>{{ selectedClass.name }}</v-card-subtitle>
@@ -238,11 +239,12 @@ export default {
     async fetchStudents(classId) {
       try {
         const response = await axios.get(`http://localhost:8080/api/classe-eleves/${classId}`);
+        console.log('Student data:', response.data);
         this.filteredStudents = response.data.map(student => ({
           id: student.eleve_id,
           name: student.eleve_nom,
           surname: student.eleve_prenom,
-          image: student.eleve_photo
+          image: student.photoUrl
         }));
         this.students = this.filteredStudents;
       } catch (error) {
@@ -375,6 +377,9 @@ export default {
 </script>
 
 <style scoped>
+.v-img {
+  object-fit: cover; /* Assure que l'image couvre la zone spécifiée tout en conservant les proportions */
+}
 /* Styles pour améliorer l'apparence */
 .v-card {
   cursor: pointer;

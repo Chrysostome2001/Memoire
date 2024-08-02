@@ -70,7 +70,6 @@ export default {
         prenom: this.student.surname,
         id_parent: parentId,
         id_classe: classId,
-        photo: `../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg`,
       })
       .then(response => {
         console.log('Student added successfully:', response.data);
