@@ -9,6 +9,9 @@
           <v-text-field v-model="student.surname" label="Prénom" required></v-text-field>
         </v-col>
         <v-col cols="12" sm="6">
+          <v-combobox v-model="student.sexe" :items="sexe" label="Sexe" required></v-combobox>
+        </v-col>
+        <v-col cols="12" sm="6">
           <v-combobox 
             v-model="selectedParent"
             :items="parents"
@@ -36,6 +39,10 @@
      <!-- Message d'alerte d'ajout réussie -->
      <v-snackbar v-model="alertSnackbar" :timeout="3000" color="success">
         L'élève a été ajouter avec succès.
+        <div v-if="generatedUsername && generatedPassword">
+            <p>Nom d'utilisateur: {{ generatedUsername }}</p>
+            <p>Mot de passe: {{ generatedPassword }}</p>
+          </div>
         <v-btn color="white" text @click="alertSnackbar = false">Fermer</v-btn>
       </v-snackbar>
   </v-container>
@@ -50,9 +57,11 @@ export default {
       student: {
         name: '',
         surname: '',
+        sexe: '',
         parentId: null,
         className: null
       },
+      sexe: ["M", "F"],
       classOptions: [],
       parents: [],
       selectedParent: null,
@@ -68,15 +77,19 @@ export default {
       axios.post('http://localhost:8080/api/students', {
         nom: this.student.name,
         prenom: this.student.surname,
+        sexe: this.student.sexe,
         id_parent: parentId,
         id_classe: classId,
       })
       .then(response => {
         console.log('Student added successfully:', response.data);
+        this.generatedUsername = response.data.generatedUsername;
+        this.generatedPassword = response.data.generatedPassword;
         this.alertSnackbar = true;
         // Reset form fields after submission
         this.student.name = '';
         this.student.surname = '';
+        this.student.sexe = '';
         this.student.parentId = null;
         this.student.className = null;
       })

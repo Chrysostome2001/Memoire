@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Notes de {{ studentName }}</h1>
+    <h3>Notes de {{ studentName }} <br> SEXE : {{ sexe }}</h3>
     <table>
       <thead>
         <tr>
@@ -46,6 +46,7 @@
 
 <script>
 import axios from 'axios';
+import { set } from '~/node_modules/nuxt/dist/app/compat/capi';
 
 export default {
   props: ['trimestre', 'studentId'],
@@ -56,6 +57,7 @@ export default {
       ],
       notes: [],
       studentName: '',
+      sexe:'',
     };
   },
 
@@ -63,6 +65,7 @@ export default {
     formattedNotes() {
       const formatted = {};
       const seenNoteInterIds = new Set();
+      const seenNoteDevoirIds = new Set()
       this.notes.forEach(note => {
         if (!formatted[note.matiere]) {
           formatted[note.matiere] = {
@@ -81,6 +84,7 @@ export default {
         }
 
         if (note.note_inter && !seenNoteInterIds.has(note.note_inter_id)) {
+          seenNoteInterIds.add(note.note_inter_id)
           if (!formatted[note.matiere].note_inter_1) {
             formatted[note.matiere].note_inter_1 = note.note_inter;
           } else if (!formatted[note.matiere].note_inter_2) {
@@ -93,6 +97,7 @@ export default {
         }
 
         if (note.note_devoir) {
+          seenNoteDevoirIds.add(note.note_devoir_id)
           if (!formatted[note.matiere].note_devoir_1) {
             formatted[note.matiere].note_devoir_1 = note.note_devoir;
           } else if (!formatted[note.matiere].note_devoir_2) {
@@ -117,7 +122,7 @@ export default {
           item.moy_Inter = sumInterrogations / totalInterrogations.length;
         }
 
-        if (totalDevoirs.length > 0) {
+        if (totalDevoirs.length === 2) {
           const sumDevoirs = totalDevoirs.reduce((acc, val) => acc + val, 0);
           item.moy_gen = ((item.moy_Inter + sumDevoirs) / 3).toFixed(2); // Exemple de calcul de la moyenne générale
         }
@@ -134,7 +139,8 @@ export default {
         axios.get(`http://localhost:8080/api/eleve/${this.$route.query.param}/notes?trimestre_id=3`)
         .then(response => {
           if (response.data.length > 0) {
-            this.studentName = response.data[0].nom_eleve;
+            this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
+            this.sexe = response.data[0].eleve_sexe
             this.notes = response.data;
             
           }
@@ -146,7 +152,8 @@ export default {
         axios.get(`http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`)
       .then(response => {
         if (response.data.length > 0) {
-          this.studentName = response.data[0].nom_eleve;
+          this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
+          this.sexe = response.data[0].eleve_sexe
           this.notes = response.data;
         }
       })
@@ -163,7 +170,8 @@ export default {
         axios.get(`http://localhost:8080/api/eleve/${newStudentId}/notes?trimestre_id=${this.$props.trimestre}`)
           .then(response => {
             if (response.data.length > 0) {
-              this.studentName = response.data[0].nom_eleve;
+              this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
+              this.sexe = response.data[0].eleve_sexe
               this.notes = response.data;
             }
           })

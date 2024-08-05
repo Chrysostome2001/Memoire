@@ -34,8 +34,14 @@ app.get('/api/parents/', (req, res) => {
                 SELECT 
                       Parent.id AS parent_id,
                       Parent.nom AS parent_nom,
-                      Parent.prenom AS parent_prenom
-                    FROM Parent`;
+                      Parent.prenom AS parent_prenom,
+                      Parent.contact AS parent_contact,
+                      COUNT(Eleve.id) AS nb_enfant
+                    FROM Parent
+                     LEFT JOIN Eleve 
+                          ON Eleve.id_parent = Parent.id
+                        GROUP BY 
+                      Parent.id, Parent.nom`;
   db.query(sql, (error, results) => {
     if (error) {
       return res.status(500).json({ message: error.message });
@@ -175,7 +181,10 @@ app.get('/api/eleve/:id/notes', (req, res) => {
 
   const sql = `
     SELECT 
-    Eleve.nom AS nom_eleve, 
+    Eleve.nom AS nom_eleve,
+    Eleve.prenom AS prenom_eleve, 
+    Eleve.sexe AS eleve_sexe,
+    Classe.nom AS classe_nom,
     Parent.nom AS nom_parent,
     Matiere.matiere AS matiere,
     NI.inter AS note_inter,
@@ -183,14 +192,17 @@ app.get('/api/eleve/:id/notes', (req, res) => {
     NI.id AS note_inter_id,
     ND.id AS note_devoir_id,
     Coefficient.coefficient AS coef,
-    Trimestre.id AS trimestre_id,
-    Enseignant.nom AS nom_enseignant
+    Trimestre.id AS trimestre_id
 FROM 
     Eleve
+LEFT JOIN
+    Classe ON Classe.id = Eleve.id_classe
 LEFT JOIN 
     Parent ON Parent.id = Eleve.id_parent
-CROSS JOIN
-    Matiere
+LEFT JOIN 
+    Enseignant_Classe ON Enseignant_Classe.id_classe = Classe.id
+LEFT JOIN 
+    Matiere ON Matiere.id = Enseignant_Classe.id_matiere
 LEFT JOIN (
     SELECT 
         id,
@@ -213,16 +225,17 @@ LEFT JOIN (
     FROM 
         Note_devoir
     WHERE 
-        id_trimestre = ?
+        id_trimestre = ? 
 ) AS ND ON Eleve.id = ND.id_eleve AND Matiere.id = ND.id_matiere
 LEFT JOIN 
-    Coefficient ON Coefficient.id = Matiere.id_coefficient
+    Coefficient ON Coefficient.id = Matiere.id_coefficient 
 LEFT JOIN 
     Trimestre ON Trimestre.id = ?
 LEFT JOIN 
     Enseignant ON Enseignant.id = NI.id_enseignant OR Enseignant.id = ND.id_enseignant
 WHERE 
-    Eleve.id = ?;
+    Eleve.id = ?
+
 
   `;
 
@@ -330,7 +343,7 @@ app.get('/api/notes', (req, res) => {
       Eleve.nom AS eleve_nom,
       Eleve.prenom AS eleve_prenom,
       Eleve.id AS eleve_id,
-      Matiere.id_coefficient AS coefficient,
+      Coefficient.coefficient AS coefficient,
       Matiere.matiere AS matiere_nom,
       Matiere.id AS matiere_id,
       Trimestre.nom AS trimestre_nom,
@@ -346,9 +359,11 @@ app.get('/api/notes', (req, res) => {
     JOIN 
       Enseignant_Classe ON Classe.id = Enseignant_Classe.id_classe
     JOIN 
-      Enseignant ON Enseignant_Classe.id_enseignant = Enseignant.id
+      Matiere ON Matiere.id = Enseignant_Classe.id_matiere
     JOIN 
-      Matiere ON Matiere.id = Enseignant.id_matiere
+      Enseignant ON Enseignant.id = Enseignant_Classe.id_enseignant
+    JOIN
+      Coefficient ON Coefficient.id = Matiere.id_coefficient
     LEFT JOIN 
       Note_inter ON Eleve.id = Note_inter.id_eleve AND Note_inter.id_enseignant = Enseignant.id
     LEFT JOIN 
@@ -532,7 +547,8 @@ app.get("/api/enseignants/", (req, res) => {
                       Enseignant.id AS enseignant_id,
                       Enseignant.nom AS enseignant_nom,
                       Enseignant.prenom AS enseignant_prenom,
-                      Enseignant.email AS enseignant_email
+                      Enseignant.contact AS enseignant_contact,
+                      Enseignant.sexe AS enseignant_sexe
                   FROM 
                       Enseignant
 
@@ -555,7 +571,8 @@ app.get("/api/enseignants-classe/", (req, res) => {
                       Classe.nom AS classe_nom,
                       Enseignant.id AS enseignant_id,
                       Enseignant.nom AS enseignant_nom,
-                      Enseignant.prenom AS enseignant_prenom
+                      Enseignant.prenom AS enseignant_prenom,
+                      Enseignant.sexe AS enseignant_sexe
                   FROM 
                       Enseignant_Classe
                   JOIN Enseignant ON Enseignant.id = Enseignant_Classe.id_enseignant
@@ -601,7 +618,8 @@ app.get("/api/classe-eleves/:id", (req, res) => {
               SELECT
                   Eleve.id AS eleve_id,
                   Eleve.nom AS eleve_nom,
-                  Eleve.prenom AS eleve_prenom
+                  Eleve.prenom AS eleve_prenom,
+                  Eleve.sexe AS eleve_sexe
                 FROM
                   Classe
                 JOIN Eleve ON Eleve.id_classe = Classe.id
@@ -795,10 +813,10 @@ function generateRandomString(length) {
 
 app.post('/api/students', async (req, res) => {
   try {
-    const { nom, prenom, id_parent, id_classe } = req.body;
+    const { nom, prenom, sexe, id_parent, id_classe } = req.body;
 
     // Validation de la requête
-    if (!nom || !prenom || !id_parent || !id_classe) {
+    if (!nom || !prenom || !sexe || !id_parent || !id_classe) {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
@@ -810,26 +828,24 @@ app.post('/api/students', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Fonction pour lire une image en binaire
-const convertImageToBinary = (imagePath) => {
+  const convertImageToBinary = (imagePath) => {
   const filePath = path.resolve(__dirname, imagePath);
   
-  // Vérifiez si le fichier existe avant de tenter de le lire
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`File not found: ${filePath}`);
-  }
+    // Vérifiez si le fichier existe avant de tenter de le lire
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
 
-  return fs.readFileSync(filePath);
-};
-const photoPath = path.join(__dirname, 'public/00014372.jpg');
-const photoData = fs.readFileSync(photoPath);
-
-//const imagePath = '/home/chrysostome/project/public/00014372.jpg'; // Chemin relatif ou absolu vers votre image
-//const photoBinary = convertImageToBinary(imagePath);
+    return fs.readFileSync(filePath);
+  };
+  const photoPath = path.join(__dirname, 'public/00014372.jpg');
+  const photoData = fs.readFileSync(photoPath);
     // Ajout de l'étudiant dans la base de données avec le mot de passe haché
     const newStudent = await prisma.eleve.create({
       data: {
         nom,
         prenom,
+        sexe,
         photo: photoData, // Utiliser la données binaires
         id_parent,
         id_classe,
@@ -851,10 +867,10 @@ const photoData = fs.readFileSync(photoPath);
 
 app.post('/api/parent', async (req, res) => {
   try {
-    const { nom, prenom, photo } = req.body;
+    const { nom, prenom, contact } = req.body;
 
     // Validation de la requête
-    if (!nom || !prenom || !photo) {
+    if (!nom || !prenom || !contact) {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
@@ -865,12 +881,27 @@ app.post('/api/parent', async (req, res) => {
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Fonction pour lire une image en binaire
+  const convertImageToBinary = (imagePath) => {
+    const filePath = path.resolve(__dirname, imagePath);
+    
+      // Vérifiez si le fichier existe avant de tenter de le lire
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+  
+      return fs.readFileSync(filePath);
+    };
+    const photoPath = path.join(__dirname, 'public/00014372.jpg');
+    const photoData = fs.readFileSync(photoPath);
+
     // Ajout du parent dans la base de données avec le mot de passe haché
     const newParent = await prisma.parent.create({
       data: {
         nom,
         prenom,
-        photo,
+        contact,
+        photo: photoData,
         username,
         password: hashedPassword
       }
@@ -889,10 +920,10 @@ app.post('/api/parent', async (req, res) => {
 
 app.post('/api/enseignants', async (req, res) => {
   try {
-    const { nom, prenom, photo, email, id_matiere } = req.body;
+    const { nom, prenom, contact, sexe } = req.body;
 
     // Validation de la requête
-    if (!nom || !prenom || !photo || !email || !id_matiere) {
+    if (!nom || !prenom || !contact || !sexe) {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
@@ -903,14 +934,28 @@ app.post('/api/enseignants', async (req, res) => {
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+     // Fonction pour lire une image en binaire
+  const convertImageToBinary = (imagePath) => {
+    const filePath = path.resolve(__dirname, imagePath);
+    
+      // Vérifiez si le fichier existe avant de tenter de le lire
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+  
+      return fs.readFileSync(filePath);
+    };
+    const photoPath = path.join(__dirname, 'public/00014372.jpg');
+    const photoData = fs.readFileSync(photoPath);
+
     // Ajout de l'enseignant dans la base de données avec le mot de passe haché
     const newEnseignant = await prisma.enseignant.create({
       data: {
         nom,
         prenom,
-        photo,
-        email,
-        id_matiere,
+        contact,
+        sexe,
+        photo:photoData,
         username,
         password: hashedPassword
       }
@@ -970,10 +1015,10 @@ app.post('/api/matiere', async (req, res) => {
 
 app.post('/api/enseignant-classe', async (req, res) => {
   try {
-    const { id_enseignant, id_classe } = req.body;
+    const { id_enseignant, id_classe, id_matiere } = req.body;
 
     // Validation de la requête
-    if (!id_enseignant || !id_classe) {
+    if (!id_enseignant || !id_classe || !id_matiere) {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
@@ -981,6 +1026,7 @@ app.post('/api/enseignant-classe', async (req, res) => {
       data: {
         id_classe,
         id_enseignant,
+        id_matiere,
       }
     });
 
@@ -1018,7 +1064,30 @@ app.post('/api/classes', async (req, res) => {
   }
 });
 
+app.post('/api/trimestre', async (req, res) => {
+  try {
+    const { nom } = req.body;
 
+    // Validation de la requête
+    if (!nom) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+
+    // Ajout du trimestre dans la base de données avec le mot de passe haché
+    const newTrimestre = await prisma.trimestre.create({
+      data: {
+        nom,
+      }
+    });
+
+    res.status(201).json({ 
+      ...newTrimestre,
+    });
+  } catch (error) {
+    console.error('Error adding trimestre:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout du trimestre' });
+  }
+});
 
 
 // Exemple de route DELETE pour supprimer un élève
@@ -1115,7 +1184,7 @@ app.put('/api/miseajoureleve/:id', async (req, res) => {
 // Endpoint pour mettre à jour un parent
 app.put('/api/miseajourparent/:id', async (req, res) => {
   const { id } = req.params;
-  const { nom, prenom } = req.body;
+  const { nom, prenom , contact} = req.body;
 
   try {
     const updatedParent = await prisma.parent.update({
@@ -1123,6 +1192,7 @@ app.put('/api/miseajourparent/:id', async (req, res) => {
       data: {
         nom,
         prenom,
+        contact,
       },
     });
     res.json(updatedParent);
@@ -1135,7 +1205,7 @@ app.put('/api/miseajourparent/:id', async (req, res) => {
 // Endpoint pour mettre à jour un enseignant
 app.put('/api/miseajourenseignant/:id', async (req, res) => {
   const { id } = req.params;
-  const { nom, prenom, email } = req.body;
+  const { nom, prenom, contact, sexe } = req.body;
 
   try {
     const updatedEnseignant = await prisma.enseignant.update({
@@ -1143,7 +1213,8 @@ app.put('/api/miseajourenseignant/:id', async (req, res) => {
       data: {
         nom,
         prenom,
-        email,
+        contact,
+        sexe,
       },
     });
     res.json(updatedEnseignant);
@@ -1260,88 +1331,115 @@ db.connect((err) => {
 // Endpoint pour la connexion
 
 //Endpoint pour la connexion de l'administrateur
-app.post('/api/login/admin', (req, res) => {
+app.post('/api/login/admin', async (req, res) => {
   const { username, password } = req.body;
   const role = 'admin';
   
-  // Requête SQL paramétrée pour éviter les injections SQL
-  const query = `SELECT * FROM Admin WHERE username = ? AND password = ? AND role = ?`;
-  
-  db.query(query, [username, password, role], (err, results) => {
-    if (err) {
-      console.error('Erreur lors de la récupération des données depuis la base de données', err);
-      res.status(500).send('Erreur lors de la récupération des données depuis la base de données');
-      return;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe requis' });
+  }
+
+  try {
+    // Rechercher l'utilisateur par username et role
+    const user = await prisma.admin.findUnique({
+      where: { username },
+    });
+
+    if (!user || user.role !== role) {
+      return res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
     }
 
-    if (results.length > 0) {
-      const user = results[0];
+    // Comparer le mot de passe fourni avec le mot de passe haché
+    const match = await bcrypt.compare(password, user.password);
+
+    if (match) {
       res.json({ 
         role: user.role,
         userId: user.id
-       });
+      });
     } else {
-      res.status(401).send('Nom d\'utilisateur ou mot de passe incorrect.');
+      res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
     }
-  });
+  } catch (err) {
+    console.error('Erreur lors de la connexion', err);
+    res.status(500).json({ error: 'Erreur lors de la connexion' });
+  }
 });
 
-//Endpoint pour la connexion de l'administrateur
-app.post('/api/login/parent', (req, res) => {
+//Endpoint pour la connexion du parent
+app.post('/api/login/parent', async (req, res) => {
   const { username, password } = req.body;
   const role = 'parent';
   
-  // Requête SQL paramétrée pour éviter les injections SQL
-  const query = 'SELECT * FROM Parent WHERE username = ? AND password = ? AND role = ?';
-  
-  db.query(query, [username, password, role], (err, results) => {
-    if (err) {
-      console.error('Erreur lors de la récupération des données depuis la base de données', err);
-      res.status(500).send('Erreur lors de la récupération des données depuis la base de données');
-      return;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe requis' });
+  }
+
+  try {
+    // Rechercher l'utilisateur par username et role
+    const user = await prisma.parent.findUnique({
+      where: { username },
+    });
+
+    if (!user || user.role !== role) {
+      return res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
     }
 
-    if (results.length > 0) {
-      const user = results[0];
+    // Comparer le mot de passe fourni avec le mot de passe haché
+    const match = await bcrypt.compare(password, user.password);
+
+    if (match) {
       res.json({ 
         role: user.role,
         userId: user.id
-       });
+      });
     } else {
-      res.status(401).send('Nom d\'utilisateur ou mot de passe incorrect.');
+      res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
     }
-  });
+  } catch (err) {
+    console.error('Erreur lors de la connexion', err);
+    res.status(500).json({ error: 'Erreur lors de la connexion' });
+  }
 });
 
 //Endpoint pour la connexion de l'enseignant
-app.post('/api/login/Enseignant', (req, res) => {
+app.post('/api/login/enseignant', async (req, res) => {
   const { username, password } = req.body;
   const role = 'enseignant';
   
-  // Requête SQL paramétrée pour éviter les injections SQL
-  const query = 'SELECT * FROM Enseignant WHERE username = ? AND password = ? AND role = ?';
-  
-  db.query(query, [username, password, role], (err, results) => {
-    if (err) {
-      console.error('Erreur lors de la récupération des données depuis la base de données', err);
-      res.status(500).send('Erreur lors de la récupération des données depuis la base de données');
-      return;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe requis' });
+  }
+
+  try {
+    // Rechercher l'utilisateur par username et role
+    const user = await prisma.enseignant.findUnique({
+      where: { username },
+    });
+
+    if (!user || user.role !== role) {
+      return res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
     }
 
-    if (results.length > 0) {
-      const user = results[0];
+    // Comparer le mot de passe fourni avec le mot de passe haché
+    const match = await bcrypt.compare(password, user.password);
+
+    if (match) {
       res.json({ 
         role: user.role,
         userId: user.id
-       });
+      });
     } else {
-      res.status(401).send('Nom d\'utilisateur ou mot de passe incorrect.');
+      res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
     }
-  });
+  } catch (err) {
+    console.error('Erreur lors de la connexion', err);
+    res.status(500).json({ error: 'Erreur lors de la connexion' });
+  }
 });
 
+
 //Endpoint pour la connexion de l'élève
-/*
 app.post('/api/login/eleve', async (req, res) => {
   const { username, password } = req.body;
   const role = 'eleve';
@@ -1375,7 +1473,7 @@ app.post('/api/login/eleve', async (req, res) => {
     console.error('Erreur lors de la connexion', err);
     res.status(500).json({ error: 'Erreur lors de la connexion' });
   }
-});*/
+});
 
 
 /***************************************************Admin*************************************************/
@@ -1394,31 +1492,61 @@ app.listen(port, () => {
 
 
 
-app.post('/api/login/Eleve', (req, res) => {
-  const { username, password } = req.body;
-  const role = 'eleve';
-  
-  // Requête SQL paramétrée pour éviter les injections SQL
-  const query = 'SELECT * FROM Eleve WHERE username = ? AND password = ? AND role = ?';
-  
-  db.query(query, [username, password, role], (err, results) => {
-    if (err) {
-      console.error('Erreur lors de la récupération des données depuis la base de données', err);
-      res.status(500).send('Erreur lors de la récupération des données depuis la base de données');
-      return;
+
+
+
+
+
+
+app.post('/api/admin', async (req, res) => {
+  try {
+    const { nom, prenom, email } = req.body;
+
+    // Validation de la requête
+    if (!nom || !prenom || !email) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
-    if (results.length > 0) {
-      const user = results[0];
-      res.json({ 
-        role: user.role,
-        userId: user.id
-       });
-    } else {
-      res.status(401).send('Nom d\'utilisateur ou mot de passe incorrect.');
-    }
-  });
+    // Générer un username et un mot de passe aléatoires
+    const username = generateRandomString(2); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(2); // Par exemple, 12 octets en hexadécimal
+
+    // Hachage du mot de passe
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Fonction pour lire une image en binaire
+  const convertImageToBinary = (imagePath) => {
+    const filePath = path.resolve(__dirname, imagePath);
+    
+      // Vérifiez si le fichier existe avant de tenter de le lire
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+  
+      return fs.readFileSync(filePath);
+    };
+    const photoPath = path.join(__dirname, 'public/00014372.jpg');
+    const photoData = fs.readFileSync(photoPath);
+
+    // Ajout de l'enseignant dans la base de données avec le mot de passe haché
+    const newEnseignant = await prisma.admin.create({
+      data: {
+        nom,
+        prenom,
+        photo: photoData,
+        email,
+        username,
+        password: hashedPassword
+      }
+    });
+
+    res.status(201).json({ 
+      ...newEnseignant,
+      generatedUsername: username,
+      generatedPassword: password,
+    });
+  } catch (error) {
+    console.error('Error adding enseignant:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'enseignant' });
+  }
 });
-
-
-

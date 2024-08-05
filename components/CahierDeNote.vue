@@ -280,8 +280,7 @@ export default {
     axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${this.$route.query.param}&trimestre_id=${this.trimesterId}`)
       .then(response => {
         this.students = response.data.map(student => ({
-          name: student.eleve_nom,
-          prenom: student.eleve_prenom,
+          name: `${student.eleve_nom} ${student.eleve_prenom}`,
           eleveId: student.eleve_id,
           nomMatiere: student.matiere_nom,
           matiereId: student.matiere_id,

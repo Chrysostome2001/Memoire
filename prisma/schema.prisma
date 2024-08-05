@@ -24,10 +24,10 @@ model Matiere {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   matiere   String
-  enseignants Enseignant[]
   note_inter Note_inter[]
   note_devoir Note_devoir[]
   coeffient Coefficient @relation(fields: [id_coefficient],references: [id])
+  enseignant_matiere Enseignant_Classe[]
   id_coefficient Int
 }
 
@@ -44,7 +44,8 @@ model Parent {
   updatedAt DateTime  @updatedAt
   nom       String
   prenom    String
-  photo     String?
+  contact   String
+  photo     Bytes?
   username  String    @unique
   password  String
   role      String   @default("parent")
@@ -57,10 +58,9 @@ model Enseignant {
   updatedAt    DateTime  @updatedAt
   nom          String
   prenom       String
-  email        String
-  photo        String?
-  matiere      Matiere   @relation(fields: [id_matiere], references: [id])
-  id_matiere   Int       // Assumed reference to Matiere's ID
+  contact      String
+  sexe         String
+  photo        Bytes?
   username     String    @unique
   password     String
   role      String   @default("enseignant")
@@ -76,6 +76,7 @@ model Eleve {
   nom String
   prenom String
   photo Bytes?
+  sexe String
   classe Classe @relation(fields: [id_classe], references: [id])
   parent Parent @relation(fields: [id_parent], references: [id])
   id_classe Int
@@ -93,8 +94,10 @@ model Enseignant_Classe {
   updatedAt    DateTime  @updatedAt
   id_enseignant Int
   id_classe Int
+  id_matiere Int
   enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
   classe Classe @relation(fields: [id_classe], references: [id])
+  matiere Matiere @relation(fields: [id_matiere], references: [id])
 }
 
 model Trimestre {
@@ -142,7 +145,7 @@ model Admin {
   nom          String
   prenom       String
   email        String
-  photo        String?     // Assumed reference to Matiere's ID
+  photo        Bytes?     // Assumed reference to Matiere's ID
   username     String    @unique
   password     String
   role      String   @default("admin")

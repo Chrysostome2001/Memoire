@@ -13,6 +13,9 @@
       <v-col cols="12" sm="6" md="3">
         <v-btn size="x-large" @click="showStudentInfo" color="info" variant="text">Editer une note</v-btn>
       </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <v-btn size="x-large" @click="showStudentBulletin" color="info" variant="text">Bulletin</v-btn>
+      </v-col>
     </v-row>
 
     <!-- Placeholder for displaying different components -->
@@ -27,12 +30,14 @@ import InfoEleve from '@/components/InfoEleve.vue';
 import AjoutEleve from './AjoutEleve.vue';
 import SupprimerEleve from '@/components/SupprimerEleve';
 import EditerInfoEleve from '@/components/EditerInfoEleve';
+import Bulletin from './Bulletin.vue';
 export default {
   components: {
     InfoEleve,
     AjoutEleve,
     SupprimerEleve,
     EditerInfoEleve,
+    Bulletin,
   },
   data() {
     return {
@@ -51,6 +56,9 @@ export default {
     },
     showStudentInfo() {
       this.currentComponent = 'InfoEleve';
+    },
+    showStudentBulletin() {
+      this.currentComponent = 'Bulletin';
     }
   }
 };

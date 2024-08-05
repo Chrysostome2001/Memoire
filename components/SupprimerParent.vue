@@ -9,6 +9,7 @@
         <v-col v-for="parent in filteredParent" :key="parent.id" cols="12" sm="6" md="4">
           <v-card>
             <v-card-title>{{ parent.fullName }}</v-card-title>
+            <v-card-subtitle>Nombre d'enfants: {{ parent.nbEnfant }}</v-card-subtitle>
             <v-card-actions>
               <v-btn color="blue darken-1" text @click="confirmDelete(parent)">Supprimer</v-btn>
             </v-card-actions>
@@ -98,6 +99,7 @@
           this.parents = response.data.map(parent => ({
           id: parent.parent_id,
           fullName: `${parent.parent_nom} ${parent.parent_prenom}`,
+          nbEnfant: parent.nb_enfant,
         }));
         console.log(this.parents)
       }else {

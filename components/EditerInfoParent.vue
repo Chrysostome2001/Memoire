@@ -9,6 +9,7 @@
         <v-col v-for="parent in filteredParents" :key="parent.id" cols="12" sm="6" md="4">
           <v-card @click="viewParent(parent)">
             <v-card-title>{{ parent.nom }} {{ parent.prenom }}</v-card-title>
+            <v-card-subtitle>Nombre d'enfant: {{ parent.nbEnfant }}</v-card-subtitle>
           </v-card>
         </v-col>
       </v-row>
@@ -20,6 +21,7 @@
           <v-card-text>
             <v-text-field v-model="editedParent.parent_nom" label="Nom"></v-text-field>
             <v-text-field v-model="editedParent.parent_prenom" label="Prénom"></v-text-field>
+            <v-text-field v-model="editedParent.parent_contact" label="Contact"></v-text-field>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -50,6 +52,7 @@
           id: '',
           parent_nom: '',
           parent_prenom: '',
+          parent_contact: '',
         },
         alertSnackbar: false,
       };
@@ -62,6 +65,8 @@
               id: parent.parent_id,
               nom: parent.parent_nom,
               prenom: parent.parent_prenom,
+              contact: parent.parent_contact,
+              nbEnfant: parent.nb_enfant,
             }))
             this.filteredParents = this.parents;
           })
@@ -80,12 +85,14 @@
         this.editedParent.id = parent.id;
         this.editedParent.parent_nom = parent.nom;
         this.editedParent.parent_prenom = parent.prenom;
+        this.editedParent.parent_contact = parent.contact;
         this.dialog = true;
       },
       updateParent(parent) {
         return axios.put(`http://localhost:8080/api/miseajourparent/${parent.id}`, {
           nom: parent.parent_nom,
           prenom: parent.parent_prenom,
+          contact: parent.parent_contact,
         });
       },
       saveChanges() {
@@ -96,6 +103,7 @@
             if (index !== -1) {
               this.parents[index].parent_nom = this.editedParent.parent_nom;
               this.parents[index].parent_prenom = this.editedParent.parent_prenom;
+              this.parents[index].parent_contact = this.editedParent.parent_contact;
             }
             // Fermer la boîte de dialogue et afficher le snackbar après enregistrement
             this.dialog = false;

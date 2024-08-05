@@ -16,9 +16,19 @@
             <v-combobox 
               v-model="selectedClass"
               :items="classOptions" 
-              item-value="id"
+              item-value="idClasse"
               item-title="classeNom"
               label="Classe" 
+              required
+            ></v-combobox>
+          </v-col>
+          <v-col cols="12">
+            <v-combobox 
+              v-model="selectedMatiere"
+              :items="matieresOptions" 
+              item-value="idMatiere"
+              item-title="matiereNom"
+              label="Matiere" 
               required
             ></v-combobox>
           </v-col>
@@ -42,33 +52,36 @@
     data() {
       return {
         enseignant: {
-          name: '',
-          surname: '',
-          matiereName: null
+
         },
         classOptions: [],
-        enseignants: [],
+        matieresOptions: [],
         selectedEnseignant: null,
         selectedClass: null,
+        selectedMatiere: null,
+        enseignants: [],
         alertSnackbar: false,
       };
     },
     methods: {
       addEnseignant() {
-        console.log('Adding student:', this.enseignant);
+        console.log('Adding enseignant:', this.enseignant);
         const enseignantId = this.selectedEnseignant ? this.selectedEnseignant.id : null;
-        const classId = this.selectedClass ? this.selectedClass.id : null;
+        const classId = this.selectedClass ? this.selectedClass.idClasse : null;
+        const matiereId = this.selectedMatiere ? this.selectedMatiere.idMatiere : null; 
+        console.log(matiereId, classId, matiereId)
         axios.post('http://localhost:8080/api/enseignant-classe', {
           id_enseignant: enseignantId,
           id_classe: classId,
+          id_matiere: matiereId,
         })
         .then(response => {
           console.log('Student added successfully:', response.data);
           this.alertSnackbar = true;
           // Reset form fields after submission
-          this.enseignant.name = '';
-          this.enseignant.surname = '';
-          this.enseignant.matiereName = null;
+          this.selectedEnseignant = null
+          this.selectedClass = null;
+          this.selectedMatiere = null;
         })
         .catch(error => {
           console.error('Error adding teacher:', error);
@@ -81,8 +94,24 @@
         console.log('Classes data:', response.data);  // Log class data
         if (response.data && response.data.length > 0) {
           this.classOptions = response.data.map(classOption => ({
-            id: classOption.classe_id,
+            idClasse: classOption.classe_id,
             classeNom: classOption.classe_nom,
+          }));
+        }else {
+          console.warn('No class data found');
+        }
+      })
+      .catch(error => {
+        console.error('Error class not found', error);
+      });
+
+      axios.get('http://localhost:8080/api/matieres/')
+      .then(response => {
+        console.log('Matieres data:', response.data);  // Log class data
+        if (response.data && response.data.length > 0) {
+          this.matieresOptions = response.data.map(matiereOption => ({
+            idMatiere: matiereOption.matiere_id,
+            matiereNom: `${matiereOption.matiere_nom}  coef: ${matiereOption.matiere_coef}`,
           }));
         }else {
           console.warn('No class data found');

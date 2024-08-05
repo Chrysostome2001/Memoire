@@ -8,6 +8,9 @@
           <v-col cols="12" sm="6">
             <v-text-field v-model="parent.parentPrenom" label="Prenom du parent" required></v-text-field>
           </v-col>
+          <v-col cols="12" sm="6">
+            <v-text-field v-model="parent.parentContact" label="Contact du parent" required></v-text-field>
+          </v-col>
           <v-col cols="12">
             <v-btn color="primary" type="submit">ajouter</v-btn>
           </v-col>
@@ -34,6 +37,7 @@
         parent: {
           parentNom: null,
           parentPrenom: null,
+          parentContact: null,
         },
         alertSnackbar: false,
         selectedClass: null,
@@ -45,6 +49,7 @@
         axios.post('http://localhost:8080/api/parent', {
           nom: this.parent.parentNom,
           prenom: this.parent.parentPrenom,
+          contact: this.parent.parentContact,
         })
         .then(response => {
           console.log('parent added successfully:', response.data);
@@ -54,6 +59,7 @@
           // Reset form fields after submission
           this.parent.parentNom = ''
           this.parent.parentPrenom = ''
+          this.parent.parentContact = ''
         })
         .catch(error => {
           console.error('Error adding parent:', error);

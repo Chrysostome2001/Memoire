@@ -22,26 +22,6 @@
                     </v-expansion-panel-text>
                   </v-expansion-panel>
                 </v-expansion-panels>
-                <v-expansion-panels class="mb-6">
-                  <v-expansion-panel>
-                    <v-expansion-panel-title expand-icon="mdi-menu-down">
-                      Bulletin
-                    </v-expansion-panel-title>
-                    <v-expansion-panel-text>
-                      <v-expansion-panels class="mb-6" v-for="index in 3" :key="index">
-                        <v-expansion-panel>
-                          <v-expansion-panel-title expand-icon="mdi-menu-down">
-                            Trimestre {{ index }}
-                            <v-btn variant="text" class="ml-2" color="success" icon="mdi-download"></v-btn>
-                          </v-expansion-panel-title>
-                          <v-expansion-panel-text>
-                            <Bulletin/>
-                          </v-expansion-panel-text>
-                        </v-expansion-panel>
-                      </v-expansion-panels>
-                    </v-expansion-panel-text>
-                  </v-expansion-panel>
-                </v-expansion-panels>
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
@@ -54,8 +34,7 @@
 <script>
 import TrimestresTrimestre1 from '@/components/Trimestres/trimestre1.vue';
 import TrimestresTrimestre2 from '@/components/Trimestres/trimestre2.vue'
-import TrimestresTrimestre3 from '@/components/Trimestres/trimestre3.vue'
-import Bulletin from '@/components/Bulletin';
+import TrimestresTrimestre3 from '@/components/Trimestres/trimestre3.vue';
 import axios from 'axios';
 
 export default {
@@ -64,7 +43,6 @@ export default {
     TrimestresTrimestre1,
     TrimestresTrimestre2,
     TrimestresTrimestre3,
-    Bulletin,
   },
   data() {
     return {

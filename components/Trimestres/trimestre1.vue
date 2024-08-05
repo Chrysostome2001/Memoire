@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Notes de {{ studentName }}</h1>
+    <h3>NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h3>
     <table>
       <thead>
         <tr>
@@ -54,6 +54,7 @@ export default {
     return {
       notes: [],
       studentName: '',
+      sexe:'',
     };
   },
 
@@ -120,7 +121,7 @@ export default {
           item.moy_Inter = sumInterrogations / totalInterrogations.length;
         }
 
-        if (totalDevoirs.length > 0) {
+        if (totalDevoirs.length === 2) {
           const sumDevoirs = totalDevoirs.reduce((acc, val) => acc + val, 0);
           item.moy_gen = ((item.moy_Inter + sumDevoirs) / 3).toFixed(2); // Exemple de calcul de la moyenne générale
         }
@@ -136,7 +137,8 @@ export default {
       axios.get(`http://localhost:8080/api/eleve/${this.$route.query.param}/notes?trimestre_id=1`)
         .then(response => {
           if (response.data.length > 0) {
-            this.studentName = response.data[0].nom_eleve;
+            this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
+            this.sexe = response.data[0].eleve_sexe
             this.notes = response.data;
           }
         })
@@ -147,7 +149,8 @@ export default {
       axios.get(`http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`)
         .then(response => {
           if (response.data.length > 0) {
-            this.studentName = response.data[0].nom_eleve;
+            this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
+            this.sexe = response.data[0].eleve_sexe
             this.notes = response.data;
           }
         })
@@ -163,7 +166,8 @@ export default {
         axios.get(`http://localhost:8080/api/eleve/${newStudentId}/notes?trimestre_id=${this.$props.trimestre}`)
           .then(response => {
             if (response.data.length > 0) {
-              this.studentName = response.data[0].nom_eleve;
+              this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
+              this.sexe = response.data[0].eleve_sexe
               this.notes = response.data;
             }
           })

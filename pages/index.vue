@@ -75,7 +75,7 @@ export default {
     ],
     passwordRules: [
       value => !!value || 'Le mot de passe est requis.',
-      value => (value && value.length >= 6) || 'Le mot de passe doit comporter au moins 6 caractères.',
+      value => (value && value.length >= 3) || 'Le mot de passe doit comporter au moins 6 caractères.',
     ],
   }),
   methods: {

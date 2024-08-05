@@ -9,7 +9,7 @@
         <v-col v-for="enseignant in filteredEnseignants" :key="enseignant.id" cols="12" sm="6" md="4">
           <v-card @click="viewEnseignant(enseignant)">
             <v-card-title>{{ enseignant.nom }} {{ enseignant.prenom }}</v-card-title>
-            <v-card-subtitle>Email : {{ enseignant.email }}</v-card-subtitle>
+            <v-card-subtitle>Contact : {{ enseignant.contact }}</v-card-subtitle>
           </v-card>
         </v-col>
       </v-row>
@@ -21,7 +21,8 @@
           <v-card-text>
             <v-text-field v-model="editedEnseignant.enseignant_nom" label="Nom"></v-text-field>
             <v-text-field v-model="editedEnseignant.enseignant_prenom" label="Prénom"></v-text-field>
-            <v-text-field v-model="editedEnseignant.enseignant_email" label="email"></v-text-field>
+            <v-text-field v-model="editedEnseignant.enseignant_contact" label="Contact"></v-text-field>
+            <v-combobox v-model="editedEnseignant.enseignant_sexe" :items="sexe" label="Sexe">{{ enseignants.sexe }}</v-combobox>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -48,11 +49,13 @@
         search: '',
         dialog: false,
         enseignants: [],
+        sexe: ['M', 'F'],
         editedEnseignant: {
           id: '',
           enseignant_nom: '',
           enseignant_prenom: '',
-          enseignant_email: '',
+          enseignant_contact: '',
+          enseignant_sexe: '',
         },
         alertSnackbar: false,
       };
@@ -65,7 +68,8 @@
               id: enseignant.enseignant_id,
               nom: enseignant.enseignant_nom,
               prenom: enseignant.enseignant_prenom,
-              email: enseignant.enseignant_email,
+              contact: enseignant.enseignant_contact,
+              sexe: enseignant.enseignant_sexe,
             }))
             this.filteredEnseignants = this.enseignants;
           })
@@ -84,14 +88,16 @@
         this.editedEnseignant.id = enseignant.id;
         this.editedEnseignant.enseignant_nom = enseignant.nom;
         this.editedEnseignant.enseignant_prenom = enseignant.prenom;
-        this.editedEnseignant.enseignant_email = enseignant.email;
+        this.editedEnseignant.enseignant_contact = enseignant.contact;
+        this.editedEnseignant.enseignant_sexe = enseignant.sexe;
         this.dialog = true;
       },
       updateEnseignant(enseignant) {
         return axios.put(`http://localhost:8080/api/miseajourenseignant/${enseignant.id}`, {
           nom: enseignant.enseignant_nom,
           prenom: enseignant.enseignant_prenom,
-          email: enseignant.enseignant_email,
+          contact: enseignant.enseignant_contact,
+          sexe: enseignant.enseignant_sexe,
         });
       },
       saveChanges() {
@@ -102,7 +108,9 @@
             if (index !== -1) {
               this.enseignants[index].enseignant_nom = this.editedEnseignant.enseignant_nom;
               this.enseignants[index].enseignant_prenom = this.editedEnseignant.enseignant_prenom;
-              this.enseignants[index].enseignant_email = this.editedEnseignant.enseignant_email;
+              this.enseignants[index].enseignant_contact = this.editedEnseignant.enseignant_contact;
+              this.enseignants[index].enseignant_sexe = this.editedEnseignant.enseignant_sexe;
+
             }
             // Fermer la boîte de dialogue et afficher le snackbar après enregistrement
             this.dialog = false;

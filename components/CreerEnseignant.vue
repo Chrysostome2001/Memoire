@@ -9,17 +9,10 @@
             <v-text-field v-model="enseignant.surname" label="Prénom" required></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field v-model="enseignant.email" label="email" required></v-text-field>
+            <v-text-field v-model="enseignant.contact" label="contact" required></v-text-field>
           </v-col>
-          <v-col cols="12">
-            <v-combobox 
-              v-model="selectedMatiere" 
-              :items="Matieres" 
-              item-value="id"
-              item-title="matiereNom"
-              label="Mateières" 
-              required
-            ></v-combobox>
+          <v-col cols="12" sm="6">
+          <v-combobox v-model="enseignant.sexe" :items="sexe" label="Sexe" required></v-combobox>
           </v-col>
           <v-col cols="12">
             <v-btn color="primary" type="submit">ajouter</v-btn>
@@ -47,25 +40,21 @@
         enseignant: {
           name: '',
           surname: '',
-          email: '',
-          matiereName: null,
+          contact: '',
+          sexe: '',
         },
-        classOptions: [],
-        Matieres:[],
-        selectedClass: null,
-        selectedMatiere: null,
+        sexe: ['M', 'F'],
         alertSnackbar: false,
       };
     },
     methods: {
     addEnseignant() {
         console.log('Adding enseignant:', this.enseignant);
-        const matiereID = this.selectedMatiere ? this.selectedMatiere.id : null;
         axios.post('http://localhost:8080/api/enseignants', {
           nom: this.enseignant.name,
           prenom: this.enseignant.surname,
-          id_matiere: matiereID,
-          email: this.enseignant.email,
+          contact: this.enseignant.contact,
+          sexe: this.enseignant.sexe,
         })
         .then(response => {
           console.log('Enseignant added successfully:', response.data);
@@ -75,31 +64,14 @@
           // Reset form fields after submission
           this.enseignant.name = '';
           this.enseignant.surname = '';
-          this.enseignant.className = null;
-          this.enseignant.matiereName = null;
+          this.enseignant.contact = '';
+          this.enseignant.sexe = '';
         })
         .catch(error => {
           console.error('Error adding enseignant:', error);
         });
       },
     },
-    mounted(){
-      axios.get('http://localhost:8080/api/matieres/')
-      .then(response => {
-        console.log('Matiere data:', response.data);  // Log class data
-        if (response.data && response.data.length > 0) {
-          this.Matieres = response.data.map(Matiere => ({
-            id: Matiere.matiere_id,
-            matiereNom: Matiere.matiere_nom
-          }));
-        }else {
-          console.warn('No matiere data found');
-        }
-      })
-      .catch(error => {
-        console.error('Error class not found', error);
-      });
-    }
   };
   </script>
   

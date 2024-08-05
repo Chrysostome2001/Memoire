@@ -48,7 +48,7 @@
             <v-card-title>{{ student.name }} {{ student.surname }}</v-card-title>
             <v-card-subtitle>{{ selectedClass.name }}</v-card-subtitle>
             <v-card-text>
-              Âge: {{ student.age }}
+              Sexe: {{ student.sexe }}
             </v-card-text>
           </v-card>
         </v-col>
@@ -244,7 +244,8 @@ export default {
           id: student.eleve_id,
           name: student.eleve_nom,
           surname: student.eleve_prenom,
-          image: student.photoUrl
+          image: student.photoUrl,
+          sexe: student.eleve_sexe,
         }));
         this.students = this.filteredStudents;
       } catch (error) {

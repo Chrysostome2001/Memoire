@@ -36,7 +36,8 @@ CREATE TABLE `Parent` (
     `updatedAt` DATETIME(3) NOT NULL,
     `nom` VARCHAR(191) NOT NULL,
     `prenom` VARCHAR(191) NOT NULL,
-    `photo` VARCHAR(191) NULL,
+    `contact` VARCHAR(191) NOT NULL,
+    `photo` LONGBLOB NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'parent',
@@ -52,9 +53,9 @@ CREATE TABLE `Enseignant` (
     `updatedAt` DATETIME(3) NOT NULL,
     `nom` VARCHAR(191) NOT NULL,
     `prenom` VARCHAR(191) NOT NULL,
-    `email` VARCHAR(191) NOT NULL,
-    `photo` VARCHAR(191) NULL,
-    `id_matiere` INTEGER NOT NULL,
+    `contact` VARCHAR(191) NOT NULL,
+    `sexe` VARCHAR(191) NOT NULL,
+    `photo` LONGBLOB NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'enseignant',
@@ -70,7 +71,8 @@ CREATE TABLE `Eleve` (
     `updatedAt` DATETIME(3) NOT NULL,
     `nom` VARCHAR(191) NOT NULL,
     `prenom` VARCHAR(191) NOT NULL,
-    `photo` VARCHAR(191) NULL,
+    `photo` LONGBLOB NULL,
+    `sexe` VARCHAR(191) NOT NULL,
     `id_classe` INTEGER NOT NULL,
     `id_parent` INTEGER NOT NULL,
     `username` VARCHAR(191) NOT NULL,
@@ -89,6 +91,7 @@ CREATE TABLE `Enseignant_Classe` (
     `updatedAt` DATETIME(3) NOT NULL,
     `id_enseignant` INTEGER NOT NULL,
     `id_classe` INTEGER NOT NULL,
+    `id_matiere` INTEGER NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -139,7 +142,7 @@ CREATE TABLE `Admin` (
     `nom` VARCHAR(191) NOT NULL,
     `prenom` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
-    `photo` VARCHAR(191) NULL,
+    `photo` LONGBLOB NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'admin',
@@ -152,9 +155,6 @@ CREATE TABLE `Admin` (
 ALTER TABLE `Matiere` ADD CONSTRAINT `Matiere_id_coefficient_fkey` FOREIGN KEY (`id_coefficient`) REFERENCES `Coefficient`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Enseignant` ADD CONSTRAINT `Enseignant_id_matiere_fkey` FOREIGN KEY (`id_matiere`) REFERENCES `Matiere`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `Eleve` ADD CONSTRAINT `Eleve_id_classe_fkey` FOREIGN KEY (`id_classe`) REFERENCES `Classe`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -165,6 +165,9 @@ ALTER TABLE `Enseignant_Classe` ADD CONSTRAINT `Enseignant_Classe_id_enseignant_
 
 -- AddForeignKey
 ALTER TABLE `Enseignant_Classe` ADD CONSTRAINT `Enseignant_Classe_id_classe_fkey` FOREIGN KEY (`id_classe`) REFERENCES `Classe`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Enseignant_Classe` ADD CONSTRAINT `Enseignant_Classe_id_matiere_fkey` FOREIGN KEY (`id_matiere`) REFERENCES `Matiere`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Note_inter` ADD CONSTRAINT `Note_inter_id_eleve_fkey` FOREIGN KEY (`id_eleve`) REFERENCES `Eleve`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -8,8 +8,8 @@
       <v-row>
         <v-col v-for="enseignant in filteredEnseignant" :key="enseignant.id" cols="12" sm="6" md="4">
           <v-card>
-            <v-card-title>NOM : {{ enseignant.nom }} <br> PRENOM : {{ enseignant.prenom }}</v-card-title>
-            <v-card-subtitle>Classe : {{ enseignant.classeNom }}</v-card-subtitle>
+            <v-card-title>{{ enseignant.fullName }}</v-card-title>
+            <v-card-subtitle>SEXE : {{ enseignant.sexe }} <br> Classe : {{ enseignant.classeNom }}</v-card-subtitle>
             <v-card-actions>
               <v-btn color="blue darken-1" text @click="confirmDelete(enseignant)">Supprimer</v-btn>
             </v-card-actions>
@@ -56,8 +56,7 @@
     methods: {
       searchEnseignant() {
         this.filteredEnseignant = this.enseignants.filter(enseignant =>
-        enseignant.nom.toLowerCase().includes(this.search.toLowerCase()) ||
-        enseignant.prenom.toLowerCase().includes(this.search.toLowerCase()) ||
+        enseignant.fullName.toLowerCase().includes(this.search.toLowerCase()) ||
         enseignant.classeNom.toLowerCase().includes(this.search.toLowerCase())
         );
       },
@@ -100,8 +99,8 @@
         if (response.data && response.data.length > 0) {
           this.enseignants = response.data.map(enseignant => ({
           id: enseignant.enseignant_id,
-          nom: enseignant.enseignant_nom,
-          prenom: enseignant.enseignant_prenom,
+          fullName: `${enseignant.enseignant_nom} ${enseignant.enseignant_prenom}`,
+          sexe: enseignant.enseignant_sexe,
           classeId : enseignant.classe_id,
           classeNom: enseignant.classe_nom,
           enseignant_classeId: enseignant.enseignant_classe_id,
