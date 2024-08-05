@@ -118,19 +118,23 @@ export default {
 
         if (totalInterrogations.length > 0) {
           const sumInterrogations = totalInterrogations.reduce((acc, val) => acc + val, 0);
-          item.moy_Inter = sumInterrogations / totalInterrogations.length;
+          item.moy_Inter = parseFloat(this.formatToTwoDecimalPlaces(sumInterrogations / totalInterrogations.length));
         }
 
         if (totalDevoirs.length === 2) {
           const sumDevoirs = totalDevoirs.reduce((acc, val) => acc + val, 0);
-          item.moy_gen = ((item.moy_Inter + sumDevoirs) / 3).toFixed(2); // Exemple de calcul de la moyenne générale
+          item.moy_gen = parseFloat(this.formatToTwoDecimalPlaces(((item.moy_Inter + sumDevoirs) / 3))); // Exemple de calcul de la moyenne générale
         }
       });
 
       return Object.values(formatted);
     },
   },
-
+  methods: {
+    formatToTwoDecimalPlaces(value) {
+      return (Math.floor(value * 100) / 100).toFixed(2);
+    },
+  },
   mounted() {
     const name = this.$route.query.name
     if(name === "eleve"){

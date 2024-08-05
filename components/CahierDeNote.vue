@@ -4,7 +4,6 @@
       :headers="headers"
       :items="students"
       :search="search"
-      :sort-by="[{ key: 'finalRank', order: 'asc' }]"
     >
       <template v-slot:top>
         <v-toolbar flat>
@@ -23,31 +22,31 @@
         <span @dblclick="editField(item, 'coef')">{{ item.coef }}</span>
       </template>
       <template v-slot:item.interro1="{ item }">
-        <span @dblclick="editField(item, 'interro1')">{{ item.interro1 ?? 'null' }}</span>
+        <span @dblclick="item.interro1 === null ? editField(item, 'interro1') : null">{{ item.interro1 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro2="{ item }">
-        <span @dblclick="editField(item, 'interro2')">{{ item.interro2 ?? 'null' }}</span>
+        <span @dblclick="item.interro2 === null ? editField(item, 'interro2') : null">{{ item.interro2 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro3="{ item }">
-        <span @dblclick="editField(item, 'interro3')">{{ item.interro3 ?? 'null' }}</span>
+        <span @dblclick="item.interro3 === null ? editField(item, 'interro3') : null">{{ item.interro3 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro4="{ item }">
-        <span @dblclick="editField(item, 'interro4')">{{ item.interro4 ?? 'null' }}</span>
+        <span @dblclick="item.interro4 === null ? editField(item, 'interro4') : null">{{ item.interro4 ?? 'null' }}</span>
       </template>
       <template v-slot:item.devoir1="{ item }">
-        <span @dblclick="editField(item, 'devoir1')">{{ item.devoir1 ?? 'null' }}</span>
+        <span @dblclick="item.devoir1 === null ? editField(item, 'devoir1') : null">{{ item.devoir1 ?? 'null' }}</span>
       </template>
       <template v-slot:item.devoir2="{ item }">
-        <span @dblclick="editField(item, 'devoir2')">{{ item.devoir2 ?? 'null' }}</span>
+        <span @dblclick="item.devoir2 === null ? editField(item, 'devoir2') : null">{{ item.devoir2 ?? 'null' }}</span>
       </template>
       <template v-slot:item.averageInterro="{ item }">
-        <span>{{ calculateAverageInterro(item) }}</span>
+        <span >{{ item.averageInterro }}</span>
       </template>
       <template v-slot:item.averageDevoir="{ item }">
-        <span>{{ calculateAverageDevoir(item) }}</span>
+        <span>{{ item.averageDevoir }}</span>
       </template>
       <template v-slot:item.finalRank="{ item }">
-        <span @dblclick="editField(item, 'finalRank')">{{ item.finalRank }}</span>
+        <span>{{ item.finalRank }}</span>
       </template>
     </v-data-table>
 
@@ -181,7 +180,6 @@ export default {
       { title: 'Devoir 2', key: 'devoir2' },
       { title: 'Moy Devoir', key: 'averageDevoir' },
       { title: 'Rang Final', key: 'finalRank' },
-      { title: 'Actions', key: 'actions', sortable: false },
     ],
     snackbar: {
       show: false,
@@ -366,28 +364,34 @@ export default {
 
     updateAverages() {
       this.students.forEach(student => {
-        student.averageInterro = this.calculateAverageInterro(student);
-        student.averageDevoir = this.calculateAverageDevoir(student);
+      // Calcul de la moyenne des interrogations
+      const interroNotes = [student.interro1, student.interro2, student.interro3, student.interro4];
+      const validInterroNotes = interroNotes.filter(note => note !== null && note !== undefined);
+      const interroSum = validInterroNotes.reduce((a, b) => a - (-b), 0);
+      student.averageInterro = validInterroNotes.length > 0 ? parseFloat(this.formatToTwoDecimalPlaces((interroSum / validInterroNotes.length))) : '0.00';
+  
+      // Calcul de la moyenne des devoirs
+      const devoirNotes = [student.devoir1, student.devoir2];
+      const validDevoirNotes = devoirNotes.filter(devoir => devoir !== null && devoir !== undefined);
+      const devoirSum = validDevoirNotes.reduce((a, b) => a - (-b), 0);
+      student.averageDevoir = validDevoirNotes.length > 0 ? parseFloat(this.formatToTwoDecimalPlaces(((devoirSum + student.averageInterro) / (validDevoirNotes.length + 1)))) : '0.00';
+      console.log(validDevoirNotes, student.averageDevoir)
+    });
+          // Calcul des rangs
+      const sortedByDevoir = [...this.students].sort((a, b) => b.averageDevoir - a.averageDevoir);
+      const ranks = sortedByDevoir.reduce((acc, student, index) => {
+        acc[student.eleveId] = index + 1; // Rang commence à 1
+        return acc;
+      }, {});
+
+      // Mise à jour des rangs sans changer l'ordre des lignes
+      this.students.forEach(student => {
+        student.finalRank = ranks[student.eleveId] || 0;
       });
     },
-    calculateAverageInterro(item) {
-      const notes = [item.interro1, item.interro2, item.interro3, item.interro4];
-      const validNotes = notes.filter(note => note !== null);
-      if (validNotes.length === 0) return 0;
-      const somme = validNotes.reduce((a, b) => a - (-b));
-      const moy_int = (somme / validNotes.length).toFixed(2);
-      this.inter = moy_int;
-      return moy_int;
+    formatToTwoDecimalPlaces(value) {
+      return (Math.floor(value * 100) / 100).toFixed(2);
     },
-    calculateAverageDevoir(item) {
-      const notes = [item.devoir1, item.devoir2];
-      const validNotes = notes.filter(note => note !== null);
-      if (validNotes.length === 0) return 0;
-      const somme = validNotes.reduce((a, b) => a - (-b));
-      //console.log(validNotes.length)
-      return ((somme -(-this.inter)) / (validNotes.length + 1)).toFixed(2);
-    },
-
     validateNotes() {
     // Filtrer les étudiants dont les notes n'ont pas d'ID
     const notesToSave = this.students 
