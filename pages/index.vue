@@ -1,130 +1,65 @@
 <template>
   <v-app>
-    <v-app class="d-flex fill-height">
-      <v-row class="d-flex justify-center align-center">
-        <v-col cols="12" md="4">
-          <v-card>
-            <v-card-title class="headline">Se connecter</v-card-title>
-            <v-card-text>
-              <v-form v-model="valid">
-                <v-select
-                  v-model="selectedRole"
-                  :items="roles"
-                  label="Rôle"
-                  required
-                  class="mb-2"
-                ></v-select>
+    <v-toolbar
+      app
+      flat
+      color="transparent"
+      class="toolbar"
+    >
+      <v-toolbar-title>Page d'Accueil</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn @click="goToLoginPage" color="primary">Connexion</v-btn>
+    </v-toolbar>
 
-                <v-text-field
-                  v-model="username"
-                  :rules="nameRules"
-                  label="Nom d'utilisateur"
-                  hide-details
-                  required
-                  class="mb-2"
-                ></v-text-field>
-
-                <v-text-field
-                  v-model="password"
-                  :rules="passwordRules"
-                  :type="showPassword ? 'text' : 'password'"
-                  label="Mot de passe"
-                  hide-details
-                  required
-                  class="mb-2"
-                >
-                  <template v-slot:append>
-                    <v-icon
-                      @click="showPassword = !showPassword"
-                      :class="{'cursor-pointer': true}"
-                    >
-                      {{ showPassword ? 'mdi-eye' : 'mdi-eye-off' }}
-                    </v-icon>
-                  </template>
-                </v-text-field>
-
-                <v-btn :disabled="!valid" color="primary" @click="login">
-                  Se connecter
-                </v-btn>
-              </v-form>
-              <v-alert v-if="loginError" type="error">
-                {{ loginError }}
-              </v-alert>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-app>
-    <router-view/>
+    <v-carousel
+      :items="carouselItems"
+      show-arrows
+      hide-delimiter-background
+      class="carousel"
+    >
+      <v-carousel-item
+        v-for="(item, i) in carouselItems"
+        :key="i"
+        :src="item.src"
+        :alt="item.alt"
+      ></v-carousel-item>
+    </v-carousel>
   </v-app>
 </template>
 
 <script>
-import axios from 'axios';
 export default {
-  data: () => ({
-    valid: false,
-    username: '',
-    password: '',
-    showPassword: false, // Nouvelle propriété pour contrôler la visibilité du mot de passe
-    selectedRole: null,
-    roles: ['admin', 'eleve', 'enseignant', 'parent'],
-    loginError: null,
-    nameRules: [
-      value => !!value || "Le nom d'utilisateur est requis.",
-    ],
-    passwordRules: [
-      value => !!value || 'Le mot de passe est requis.',
-      value => (value && value.length >= 3) || 'Le mot de passe doit comporter au moins 6 caractères.',
-    ],
-  }),
+  data() {
+    return {
+      carouselItems: [
+        { src: '/00014372.jpg', alt: 'Slide 1' },
+        { src: '/68794795-xbox-wallpapers.jpg', alt: 'Slide 2' },
+        { src: '/abstract-colour-cool-HD-wallpaper-high-resolution-display-colourful-1920x1080.jpg', alt: 'Slide 3' },
+      ],
+    };
+  },
   methods: {
-    async login() {
-      this.loginError = null;
-      try {
-        const response = await axios.post(`http://localhost:8080/api/login/${this.selectedRole}`, {
-          username: this.username,
-          password: this.password,
-          role: this.selectedRole,
-        });
-        const { role, userId } = response.data;
-        if (role === 'admin') {
-          this.$router.push({
-            path: `/admin/${userId}`,
-            query:{ param: userId, name: role}
-          });
-        } else if (role === 'parent') {
-          this.$router.push({
-            path: `/parent/${userId}`,
-            query: { param: userId, name: role}
-          });
-        } else if (role === 'eleve') {
-          this.$router.push({
-            path: `/eleve/${userId}`,
-            query: { param: userId, name: role }
-          });
-        } else if (role === 'enseignant') {
-          this.$router.push({
-            path: `/enseignant/${userId}`,
-            query: { param: userId, name: role}
-          });
-        } else {
-          this.loginError = 'Rôle inconnu.';
-        }
-      } catch (error) {
-        this.loginError = 'Nom d\'utilisation ou mot de passe incorrect.';
-        console.log(error)
-      }
+    goToLoginPage() {
+      this.$router.push('/Connexion');
     },
   },
 };
 </script>
 
-<style scoped>
-.fill-height {
-  height: 100vh;
+<style>
+.v-application {
+  overflow: hidden;
 }
-.cursor-pointer {
-  cursor: pointer;
+
+.toolbar {
+  z-index: 1;
+}
+
+.carousel {
+  height: calc(100vh - 64px); /* Ajustez la valeur selon la hauteur du v-toolbar */
+}
+
+.v-carousel .v-carousel__controls {
+  z-index: 2;
 }
 </style>

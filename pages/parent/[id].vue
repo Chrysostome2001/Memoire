@@ -14,9 +14,14 @@
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center ml-9 mt-2">{{ parent.username }}</v-list-item-title>
+            <v-list-item-title class="d-flex align-center ml-9 mt-9">{{ parent.fullName }}</v-list-item-title>
           </v-list-item>
-          <v-list-item link @click="changeView('DashboardParent')" class="mt-5">
+          <v-list-item link @click="changeView('Home')">
+            <v-list-item-content>
+              <v-list-item-title>Acceuil</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item link @click="changeView('DashboardParent')">
             <v-list-item-title>Consulter note</v-list-item-title>
           </v-list-item>
           <v-list-item v-if="showSearch">
@@ -25,11 +30,6 @@
               label="Rechercher..."
               @input="updateContent"
             ></v-text-field>
-          </v-list-item>
-          <v-list-item link @click="changeView('Home')">
-            <v-list-item-content>
-              <v-list-item-title>Home</v-list-item-title>
-            </v-list-item-content>
           </v-list-item>
           <v-list-item link @click="changeView('About')">
             <v-list-item-content>
@@ -91,6 +91,7 @@
           const response = await axios.get(`http://localhost:8080/api/parent/${id}`);
           this.parent = {
             id: response.data.parent_id,
+            fullName: `${response.data.parent_nom} ${response.data.parent_prenom}`,
             username: response.data.parent_username,
           }
           console.log(this.parent)

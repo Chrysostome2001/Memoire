@@ -14,7 +14,7 @@
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center">{{ eleve.username }}</v-list-item-title>
+            <v-list-item-title class="d-flex align-center">{{ eleve.fullName }}</v-list-item-title>
           </v-list-item>
           <v-list-item link @click="changeView('DashboardEleve')" class="mt-5">
             <v-list-item-title>Consulter note</v-list-item-title>
@@ -80,14 +80,47 @@
     methods: {
       async fetchData() {
         const { id } = this.$route.params;
+
+        // Récupérer le token JWT du local storage
+        const token = localStorage.getItem('token');
+
         try {
-          const response = await axios.get(`http://localhost:8080/api/eleve/${id}`);
+          const response = await axios.get(`http://localhost:8080/api/eleve/${id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}` // Inclure le token dans les en-têtes de la requête
+            }
+          });
+
           this.eleve = {
             id: response.data.eleve_id,
+            fullName: `${response.data.eleve_nom} ${response.data.eleve_prenom}`,
             username: response.data.eleve_username,
           };
         } catch (error) {
-          console.error(error);
+          if (error.response) {
+            // Erreurs spécifiques en fonction des codes de réponse HTTP
+            switch (error.response.status) {
+              case 401:
+                console.error('Non autorisé. Veuillez vous connecter.');
+                // Rediriger vers la page de connexion ou afficher un message d'erreur
+                this.$router.push('/login');
+                break;
+              case 403:
+                console.error('Accès interdit. Vous n\'avez pas les droits nécessaires.');
+                // Afficher un message d'erreur ou rediriger l'utilisateur
+                break;
+              case 404:
+                console.error('Élève non trouvé.');
+                // Gérer l'élément non trouvé
+                break;
+              default:
+                console.error('Erreur de serveur. Veuillez réessayer plus tard.');
+                break;
+            }
+          } else {
+            // Erreur réseau ou autre problème
+            console.error('Erreur de réseau ou autre problème :', error.message);
+          }
         }
       },
       changeView(view) {

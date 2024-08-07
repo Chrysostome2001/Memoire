@@ -1,0 +1,118 @@
+<template>
+  <v-app>
+    <v-app class="d-flex fill-height">
+      <v-row class="d-flex justify-center align-center">
+        <v-col cols="12" md="4">
+          <v-card>
+            <v-card-title class="headline">Se connecter</v-card-title>
+            <v-card-text>
+              <v-form v-model="valid">
+                <v-text-field
+                  v-model="username"
+                  :rules="nameRules"
+                  label="Nom d'utilisateur"
+                  hide-details
+                  required
+                  class="mb-2"
+                ></v-text-field>
+
+                <v-text-field
+                  v-model="password"
+                  :rules="passwordRules"
+                  :type="showPassword ? 'text' : 'password'"
+                  label="Mot de passe"
+                  hide-details
+                  required
+                  class="mb-2"
+                >
+                  <template v-slot:append>
+                    <v-icon
+                      @click="showPassword = !showPassword"
+                      class="cursor-pointer"
+                    >
+                      {{ showPassword ? 'mdi-eye' : 'mdi-eye-off' }}
+                    </v-icon>
+                  </template>
+                </v-text-field>
+
+                <v-btn :disabled="!valid" color="primary" @click="login">
+                  Se connecter
+                </v-btn>
+              </v-form>
+              <v-alert v-if="loginError" type="error">
+                {{ loginError }}
+              </v-alert>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-app>
+    <router-view/>
+  </v-app>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data: () => ({
+    valid: false,
+    username: '',
+    password: '',
+    showPassword: false,
+    loginError: null,
+    nameRules: [
+      value => !!value || "Le nom d'utilisateur est requis.",
+    ],
+    passwordRules: [
+      value => !!value || 'Le mot de passe est requis.',
+      value => (value && value.length >= 3) || 'Le mot de passe doit comporter au moins 6 caractères.',
+    ],
+  }),
+  methods: {
+    async login() {
+      this.loginError = null;
+      try {
+        const response = await axios.post('http://localhost:8080/api/login/', {
+          username: this.username,
+          password: this.password,
+        });
+        const { token, user } = response.data;
+        localStorage.setItem('token', token);
+
+        const userId = user.id;
+        const role = user.role;
+
+        switch (role) {
+          case 'admin':
+            this.$router.push({ path: `/admin/${userId}`, query: { param: userId, name: role } });
+            break;
+          case 'parent':
+            this.$router.push({ path: `/parent/${userId}`, query: { param: userId, name: role } });
+            break;
+          case 'eleve':
+            this.$router.push({ path: `/eleve/${userId}`, query: { param: userId, name: role } });
+            break;
+          case 'enseignant':
+            this.$router.push({ path: `/enseignant/${userId}`, query: { param: userId, name: role } });
+            break;
+          default:
+            this.loginError = 'Rôle inconnu.';
+        }
+      } catch (error) {
+        this.loginError = 'Nom d\'utilisateur ou mot de passe incorrect.';
+        console.error(error);
+      }
+    },
+  },
+};
+</script>
+
+<style scoped>
+.fill-height {
+  height: 100vh;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+</style>

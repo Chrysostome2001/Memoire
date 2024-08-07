@@ -5,12 +5,19 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const cors = require('cors'); // Importer le package CORS
 const { PrismaClient } = require('@prisma/client');
+const jwt = require('jsonwebtoken')
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 const prisma = new PrismaClient();
 const app = express();
 const port = 8080;
 const saltRounds = 10;
+const jwtSecret = process.env.JWT_SECRET;
+const dbHost = process.env.DB_HOST;
+console.log('JWT Secret:', jwtSecret);
+console.log('Database Host:', dbHost);
+console.log('Application Port:', port);
 // Connect to MySQL database
 const db = mysql.createConnection({
   host: 'localhost',
@@ -26,6 +33,22 @@ app.use(bodyParser.json());
 
 // CORS middleware
 app.use(cors());
+
+// Middleware pour vérifier le token JWT
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (token == null) return res.sendStatus(401); // Si aucun token n'est fourni
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403); // Si le token est invalide
+    req.user = user;
+    next();
+  });
+};
+
+
 
 /****************************************************Parents********************************************************/
 // Route to get all parents
@@ -54,6 +77,8 @@ app.get('/api/parents/', (req, res) => {
 app.get('/api/parent/:id', (req, res) => {
   const sql = `SELECT 
                       Parent.id AS parent_id,
+                      Parent.nom AS parent_nom,
+                      Parent.prenom AS parent_prenom,
                       Parent.username AS parent_username 
                     FROM Parent 
                        WHERE id = ?`;
@@ -132,14 +157,17 @@ app.get('/api/parent-enfant/:id', (req, res) => {
 
 
 /*********************************************Eleves***********************************************************/
-app.get('/api/eleve/:id', (req, res) => {
+app.get('/api/eleve/:id',authenticateToken, (req, res) => {
+  const id = req.params.id; 
   const query = `
                   SELECT 
                           Eleve.id AS eleve_id,
+                          Eleve.nom AS eleve_nom,
+                          Eleve.prenom AS eleve_prenom,
                           Eleve.username AS eleve_username
                          FROM Eleve 
                           WHERE id = ?`;
-  const id = req.params.id;
+ 
 
   db.query(query, [id], (error, results) => {
     if (error) {
@@ -1328,154 +1356,47 @@ db.connect((err) => {
   console.log('Connecté à MySQL');
 });
 
-// Endpoint pour la connexion
 
-//Endpoint pour la connexion de l'administrateur
-app.post('/api/login/admin', async (req, res) => {
+// Endpoint de connexion
+app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
-  const role = 'admin';
-  
+
   if (!username || !password) {
-    return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe requis' });
+    return res.status(400).json({ error: 'Username and password are required' });
   }
 
   try {
-    // Rechercher l'utilisateur par username et role
-    const user = await prisma.admin.findUnique({
-      where: { username },
-    });
-
-    if (!user || user.role !== role) {
-      return res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
-    }
-
-    // Comparer le mot de passe fourni avec le mot de passe haché
-    const match = await bcrypt.compare(password, user.password);
-
-    if (match) {
-      res.json({ 
-        role: user.role,
-        userId: user.id
-      });
-    } else {
-      res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
-    }
-  } catch (err) {
-    console.error('Erreur lors de la connexion', err);
-    res.status(500).json({ error: 'Erreur lors de la connexion' });
-  }
-});
-
-//Endpoint pour la connexion du parent
-app.post('/api/login/parent', async (req, res) => {
-  const { username, password } = req.body;
-  const role = 'parent';
-  
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe requis' });
-  }
-
-  try {
-    // Rechercher l'utilisateur par username et role
-    const user = await prisma.parent.findUnique({
-      where: { username },
-    });
-
-    if (!user || user.role !== role) {
-      return res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
-    }
-
-    // Comparer le mot de passe fourni avec le mot de passe haché
-    const match = await bcrypt.compare(password, user.password);
-
-    if (match) {
-      res.json({ 
-        role: user.role,
-        userId: user.id
-      });
-    } else {
-      res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
-    }
-  } catch (err) {
-    console.error('Erreur lors de la connexion', err);
-    res.status(500).json({ error: 'Erreur lors de la connexion' });
-  }
-});
-
-//Endpoint pour la connexion de l'enseignant
-app.post('/api/login/enseignant', async (req, res) => {
-  const { username, password } = req.body;
-  const role = 'enseignant';
-  
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe requis' });
-  }
-
-  try {
-    // Rechercher l'utilisateur par username et role
-    const user = await prisma.enseignant.findUnique({
-      where: { username },
-    });
-
-    if (!user || user.role !== role) {
-      return res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
-    }
-
-    // Comparer le mot de passe fourni avec le mot de passe haché
-    const match = await bcrypt.compare(password, user.password);
-
-    if (match) {
-      res.json({ 
-        role: user.role,
-        userId: user.id
-      });
-    } else {
-      res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
-    }
-  } catch (err) {
-    console.error('Erreur lors de la connexion', err);
-    res.status(500).json({ error: 'Erreur lors de la connexion' });
-  }
-});
-
-
-//Endpoint pour la connexion de l'élève
-app.post('/api/login/eleve', async (req, res) => {
-  const { username, password } = req.body;
-  const role = 'eleve';
-  
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe requis' });
-  }
-
-  try {
-    // Rechercher l'utilisateur par username et role
+    // Trouver l'utilisateur (ou parent, enseignant ou admin) dans la base de données
     const user = await prisma.eleve.findUnique({
       where: { username },
+    }) || await prisma.parent.findUnique({
+      where: { username },
+    }) || await prisma.enseignant.findUnique({
+      where: { username },
+    }) || await prisma.admin.findUnique({
+      where: { username },
     });
 
-    if (!user || user.role !== role) {
-      return res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    // Comparer le mot de passe fourni avec le mot de passe haché
-    const match = await bcrypt.compare(password, user.password);
-
-    if (match) {
-      res.json({ 
-        role: user.role,
-        userId: user.id
-      });
-    } else {
-      res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
+    // Vérifier le mot de passe
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
-  } catch (err) {
-    console.error('Erreur lors de la connexion', err);
-    res.status(500).json({ error: 'Erreur lors de la connexion' });
+
+    // Générer un token JWT si nécessaire 
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.json({ token, user });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
 /***************************************************Admin*************************************************/
 
 
