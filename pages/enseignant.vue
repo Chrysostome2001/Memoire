@@ -9,17 +9,24 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
+                src="../assets/profil.png"
               ></v-img>
             </v-avatar>
           </v-list-item>
           <v-list-item>
             <v-list-item-title class="d-flex align-center ml-9 mt-2">{{ enseignant.username }}</v-list-item-title>
           </v-list-item>
-          <v-list-item class="mt-5">
-            <v-expansion-panels>
+          <nuxt-link to="./" class="no-decoration">
+            <v-list-item class="mt-5">
+            <v-list-item-content>
+              <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          </nuxt-link>
+          <v-list-item>
+            <v-expansion-panels variant="accordion">
               <v-expansion-panel class="mt-6 mb-6">
-                <v-expansion-panel-title expand-icon="mdi-menu-down">
+                <v-expansion-panel-title>
                   Cahier de Note
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
@@ -39,19 +46,9 @@
               </v-expansion-panel>
             </v-expansion-panels>
           </v-list-item>
-          <v-list-item link @click="changeView('Home')">
+          <v-list-item link @click="changeView('Compte')">
             <v-list-item-content>
-              <v-list-item-title>Home</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item link @click="changeView('About')">
-            <v-list-item-content>
-              <v-list-item-title>About</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item link @click="changeView('Contact')">
-            <v-list-item-content>
-              <v-list-item-title>Contact</v-list-item-title>
+              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -59,9 +56,9 @@
       
       <v-app-bar app>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>My App</v-toolbar-title>
-        <v-btn outlined @click="logout" class="ml-2">
-          Logout
+        <v-toolbar-title>E-NOTE</v-toolbar-title>
+        <v-btn outlined @click="logout" class="ml-2" color="error">
+          Deconnexion
           <v-icon right class="ml-1">mdi-logout</v-icon>
         </v-btn>
       </v-app-bar>
@@ -76,8 +73,7 @@
   <script>
   import axios from 'axios';
   import Home from '~/components/Home.vue';
-  import About from '~/components/About.vue';
-  import Contact from '~/components/Contact.vue';
+  import Compte from '~/components/Compte.vue';
   import DashboardEnseignant from '@/components/DashboardEnseignant';
   import { jwtDecode } from 'jwt-decode';
   export default {
@@ -93,8 +89,7 @@
     },
     components: {
       Home,
-      About,
-      Contact,
+      Compte,
       DashboardEnseignant,
     },
     created() {
@@ -139,7 +134,10 @@
   };
   </script>
   
-  <style>
-  /* Ajoutez des styles personnalisés ici */
+  <style scoped>
+    .no-decoration {
+      text-decoration: none; /* Enlève le soulignement */
+      color: inherit; /* Utilise la couleur du texte environnant */
+    }
   </style>
   

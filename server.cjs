@@ -866,7 +866,7 @@ app.post('/api/students', async (req, res) => {
 
     return fs.readFileSync(filePath);
   };
-  const photoPath = path.join(__dirname, 'public/00014372.jpg');
+  const photoPath = path.join(__dirname, 'assets/profil.png');
   const photoData = fs.readFileSync(photoPath);
     // Ajout de l'étudiant dans la base de données avec le mot de passe haché
     const newStudent = await prisma.eleve.create({
@@ -920,7 +920,7 @@ app.post('/api/parent', async (req, res) => {
   
       return fs.readFileSync(filePath);
     };
-    const photoPath = path.join(__dirname, 'public/00014372.jpg');
+    const photoPath = path.join(__dirname, 'assets/profil.png');
     const photoData = fs.readFileSync(photoPath);
 
     // Ajout du parent dans la base de données avec le mot de passe haché
@@ -973,7 +973,7 @@ app.post('/api/enseignants', async (req, res) => {
   
       return fs.readFileSync(filePath);
     };
-    const photoPath = path.join(__dirname, 'public/00014372.jpg');
+    const photoPath = path.join(__dirname, 'assets/profil.png');
     const photoData = fs.readFileSync(photoPath);
 
     // Ajout de l'enseignant dans la base de données avec le mot de passe haché
@@ -1342,6 +1342,116 @@ app.put('/api/miseajourdevoir/:subjectId/:term', async (req, res) => {
   }
 });
 
+app.put('/api/updatePassword/:id', async (req, res) => {
+  const { id } = req.params;
+  const { Apassword, Npassword, role } = req.body;
+
+  if (!Apassword || !Npassword) {
+    return res.status(400).json({ error: 'L\'ancien et le nouveau mot de passe sont requis' });
+  }
+
+  try {
+    let user;
+    // Récupérer l'utilisateur selon son rôle
+    if (role === "eleve") {
+      user = await prisma.eleve.findUnique({ where: { id: parseInt(id) } });
+    } else if (role === "parent") {
+      user = await prisma.parent.findUnique({ where: { id: parseInt(id) } });
+    } else if (role === "enseignant") {
+      user = await prisma.enseignant.findUnique({ where: { id: parseInt(id) } });
+    } else if (role === "admin") {
+      user = await prisma.admin.findUnique({ where: { id: parseInt(id) } });
+    } else {
+      return res.status(400).json({ error: 'Rôle invalide' });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    // Vérifier l'ancien mot de passe
+    const isPasswordValid = await bcrypt.compare(Apassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'L\'ancien mot de passe est incorrect' });
+    }
+
+    // Hacher le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(Npassword, 10);
+
+    // Mettre à jour le mot de passe de l'utilisateur
+    if (role === "eleve") {
+      const updatedPassword = await prisma.eleve.update({
+        where: { id: parseInt(id) },
+        data: { password: hashedPassword },
+      });
+      res.status(200).json(updatedPassword);
+    } else if (role === "parent") {
+      const updatedPassword = await prisma.parent.update({
+        where: { id: parseInt(id) },
+        data: { password: hashedPassword },
+      });
+      res.status(200).json(updatedPassword);
+    } else if (role === "enseignant") {
+      const updatedPassword = await prisma.enseignant.update({
+        where: { id: parseInt(id) },
+        data: { password: hashedPassword },
+      });
+      res.status(200).json(updatedPassword);
+    } else if (role === "admin") {
+      const updatedPassword = await prisma.admin.update({
+        where: { id: parseInt(id) },
+        data: { password: hashedPassword },
+      });
+      res.status(200).json(updatedPassword);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour du mot de passe' });
+  }
+});
+
+
+app.put('/api/updateUsername/:id', async (req, res) => {
+  const { id } = req.params;
+  const { NuserName, role } = req.body;
+
+  if (!NuserName) {
+    return res.status(400).json({ error: 'Le mot de passe est requis' });
+  }
+
+  try {
+    
+    // Mettre à jour le mot de passe de l'utilisateur
+    if (role === "eleve") {
+      const updatedUsername = await prisma.eleve.update({
+        where: { id: parseInt(id) },
+        data: { username: NuserName },
+      });
+      res.status(200).json(updatedUsername);
+    } else if (role === "parent") {
+      const updatedUsername = await prisma.parent.update({
+        where: { id: parseInt(id) },
+        data: { username: NuserName },
+      });
+      res.status(200).json(updatedUsername);
+    } else if (role === "enseignant") {
+      const updatedUsername = await prisma.enseignant.update({
+        where: { id: parseInt(id) },
+        data: { username: NuserName },
+      });
+      res.status(200).json(updatedUsername);
+    } else if (role === "admin") {
+      const updatedUsername = await prisma.admin.update({
+        where: { id: parseInt(id) },
+        data: { username: NuserName },
+      });
+      res.status(200).json(updatedUsername);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'username.' });
+  }
+});
 
 
 /*************************************************Connexion*************************************************/

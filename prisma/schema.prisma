@@ -39,6 +39,7 @@ model Coefficient {
   matiere Matiere[]
 }
 
+
 model Parent {
   id        Int       @id @default(autoincrement())
   createdAt DateTime  @default(now())

@@ -32,9 +32,9 @@ export default {
   data() {
     return {
       carouselItems: [
-        { src: '/00014372.jpg', alt: 'Slide 1' },
-        { src: '/68794795-xbox-wallpapers.jpg', alt: 'Slide 2' },
-        { src: '/abstract-colour-cool-HD-wallpaper-high-resolution-display-colourful-1920x1080.jpg', alt: 'Slide 3' },
+        { src: '/1.png', alt: 'Slide 1' },
+        { src: '/2.webp', alt: 'Slide 2' },
+        { src: '/3.png', alt: 'Slide 3' },
       ],
     };
   },

@@ -9,20 +9,22 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
+                src="../assets/profil.png"
               ></v-img>
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center ml-9 mt-9">{{ parent.fullName }}</v-list-item-title>
+            <v-list-item-title class="d-flex align-center">{{ parent.fullName }}</v-list-item-title>
           </v-list-item>
-          <v-list-item link @click="changeView('Home')">
+          <nuxt-link to="./" class="no-decoration">
+            <v-list-item class="mt-5">
             <v-list-item-content>
-              <v-list-item-title>Acceuil</v-list-item-title>
+              <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+          </nuxt-link>
           <v-list-item link @click="changeView('DashboardParent')">
-            <v-list-item-title>Consulter note</v-list-item-title>
+            <v-list-item-title><v-icon left color="green">mdi-school</v-icon> Consulter note</v-list-item-title>
           </v-list-item>
           <v-list-item v-if="showSearch">
             <v-text-field
@@ -31,14 +33,9 @@
               @input="updateContent"
             ></v-text-field>
           </v-list-item>
-          <v-list-item link @click="changeView('About')">
+          <v-list-item link @click="changeView('Compte')">
             <v-list-item-content>
-              <v-list-item-title>About</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item link @click="changeView('Contact')">
-            <v-list-item-content>
-              <v-list-item-title>Contact</v-list-item-title>
+              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -46,9 +43,9 @@
       
       <v-app-bar app>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>My App</v-toolbar-title>
-        <v-btn outlined @click="logout" class="ml-2">
-          Logout
+        <v-toolbar-title>E-NOTE</v-toolbar-title>
+        <v-btn outlined @click="logout" class="ml-2" color="error">
+          Deconnexion
           <v-icon right class="ml-1">mdi-logout</v-icon>
         </v-btn>
       </v-app-bar>
@@ -64,8 +61,7 @@
   import axios from 'axios';
   import { jwtDecode } from 'jwt-decode';
   import Home from '~/components/Home.vue';
-  import About from '~/components/About.vue';
-  import Contact from '~/components/Contact.vue';
+  import Compte from '~/components/Compte.vue';
   import DashboardParent from '@/components/DashboardParent';
   export default {
     data() {
@@ -78,8 +74,7 @@
     },
     components: {
       Home,
-      About,
-      Contact,
+      Compte,
       DashboardParent,
     },
     created() {
@@ -111,6 +106,9 @@
   };
   </script>
   
-  <style>
-  /* Ajoutez des styles personnalisés ici */
+  <style scoped>
+    .no-decoration {
+      text-decoration: none; /* Enlève le soulignement */
+      color: inherit; /* Utilise la couleur du texte environnant */
+    }
   </style>

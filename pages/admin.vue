@@ -9,43 +9,41 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
+                src="../assets/profil.png"
               ></v-img>
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center ml-9 mt-2" >{{ admin.username }}</v-list-item-title>
+            <v-list-item-title class="d-flex align-center ml-9 mt-2">{{ admin.username }}</v-list-item-title>
           </v-list-item>
-          <v-list-item link @click="changeView('GererParent')" class="mt-5">
-            <v-list-item-title>Gerer parent</v-list-item-title>
+          <nuxt-link to="./" class="no-decoration">
+            <v-list-item class="mt-5">
+            <v-list-item-content>
+              <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
+            </v-list-item-content>
           </v-list-item>
-          <v-list-item link @click="changeView('GererClasse')" class="mt-5">
-            <v-list-item-title>Gerer classe</v-list-item-title>
+          </nuxt-link>
+
+          <v-list-item link @click="changeView('GererParent')">
+            <v-list-item-title><v-icon color="success">mdi-account</v-icon> Gerer parent</v-list-item-title>
           </v-list-item>
-          <v-list-item link @click="changeView('GererEleve')" class="mt-5">
-            <v-list-item-title>Gerer eleve</v-list-item-title>
+          <v-list-item link @click="changeView('GererClasse')">
+            <v-list-item-title><v-icon color="primary">mdi-school</v-icon> Gerer classe</v-list-item-title>
           </v-list-item>
-          <v-list-item link @click="changeView('GererEnseignant')" class="mt-5">
-            <v-list-item-title>Gerer enseignant</v-list-item-title>
+          <v-list-item link @click="changeView('GererEleve')">
+            <v-list-item-title><v-icon color="blue">mdi-account-multiple</v-icon> Gerer eleve</v-list-item-title>
+          </v-list-item>
+          <v-list-item link @click="changeView('GererEnseignant')">
+            <v-list-item-title><v-icon color="success">mdi-account</v-icon> Gerer enseignant</v-list-item-title>
           </v-list-item>
 
-          <v-list-item link @click="changeView('GererMatiere')" class="mt-5">
-            <v-list-item-title>Gerer matiere</v-list-item-title>
+          <v-list-item link @click="changeView('GererMatiere')">
+            <v-list-item-title><v-icon color="yellow">mdi-book-open</v-icon> Gerer matiere</v-list-item-title>
           </v-list-item>
           
-          <v-list-item link @click="changeView('Home')">
+          <v-list-item link @click="changeView('Compte')">
             <v-list-item-content>
-              <v-list-item-title>Home</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item link @click="changeView('About')">
-            <v-list-item-content>
-              <v-list-item-title>About</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item link @click="changeView('Contact')">
-            <v-list-item-content>
-              <v-list-item-title>Contact</v-list-item-title>
+              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -53,14 +51,14 @@
       
       <v-app-bar app>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>My App</v-toolbar-title>
-        <v-btn outlined @click="logout" class="ml-2">
-          Logout
+        <v-toolbar-title>E-NOTE</v-toolbar-title>
+        <v-btn outlined @click="logout" class="ml-2" color="error">
+          Deconnexion
           <v-icon right class="ml-1">mdi-logout</v-icon>
         </v-btn>
       </v-app-bar>
       
-      <v-main>
+      <v-main class="neutral-background">
         <component :is="currentView" />
         <router-view />
       </v-main>
@@ -71,8 +69,7 @@
   import axios from 'axios';
   import { jwtDecode } from 'jwt-decode';
   import Home from '~/components/Home.vue';
-  import About from '~/components/About.vue';
-  import Contact from '~/components/Contact.vue';
+  import Compte from '~/components/Compte.vue';
   import AjoutEleve from '@/components/AjoutEleve';
   import GererEleve from '@/components/GererEleve';
   import SupprimerEleve from '@/components/SupprimerEleve';
@@ -91,8 +88,7 @@
     },
     components: {
       Home,
-      About,
-      Contact,
+      Compte,
       AjoutEleve,
       SupprimerEleve,
       GererEleve,
@@ -127,4 +123,14 @@
     }
   };
   </script>
+
+  <style scoped>
+    .no-decoration {
+      text-decoration: none; /* Enlève le soulignement */
+      color: inherit; /* Utilise la couleur du texte environnant */
+    }
+    .neutral-background {
+  background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
+}
+  </style>
   
