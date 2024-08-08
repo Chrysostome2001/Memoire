@@ -79,22 +79,20 @@ export default {
         });
         const { token, user } = response.data;
         localStorage.setItem('token', token);
-
-        const userId = user.id;
         const role = user.role;
 
         switch (role) {
           case 'admin':
-            this.$router.push({ path: `/admin/${userId}`, query: { param: userId, name: role } });
+            this.$router.push({ path: `/admin`, query: { name: role } });
             break;
           case 'parent':
-            this.$router.push({ path: `/parent/${userId}`, query: { param: userId, name: role } });
+            this.$router.push({ path: `/parent/`, query: { name: role } });
             break;
           case 'eleve':
-            this.$router.push({ path: `/eleve/${userId}`, query: { param: userId, name: role } });
+            this.$router.push({ path: `/eleve`, query: { name: role } });
             break;
           case 'enseignant':
-            this.$router.push({ path: `/enseignant/${userId}`, query: { param: userId, name: role } });
+            this.$router.push({ path: `/enseignant`, query: { name: role } });
             break;
           default:
             this.loginError = 'Rôle inconnu.';

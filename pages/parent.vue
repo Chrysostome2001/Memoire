@@ -9,20 +9,27 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
+                src="../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
               ></v-img>
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center">{{ eleve.fullName }}</v-list-item-title>
-          </v-list-item>
-          <v-list-item link @click="changeView('DashboardEleve')" class="mt-5">
-            <v-list-item-title>Consulter note</v-list-item-title>
+            <v-list-item-title class="d-flex align-center ml-9 mt-9">{{ parent.fullName }}</v-list-item-title>
           </v-list-item>
           <v-list-item link @click="changeView('Home')">
             <v-list-item-content>
-              <v-list-item-title>Home</v-list-item-title>
+              <v-list-item-title>Acceuil</v-list-item-title>
             </v-list-item-content>
+          </v-list-item>
+          <v-list-item link @click="changeView('DashboardParent')">
+            <v-list-item-title>Consulter note</v-list-item-title>
+          </v-list-item>
+          <v-list-item v-if="showSearch">
+            <v-text-field
+              v-model="search"
+              label="Rechercher..."
+              @input="updateContent"
+            ></v-text-field>
           </v-list-item>
           <v-list-item link @click="changeView('About')">
             <v-list-item-content>
@@ -55,16 +62,16 @@
   
   <script>
   import axios from 'axios';
+  import { jwtDecode } from 'jwt-decode';
   import Home from '~/components/Home.vue';
   import About from '~/components/About.vue';
   import Contact from '~/components/Contact.vue';
-  import DashboardEleve from '@/components/DashboardEleve';
-  import { jwtDecode } from 'jwt-decode';
+  import DashboardParent from '@/components/DashboardParent';
   export default {
     data() {
       return {
         id: null,
-        eleve: {},
+        parent: {},
         drawer: false,
         currentView: 'Home',
       };
@@ -73,51 +80,25 @@
       Home,
       About,
       Contact,
-      DashboardEleve,
+      DashboardParent,
     },
     created() {
       this.fetchData();
     },
     methods: {
       async fetchData() {
-        const { id } = this.$route.params;
-
-        // Récupérer le token JWT du local storage
         const token = localStorage.getItem('token');
         const decodedToken = jwtDecode(token)
         try {
-          const response = await axios.get(`http://localhost:8080/api/eleve/${decodedToken.id}`);
-
-          this.eleve = {
-            id: response.data.eleve_id,
-            fullName: `${response.data.eleve_nom} ${response.data.eleve_prenom}`,
-            username: response.data.eleve_username,
-          };
-        } catch (error) {
-          if (error.response) {
-            // Erreurs spécifiques en fonction des codes de réponse HTTP
-            switch (error.response.status) {
-              case 401:
-                console.error('Non autorisé. Veuillez vous connecter.');
-                // Rediriger vers la page de connexion ou afficher un message d'erreur
-                this.$router.push('/login');
-                break;
-              case 403:
-                console.error('Accès interdit. Vous n\'avez pas les droits nécessaires.');
-                // Afficher un message d'erreur ou rediriger l'utilisateur
-                break;
-              case 404:
-                console.error('Élève non trouvé.');
-                // Gérer l'élément non trouvé
-                break;
-              default:
-                console.error('Erreur de serveur. Veuillez réessayer plus tard.');
-                break;
-            }
-          } else {
-            // Erreur réseau ou autre problème
-            console.error('Erreur de réseau ou autre problème :', error.message);
+          const response = await axios.get(`http://localhost:8080/api/parent/${decodedToken.id}`);
+          this.parent = {
+            id: response.data.parent_id,
+            fullName: `${response.data.parent_nom} ${response.data.parent_prenom}`,
+            username: response.data.parent_username,
           }
+          console.log(this.parent)
+        } catch (error) {
+          console.error(error);
         }
       },
       changeView(view) {
@@ -125,7 +106,7 @@
       },
       logout() {
         this.$router.push({ name: 'index' });
-      },
+    },
     },
   };
   </script>

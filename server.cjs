@@ -41,7 +41,8 @@ const authenticateToken = (req, res, next) => {
   
   if (token == null) return res.sendStatus(401); // Si aucun token n'est fourni
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, jwtSecret, (err, user) => {
+    console.log('JWT Secret:', jwtSecret);
     if (err) return res.sendStatus(403); // Si le token est invalide
     req.user = user;
     next();
@@ -157,7 +158,7 @@ app.get('/api/parent-enfant/:id', (req, res) => {
 
 
 /*********************************************Eleves***********************************************************/
-app.get('/api/eleve/:id',authenticateToken, (req, res) => {
+app.get('/api/eleve/:id', (req, res) => {
   const id = req.params.id; 
   const query = `
                   SELECT 
@@ -206,7 +207,6 @@ app.get('/api/eleves/', (req, res) => {
 app.get('/api/eleve/:id/notes', (req, res) => {
   const id = req.params.id;
   const trimestreId = req.query.trimestre_id;
-
   const sql = `
     SELECT 
     Eleve.nom AS nom_eleve,

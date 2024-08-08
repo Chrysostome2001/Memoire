@@ -9,16 +9,30 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
+                src="../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
               ></v-img>
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center">{{ eleve.fullName }}</v-list-item-title>
+            <v-list-item-title class="d-flex align-center ml-9 mt-2" >{{ admin.username }}</v-list-item-title>
           </v-list-item>
-          <v-list-item link @click="changeView('DashboardEleve')" class="mt-5">
-            <v-list-item-title>Consulter note</v-list-item-title>
+          <v-list-item link @click="changeView('GererParent')" class="mt-5">
+            <v-list-item-title>Gerer parent</v-list-item-title>
           </v-list-item>
+          <v-list-item link @click="changeView('GererClasse')" class="mt-5">
+            <v-list-item-title>Gerer classe</v-list-item-title>
+          </v-list-item>
+          <v-list-item link @click="changeView('GererEleve')" class="mt-5">
+            <v-list-item-title>Gerer eleve</v-list-item-title>
+          </v-list-item>
+          <v-list-item link @click="changeView('GererEnseignant')" class="mt-5">
+            <v-list-item-title>Gerer enseignant</v-list-item-title>
+          </v-list-item>
+
+          <v-list-item link @click="changeView('GererMatiere')" class="mt-5">
+            <v-list-item-title>Gerer matiere</v-list-item-title>
+          </v-list-item>
+          
           <v-list-item link @click="changeView('Home')">
             <v-list-item-content>
               <v-list-item-title>Home</v-list-item-title>
@@ -55,16 +69,22 @@
   
   <script>
   import axios from 'axios';
+  import { jwtDecode } from 'jwt-decode';
   import Home from '~/components/Home.vue';
   import About from '~/components/About.vue';
   import Contact from '~/components/Contact.vue';
-  import DashboardEleve from '@/components/DashboardEleve';
-  import { jwtDecode } from 'jwt-decode';
+  import AjoutEleve from '@/components/AjoutEleve';
+  import GererEleve from '@/components/GererEleve';
+  import SupprimerEleve from '@/components/SupprimerEleve';
+  import GererClasse from '@/components/GererClasse';
+  import GererEnseignant from '~/components/GererEnseignant.vue';
+  import GererParent from '~/components/GererParent.vue';
+  import GererMatiere from '~/components/GererMatiere.vue';
   export default {
     data() {
       return {
         id: null,
-        eleve: {},
+        admin: {},
         drawer: false,
         currentView: 'Home',
       };
@@ -73,51 +93,29 @@
       Home,
       About,
       Contact,
-      DashboardEleve,
+      AjoutEleve,
+      SupprimerEleve,
+      GererEleve,
+      GererClasse,
+      GererEnseignant,
+      GererParent,
+      GererMatiere,
     },
     created() {
       this.fetchData();
     },
     methods: {
       async fetchData() {
-        const { id } = this.$route.params;
-
-        // Récupérer le token JWT du local storage
         const token = localStorage.getItem('token');
         const decodedToken = jwtDecode(token)
         try {
-          const response = await axios.get(`http://localhost:8080/api/eleve/${decodedToken.id}`);
-
-          this.eleve = {
-            id: response.data.eleve_id,
-            fullName: `${response.data.eleve_nom} ${response.data.eleve_prenom}`,
-            username: response.data.eleve_username,
+          const response = await axios.get(`http://localhost:8080/api/admin/${decodedToken.id}`);
+          this.admin = {
+            id: response.data.id,
+            username: response.data.username,
           };
         } catch (error) {
-          if (error.response) {
-            // Erreurs spécifiques en fonction des codes de réponse HTTP
-            switch (error.response.status) {
-              case 401:
-                console.error('Non autorisé. Veuillez vous connecter.');
-                // Rediriger vers la page de connexion ou afficher un message d'erreur
-                this.$router.push('/login');
-                break;
-              case 403:
-                console.error('Accès interdit. Vous n\'avez pas les droits nécessaires.');
-                // Afficher un message d'erreur ou rediriger l'utilisateur
-                break;
-              case 404:
-                console.error('Élève non trouvé.');
-                // Gérer l'élément non trouvé
-                break;
-              default:
-                console.error('Erreur de serveur. Veuillez réessayer plus tard.');
-                break;
-            }
-          } else {
-            // Erreur réseau ou autre problème
-            console.error('Erreur de réseau ou autre problème :', error.message);
-          }
+          console.error(error);
         }
       },
       changeView(view) {
@@ -125,11 +123,8 @@
       },
       logout() {
         this.$router.push({ name: 'index' });
-      },
     },
+    }
   };
   </script>
   
-  <style>
-  /* Ajoutez des styles personnalisés ici */
-  </style>

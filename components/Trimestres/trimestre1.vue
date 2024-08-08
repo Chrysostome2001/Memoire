@@ -47,6 +47,7 @@
 <script>
 import axios from 'axios';
 import { set } from '~/node_modules/nuxt/dist/app/compat/capi';
+import { jwtDecode } from 'jwt-decode';
 
 export default {
   props: ['trimestre', 'studentId'],
@@ -137,8 +138,12 @@ export default {
   },
   mounted() {
     const name = this.$route.query.name
+    const token = localStorage.getItem('token');
+    const decodedId = jwtDecode(token)
+
+
     if(name === "eleve"){
-      axios.get(`http://localhost:8080/api/eleve/${this.$route.query.param}/notes?trimestre_id=1`)
+      axios.get(`http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=1`)
         .then(response => {
           if (response.data.length > 0) {
             this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;

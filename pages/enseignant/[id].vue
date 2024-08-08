@@ -79,6 +79,7 @@ import Home from '~/components/Home.vue';
 import About from '~/components/About.vue';
 import Contact from '~/components/Contact.vue';
 import DashboardEnseignant from '@/components/DashboardEnseignant';
+import { jwtDecode } from 'jwt-decode';
 export default {
   data() {
     return {
@@ -105,9 +106,10 @@ export default {
       console.log('Updated currentClasseId:', this.currentClasseId); // Met à jour l'ID de l'élève sélectionné
     },
     async fetchData() {
-      const { id } = this.$route.params;
+      const token = localStorage.getItem('token');
+      const decodedToken = jwtDecode(token)
       try {
-        const response = await axios.get(`http://localhost:8080/api/enseignant/${id}`);
+        const response = await axios.get(`http://localhost:8080/api/enseignant/${decodedToken.id}`);
         this.enseignant = {
           id: response.data.id,
           username: response.data.username,
@@ -118,9 +120,10 @@ export default {
       this.fetchClasse(); // Appeler fetchClasse après avoir récupéré les données de l'enseignant
     },
     async fetchClasse() {
-      const { id } = this.$route.params;
+      const token = localStorage.getItem('token');
+      const decodedToken = jwtDecode(token)
       try {
-        const response = await axios.get(`http://localhost:8080/api/classes/${id}`);
+        const response = await axios.get(`http://localhost:8080/api/classes/${decodedToken.id}`);
         this.classes = response.data; // Met à jour la liste des classes avec les données récupérées
       } catch (error) {
         console.error(error);

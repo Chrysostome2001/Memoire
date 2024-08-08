@@ -9,7 +9,7 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
+                src="../assets/assassins_creed_3_connor_bow-wallpaper-1920x1080.jpg"
               ></v-img>
             </v-avatar>
           </v-list-item>

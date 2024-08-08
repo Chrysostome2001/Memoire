@@ -69,6 +69,7 @@
   
   <script>
   import axios from 'axios';
+  import { jwtDecode } from 'jwt-decode';
   import Home from '~/components/Home.vue';
   import About from '~/components/About.vue';
   import Contact from '~/components/Contact.vue';
@@ -105,9 +106,10 @@
     },
     methods: {
       async fetchData() {
-        const { id } = this.$route.params;
+        const token = localStorage.getItem('token');
+        const decodedToken = jwtDecode(token)
         try {
-          const response = await axios.get(`http://localhost:8080/api/admin/${id}`);
+          const response = await axios.get(`http://localhost:8080/api/admin/${decodedToken.id}`);
           this.admin = {
             id: response.data.id,
             username: response.data.username,

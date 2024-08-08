@@ -150,6 +150,7 @@
 
 <script>
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 export default {
   props: {
     classeId: {
@@ -275,7 +276,9 @@ export default {
     },
     fetchStudentsData() {
       console.log(this.trimesterId)
-    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${this.$route.query.param}&trimestre_id=${this.trimesterId}`)
+      const token = localStorage.getItem('token');
+      const decodedToken = jwtDecode(token)
+    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${decodedToken.id}&trimestre_id=${this.trimesterId}`)
       .then(response => {
         this.students = response.data.map(student => ({
           name: `${student.eleve_nom} ${student.eleve_prenom}`,

@@ -36,6 +36,7 @@ import TrimestresTrimestre1 from '@/components/Trimestres/trimestre1.vue';
 import TrimestresTrimestre2 from '@/components/Trimestres/trimestre2.vue'
 import TrimestresTrimestre3 from '@/components/Trimestres/trimestre3.vue';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 export default {
   name: "App",
@@ -61,8 +62,9 @@ export default {
     },
   },
   mounted() {
-    const parentId = this.$route.query.param;
-    axios.get(`http://localhost:8080/api/eleves/${parentId}`)
+    const token = localStorage.getItem('token');
+    const decodedToken = jwtDecode(token)
+    axios.get(`http://localhost:8080/api/eleves/${decodedToken.id}`)
       .then(response => {
         this.enfants = response.data.map(eleve => ({
           nom: eleve.eleve_nom,
