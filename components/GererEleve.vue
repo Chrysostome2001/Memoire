@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row justify="center">
+    <v-row>
       <v-col cols="12" sm="6" md="3">
         <v-btn size="x-large" @click="showAddStudentForm" color="primary" variant="text">Ajouter Élève</v-btn>
       </v-col>

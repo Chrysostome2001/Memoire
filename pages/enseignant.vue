@@ -16,13 +16,13 @@
           <v-list-item>
             <v-list-item-title class="d-flex align-center ml-9 mt-2">{{ enseignant.username }}</v-list-item-title>
           </v-list-item>
-          <nuxt-link to="./" class="no-decoration">
-            <v-list-item class="mt-5">
+          <v-list-item class="mt-5" link>
             <v-list-item-content>
-              <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
+              <nuxt-link to="./" class="no-decoration">
+                <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
+              </nuxt-link>
             </v-list-item-content>
           </v-list-item>
-          </nuxt-link>
           <v-list-item>
             <v-expansion-panels variant="accordion">
               <v-expansion-panel class="mt-6 mb-6">
@@ -35,10 +35,10 @@
                       v-for="classe in classes"
                       :key="classe.classe_id"
                       link
-                      @click="changeView('DashboardEnseignant'), loadId(classe.classe_id)"
+                      @click="changeView('DashboardEnseignant'), loadId(classe.classe_id, classe.matiere_id)"
                     >
                       <v-list-item-content>
-                        <v-list-item-title>{{ classe.classe_nom }}</v-list-item-title>
+                        <v-list-item-title><strong>{{ classe.classe_nom }}</strong> <span class="matiere">{{ classe.matiere_nom }}</span></v-list-item-title>
                       </v-list-item-content>
                     </v-list-item>
                   </v-list>
@@ -63,8 +63,8 @@
         </v-btn>
       </v-app-bar>
       
-      <v-main>
-        <component :is="currentView" ref="dashboardEnseignant" :classeId="currentClasseId"/>
+      <v-main class="neutral-background">
+        <component :is="currentView" ref="dashboardEnseignant" :classeId="currentClasseId" :matiereId="currentMatiereId"/>
         <router-view />
       </v-main>
     </v-app>
@@ -85,6 +85,7 @@
         currentView: 'Home',
         classes: [], // Utiliser un tableau vide pour stocker les classes récupérées
         currentClasseId: null,
+        currentMatiereId: null,
       };
     },
     components: {
@@ -96,9 +97,11 @@
       this.fetchData();
     },
     methods: {
-      loadId(classeId) {
+      loadId(classeId, matiereId) {
         this.currentClasseId = classeId;
+        this.currentMatiereId = matiereId;
         console.log('Updated currentClasseId:', this.currentClasseId); // Met à jour l'ID de l'élève sélectionné
+        console.log('Updated currentMatiere:', this.currentMatiereId)
       },
       async fetchData() {
         const token = localStorage.getItem('token');
@@ -138,6 +141,12 @@
     .no-decoration {
       text-decoration: none; /* Enlève le soulignement */
       color: inherit; /* Utilise la couleur du texte environnant */
+    }
+    .neutral-background {
+      background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
+    }
+    .matiere {
+      color: blue;
     }
   </style>
   

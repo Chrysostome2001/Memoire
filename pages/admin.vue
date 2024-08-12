@@ -16,13 +16,13 @@
           <v-list-item>
             <v-list-item-title class="d-flex align-center ml-9 mt-2">{{ admin.username }}</v-list-item-title>
           </v-list-item>
-          <nuxt-link to="./" class="no-decoration">
-            <v-list-item class="mt-5">
+          <v-list-item class="mt-5" link>
             <v-list-item-content>
-              <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
+              <nuxt-link to="./" class="no-decoration">
+                <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
+              </nuxt-link>
             </v-list-item-content>
           </v-list-item>
-          </nuxt-link>
 
           <v-list-item link @click="changeView('GererParent')">
             <v-list-item-title><v-icon color="success">mdi-account</v-icon> Gerer parent</v-list-item-title>
@@ -130,7 +130,7 @@
       color: inherit; /* Utilise la couleur du texte environnant */
     }
     .neutral-background {
-  background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
-}
+      background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
+    }
   </style>
   

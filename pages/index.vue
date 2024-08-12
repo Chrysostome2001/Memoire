@@ -14,8 +14,10 @@
     <v-carousel
       :items="carouselItems"
       show-arrows
+      :timeout="3000"
       hide-delimiter-background
       class="carousel"
+      height="auto"
     >
       <v-carousel-item
         v-for="(item, i) in carouselItems"

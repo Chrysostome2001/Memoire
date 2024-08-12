@@ -6,20 +6,20 @@
       :search="search"
     >
       <template v-slot:top>
-        <v-toolbar flat>
-          <v-toolbar-title>Cahier de note</v-toolbar-title>
-          <span>{{ matiereNom }}</span>
-          <span class="ml-9">{{ trimestre_nom }}</span>
+        <v-toolbar flat class="bg-primary">
+          <v-toolbar-title>Cahier de note : {{ classeNom }}</v-toolbar-title>
+          <h3>{{ matiereNom }}</h3>
+          <h4 class="ml-9">{{ trimestre_nom }}</h4>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" @click="validateNotes">Valider les notes</v-btn>
+          <v-btn  @click="validateNotes">Valider les notes</v-btn>
         </v-toolbar>
       </template>
 
       <template v-slot:item.name="{ item }">
-        <span @dblclick="editField(item, 'name')">{{ item.name }}</span>
+        <span>{{ item.name }}</span>
       </template>
       <template v-slot:item.coef="{ item }">
-        <span @dblclick="editField(item, 'coef')">{{ item.coef }}</span>
+        <span>{{ item.coef }}</span>
       </template>
       <template v-slot:item.interro1="{ item }">
         <span @dblclick="item.interro1 === null ? editField(item, 'interro1') : null">{{ item.interro1 ?? 'null' }}</span>
@@ -40,7 +40,7 @@
         <span @dblclick="item.devoir2 === null ? editField(item, 'devoir2') : null">{{ item.devoir2 ?? 'null' }}</span>
       </template>
       <template v-slot:item.averageInterro="{ item }">
-        <span >{{ item.averageInterro }}</span>
+        <span>{{ item.averageInterro }}</span>
       </template>
       <template v-slot:item.averageDevoir="{ item }">
         <span>{{ item.averageDevoir }}</span>
@@ -160,6 +160,10 @@ export default {
     trimester:{
       type: String,
       required: true,
+    },
+    matiereId: {
+      type: Number,
+      required: true,
     }
   },
   data: () => ({
@@ -169,6 +173,7 @@ export default {
     inter: null,
     matiereNom: '',
     trimestre_nom: '',
+    classeNom: '',
     headers: [
       { title: "Nom/Prénom", key: 'name', sortable: false },
       { title: 'Coef', key: 'coef' },
@@ -177,8 +182,8 @@ export default {
       { title: 'Inter 3', key: 'interro3' },
       { title: 'Inter 4', key: 'interro4' },
       { title: 'Moy Inter', key: 'averageInterro' },
-      { title: 'Devoir 1', key: 'devoir1' },
-      { title: 'Devoir 2', key: 'devoir2' },
+      { title: 'Devoir1', key: 'devoir1' },
+      { title: 'Devoir2', key: 'devoir2' },
       { title: 'Moy Devoir', key: 'averageDevoir' },
       { title: 'Rang Final', key: 'finalRank' },
     ],
@@ -242,6 +247,9 @@ export default {
     classeId(newClasseId) {
       this.fetchStudentsData();
     },
+    matiereId(newMatiereId) {
+      this.fetchStudentsData();
+    },
   },
 
   created() {
@@ -276,15 +284,18 @@ export default {
     },
     fetchStudentsData() {
       console.log(this.trimesterId)
+      console.log('mat',this.$props.matiereId, this.$props.classeId)
       const token = localStorage.getItem('token');
       const decodedToken = jwtDecode(token)
-    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${decodedToken.id}&trimestre_id=${this.trimesterId}`)
+      
+    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${decodedToken.id}&trimestre_id=${this.trimesterId}&matiere_id=${this.$props.matiereId}`)
       .then(response => {
         this.students = response.data.map(student => ({
           name: `${student.eleve_nom} ${student.eleve_prenom}`,
           eleveId: student.eleve_id,
           nomMatiere: student.matiere_nom,
           matiereId: student.matiere_id,
+          nomClasse: student.classe_nom,
           enseignantId: student.enseignant_id,
           trimestreNom: student.trimestre_nom,
           trimestreId: student.trimestre_id,
@@ -297,11 +308,12 @@ export default {
           devoir2: this.splitNotes(student.note_devoir, 2),
           averageInterro: 0,
           averageDevoir: 0,
-          finalRank: 0,
+          finalRank: student.rang_final,
         }));
         if (response.data.length > 0) {
         this.matiereNom = response.data[0].matiere_nom;
         this.trimestre_nom = response.data[0].trimestre_nom;
+        this.classeNom = response.data[0].classe_nom
       }
         this.updateAverages();
       })
@@ -396,11 +408,13 @@ export default {
       return (Math.floor(value * 100) / 100).toFixed(2);
     },
     validateNotes() {
-    // Filtrer les étudiants dont les notes n'ont pas d'ID
-    const notesToSave = this.students 
+      const token = localStorage.getItem('token');
+      const decodedToken = jwtDecode(token)
+      // Filtrer les étudiants dont les notes n'ont pas d'ID
+      const notesToSave = this.students 
       .map(student => ({
         id_eleve: student.eleveId, // Ajoutez la propriété id ou un identifiant unique pour chaque étudiant
-        enseignant_id: this.$route.query.param, /* Remplacez par l'ID de l'enseignant */
+        enseignant_id: decodedToken.id, /* Remplacez par l'ID de l'enseignant */
         matiere_id: student.matiereId, /* Remplacez par l'ID de la matière */
         trimestre_id: student.trimestreId,
         note_inter1: student.interro1,
@@ -409,6 +423,7 @@ export default {
         note_inter4: student.interro4,
         note_devoir1: student.devoir1,
         note_devoir2: student.devoir2,
+        rang_final: student.finalRank,
       }));
 
     if (notesToSave.length > 0) {

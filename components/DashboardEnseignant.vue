@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app class="neutral-background">
     <v-layout class="rounded-md">
       <v-main class="mt-5">
         <v-container class="d-flex justify-center">
@@ -8,7 +8,7 @@
           <v-btn @click="showCahier('Trimestre3')">Trimestre 3</v-btn>
         </v-container>
         <v-container>
-          <CahierDeNote v-if="showComponent" :classeId="classeId" :trimester="currentTrimester" />
+          <CahierDeNote v-if="showComponent" :classeId="classeId" :trimester="currentTrimester" :matiereId="matiereId"/>
         </v-container>
       </v-main>
     </v-layout>
@@ -21,6 +21,7 @@ import CahierDeNote from './CahierDeNote.vue';
 export default {
   props: {
     classeId: Number,
+    matiereId: Number,
   },
   name: "App",
   components: {

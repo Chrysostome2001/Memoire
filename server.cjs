@@ -220,6 +220,7 @@ app.get('/api/eleve/:id/notes', (req, res) => {
     NI.id AS note_inter_id,
     ND.id AS note_devoir_id,
     Coefficient.coefficient AS coef,
+    Rang.rang AS rang,
     Trimestre.id AS trimestre_id
 FROM 
     Eleve
@@ -261,6 +262,9 @@ LEFT JOIN
     Trimestre ON Trimestre.id = ?
 LEFT JOIN 
     Enseignant ON Enseignant.id = NI.id_enseignant OR Enseignant.id = ND.id_enseignant
+LEFT JOIN 
+    Rang ON Rang.id_eleve = Eleve.id AND Rang.id_matiere = Matiere.id AND Rang.id_trimestre = Trimestre.id
+   
 WHERE 
     Eleve.id = ?
 
@@ -324,9 +328,12 @@ app.get('/api/classes/:id', (req, res) => {
   const sql = `
               SELECT 
                   Classe.nom AS classe_nom, 
-                  Classe.id AS classe_id 
+                  Classe.id AS classe_id,
+                  Matiere.id AS matiere_id,
+                  Matiere.matiere AS matiere_nom
               FROM Classe 
               INNER JOIN Enseignant_Classe ON Classe.id = Enseignant_Classe.id_classe
+              INNER JOIN Matiere ON Enseignant_Classe.id_matiere = Matiere.id
               WHERE Enseignant_Classe.id_enseignant = ?;
   `;
   
@@ -365,6 +372,7 @@ app.get('/api/notes', (req, res) => {
   const classeId = req.query.classe_id;
   const enseignantId = req.query.enseignant_id;
   const trimestreId = req.query.trimestre_id;
+  const matiereId = req.query.matiere_id;
 
   const sql = `
     SELECT
@@ -374,6 +382,7 @@ app.get('/api/notes', (req, res) => {
       Coefficient.coefficient AS coefficient,
       Matiere.matiere AS matiere_nom,
       Matiere.id AS matiere_id,
+      Classe.nom AS classe_nom,
       Trimestre.nom AS trimestre_nom,
       Trimestre.id AS trimestre_id,
       GROUP_CONCAT(DISTINCT IF(Note_inter.id_trimestre = ?, Note_inter.inter, NULL)) AS note_interrogation,
@@ -391,19 +400,20 @@ app.get('/api/notes', (req, res) => {
     JOIN 
       Enseignant ON Enseignant.id = Enseignant_Classe.id_enseignant
     JOIN
-      Coefficient ON Coefficient.id = Matiere.id_coefficient
+      Coefficient ON Coefficient.id = Matiere.id_coefficient 
     LEFT JOIN 
-      Note_inter ON Eleve.id = Note_inter.id_eleve AND Note_inter.id_enseignant = Enseignant.id
+      Note_inter ON Eleve.id = Note_inter.id_eleve AND Note_inter.id_enseignant = Enseignant.id AND Note_inter.id_matiere = Matiere.id
     LEFT JOIN 
-      Note_devoir ON Eleve.id = Note_devoir.id_eleve AND Note_devoir.id_enseignant = Enseignant.id
+      Note_devoir ON Eleve.id = Note_devoir.id_eleve AND Note_devoir.id_enseignant = Enseignant.id AND Note_devoir.id_matiere = Matiere.id
     WHERE 
       Classe.id = ?
       AND Enseignant.id = ?
+      AND Matiere.id = ?
     GROUP BY 
       Eleve.id
   `;
 
-  db.query(sql, [trimestreId, trimestreId, trimestreId, classeId, enseignantId], (error, results) => {
+  db.query(sql, [trimestreId, trimestreId, trimestreId, classeId, enseignantId, matiereId], (error, results) => {
     if (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -436,6 +446,14 @@ app.post('/api/save-notes', async (req, res) => {
         where: {
           id_eleve: parseInt(note.id_eleve),
           id_enseignant: parseInt(note.enseignant_id),
+          id_matiere: parseInt(note.matiere_id),
+          id_trimestre: parseInt(note.trimestre_id),
+        },
+      });
+      // Suppression des notes de devoir existantes
+      await prisma.rang.deleteMany({
+        where: {
+          id_eleve: parseInt(note.id_eleve),
           id_matiere: parseInt(note.matiere_id),
           id_trimestre: parseInt(note.trimestre_id),
         },
@@ -517,6 +535,15 @@ app.post('/api/save-notes', async (req, res) => {
               devoir: parseFloat(note.note_devoir2),
             },
           });
+
+          await prisma.rang.create({
+           data: {
+            matiere: { connect: { id: note.matiere_id } },
+            trimestre: { connect: { id: note.trimestre_id } },
+            eleve: { connect: { id: note.id_eleve } },
+            rang: parseInt(note.rang_final),
+           } 
+          })
         }
       }
     }
@@ -910,7 +937,7 @@ app.post('/api/parent', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Fonction pour lire une image en binaire
-  const convertImageToBinary = (imagePath) => {
+    const convertImageToBinary = (imagePath) => {
     const filePath = path.resolve(__dirname, imagePath);
     
       // Vérifiez si le fichier existe avant de tenter de le lire

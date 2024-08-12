@@ -26,9 +26,23 @@ model Matiere {
   matiere   String
   note_inter Note_inter[]
   note_devoir Note_devoir[]
+  rang Rang[]
   coeffient Coefficient @relation(fields: [id_coefficient],references: [id])
   enseignant_matiere Enseignant_Classe[]
   id_coefficient Int
+}
+
+model Rang {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  rang Int
+  id_matiere Int
+  id_eleve Int
+  id_trimestre Int
+  matiere Matiere @relation(fields: [id_matiere], references: [id])
+  eleve Eleve @relation(fields: [id_eleve], references: [id])
+  trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
 }
 
 model Coefficient {
@@ -88,6 +102,7 @@ model Eleve {
   role      String   @default("eleve")
   note_inter Note_inter[]
   note_devoir Note_devoir[]
+  rang Rang[]
 }
 
 model Enseignant_Classe {
@@ -109,6 +124,7 @@ model Trimestre {
   nom String
   note_inter Note_inter[]
   note_devoir Note_devoir[]
+  rang Rang[]
 }
 model Note_inter {
   id           Int       @id @default(autoincrement())

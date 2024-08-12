@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app class="d-flex fill-height">
+    <v-app class="d-flex fill-height neutral-background">
       <v-row class="d-flex justify-center align-center">
         <v-col cols="12" md="4">
           <v-card>
@@ -73,7 +73,7 @@ export default {
     async login() {
       this.loginError = null;
       try {
-        const response = await axios.post('http://localhost:8080/api/login/', {
+        const response = await axios.post('http://localhost:8080/api/login', {
           username: this.username,
           password: this.password,
         });
@@ -83,16 +83,16 @@ export default {
 
         switch (role) {
           case 'admin':
-            this.$router.push({ path: `/admin`, query: { name: role } });
+            this.$router.push({ path: `/admin` });
             break;
           case 'parent':
-            this.$router.push({ path: `/parent/`, query: { name: role } });
+            this.$router.push({ path: `/parent/` });
             break;
           case 'eleve':
-            this.$router.push({ path: `/eleve`, query: { name: role } });
+            this.$router.push({ path: `/eleve` });
             break;
           case 'enseignant':
-            this.$router.push({ path: `/enseignant`, query: { name: role } });
+            this.$router.push({ path: `/enseignant` });
             break;
           default:
             this.loginError = 'Rôle inconnu.';
@@ -112,5 +112,8 @@ export default {
 }
 .cursor-pointer {
   cursor: pointer;
+}
+.neutral-background {
+  background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
 }
 </style>

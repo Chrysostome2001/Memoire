@@ -1,9 +1,9 @@
 <template>
   <v-app>
     <v-layout class="rounded-md">
-      <v-main>
+      <v-main class="neutral-background">
         <v-card class="vcard mt-5 ml-5 mb-5" variant="elevated" color="white" outlined>
-          <v-expansion-panels>
+          <v-expansion-panels class="neutral-background">
             <v-expansion-panel v-for="(enfant, i) in enfants" :key="i" class="mt-6">
               <v-expansion-panel-title @click="loadNotes(enfant.id)">
                 {{ enfant.nom }} {{ enfant.prenom }}

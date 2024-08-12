@@ -54,7 +54,7 @@
           <v-form @submit.prevent="changeUsername" class="white-background">
             <v-text-field
               v-model="userName"
-              label="Nouveau mot de passe"
+              label="Nouveau nom d'utilisateur"
               type="username"
               required
             ></v-text-field>

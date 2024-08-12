@@ -9,7 +9,7 @@
         <v-col v-for="classe in filteredClass" :key="classe.id" cols="12" sm="6" md="4">
           <v-card>
             <v-card-title>Classe : {{ classe.nom }}</v-card-title>
-            <v-card-subtitle>Description : {{ classe.nbEleve }}</v-card-subtitle>
+            <v-card-subtitle>Nombre d'élève : {{ classe.nbEleve }}</v-card-subtitle>
             <v-card-actions>
               <v-btn color="blue darken-1" text @click="confirmDelete(classe)">Supprimer</v-btn>
             </v-card-actions>
@@ -67,29 +67,29 @@
         this.confirmDialog = false;
       },
       deleteStudent() {
-  if (this.classeToDelete) {
-    // Envoyer la requête DELETE à l'API
-    axios.delete(`http://localhost:8080/api/supprimerclasse/${this.classeToDelete.id}`)
-      .then(response => {
-        // Supprimer l'élève de la liste locale
-        const index = this.classes.findIndex(classe => classe.id === this.classeToDelete.id);
-        if (index !== -1) {
-          this.classes.splice(index, 1);
-          this.filteredClass = this.filteredClass.filter(classe => classe.id !== this.classeToDelete.id);
-          // Afficher le message d'alerte de suppression réussie
-          this.alertSnackbar = true;
+        if (this.classeToDelete) {
+          // Envoyer la requête DELETE à l'API
+          axios.delete(`http://localhost:8080/api/supprimerclasse/${this.classeToDelete.id}`)
+            .then(response => {
+              // Supprimer l'élève de la liste locale
+              const index = this.classes.findIndex(classe => classe.id === this.classeToDelete.id);
+              if (index !== -1) {
+                this.classes.splice(index, 1);
+                this.filteredClass = this.filteredClass.filter(classe => classe.id !== this.classeToDelete.id);
+                // Afficher le message d'alerte de suppression réussie
+                this.alertSnackbar = true;
+              }
+              this.confirmDialog = false;
+            })
+            .catch(error => {
+              console.error('Erreur lors de la suppression de l\'élève', error);
+              this.confirmDialog = false;
+              this.classeToDelete = null;
+            });
+        } else {
+          this.confirmDialog = false;
         }
-        this.confirmDialog = false;
-      })
-      .catch(error => {
-        console.error('Erreur lors de la suppression de l\'élève', error);
-        this.confirmDialog = false;
-        this.classeToDelete = null;
-      });
-  } else {
-    this.confirmDialog = false;
-  }
-}
+      }
 
     },
     mounted(){

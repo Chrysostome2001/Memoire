@@ -56,6 +56,7 @@ export default {
       notes: [],
       studentName: '',
       sexe:'',
+      rang: '',
     };
   },
 
@@ -109,6 +110,11 @@ export default {
             formatted[note.matiere].coefficient = note.coef;
           }
         }
+        if (note.rang) {
+          if (!formatted[note.matiere].rang) {
+            formatted[note.matiere].rang = note.rang;
+          }
+        }
         
       });
 
@@ -141,8 +147,7 @@ export default {
     const token = localStorage.getItem('token');
     const decodedId = jwtDecode(token)
 
-
-    if(name === "eleve"){
+    if(decodedId.role === "eleve"){
       axios.get(`http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=1`)
         .then(response => {
           if (response.data.length > 0) {
@@ -154,7 +159,7 @@ export default {
         .catch(error => {
           console.error('Erreur lors de la récupération des notes:', error);
         });
-    } else if(name === "parent"){
+    } else if(decodedId.role === "parent"){
       axios.get(`http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`)
         .then(response => {
           if (response.data.length > 0) {

@@ -16,13 +16,13 @@
           <v-list-item>
             <v-list-item-title class="d-flex align-center">{{ parent.fullName }}</v-list-item-title>
           </v-list-item>
-          <nuxt-link to="./" class="no-decoration">
-            <v-list-item class="mt-5">
+          <v-list-item class="mt-5" link>
             <v-list-item-content>
-              <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
+              <nuxt-link to="./" class="no-decoration">
+                <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
+              </nuxt-link>
             </v-list-item-content>
           </v-list-item>
-          </nuxt-link>
           <v-list-item link @click="changeView('DashboardParent')">
             <v-list-item-title><v-icon left color="green">mdi-school</v-icon> Consulter note</v-list-item-title>
           </v-list-item>
@@ -50,7 +50,7 @@
         </v-btn>
       </v-app-bar>
       
-      <v-main>
+      <v-main class="neutral-background">
         <component :is="currentView" />
         <router-view />
       </v-main>
@@ -106,9 +106,12 @@
   };
   </script>
   
-  <style scoped>
+  <style>
     .no-decoration {
       text-decoration: none; /* Enlève le soulignement */
       color: inherit; /* Utilise la couleur du texte environnant */
+    }
+    .neutral-background {
+      background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
     }
   </style>
