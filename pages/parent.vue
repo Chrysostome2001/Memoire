@@ -3,6 +3,7 @@
       <v-navigation-drawer
         v-model="drawer"
         app
+        class="bg-primary"
       >
         <v-list dense>
           <v-list-item class="d-flex align-center justify-center">
@@ -38,12 +39,17 @@
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+          <v-list-item link @click="changeView('HomeParent')">
+            <v-list-item-content>
+              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> info</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-navigation-drawer>
       
       <v-app-bar app>
-        <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>E-NOTE</v-toolbar-title>
+        <v-app-bar-nav-icon @click.stop="drawer = !drawer" color="primary"></v-app-bar-nav-icon>
+        <v-toolbar-title class="text-blue lighten-3">E-NOTE</v-toolbar-title>
         <v-btn outlined @click="logout" class="ml-2" color="error">
           Deconnexion
           <v-icon right class="ml-1">mdi-logout</v-icon>
@@ -60,7 +66,7 @@
   <script>
   import axios from 'axios';
   import { jwtDecode } from 'jwt-decode';
-  import Home from '~/components/Home.vue';
+  import HomeParent from '~/components/HomeParent.vue';
   import Compte from '~/components/Compte.vue';
   import DashboardParent from '@/components/DashboardParent';
   export default {
@@ -69,11 +75,11 @@
         id: null,
         parent: {},
         drawer: false,
-        currentView: 'Home',
+        currentView: 'HomeParent',
       };
     },
     components: {
-      Home,
+      HomeParent,
       Compte,
       DashboardParent,
     },

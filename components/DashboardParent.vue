@@ -5,7 +5,7 @@
         <v-card class="vcard mt-5 ml-5 mb-5" variant="elevated" color="white" outlined>
           <v-expansion-panels class="neutral-background">
             <v-expansion-panel v-for="(enfant, i) in enfants" :key="i" class="mt-6">
-              <v-expansion-panel-title @click="loadNotes(enfant.id)">
+              <v-expansion-panel-title @click="loadNotes(enfant.id)" class="bg-info">
                 {{ enfant.nom }} {{ enfant.prenom }}
               </v-expansion-panel-title>
               <v-expansion-panel-text>
@@ -14,7 +14,7 @@
                 </v-card-text>
                 <v-expansion-panels>
                   <v-expansion-panel class="mt-6 mb-6" v-for="(TrimestreComponent, index) in TrimestreComponents" :key="index">
-                    <v-expansion-panel-title expand-icon="mdi-menu-down">
+                    <v-expansion-panel-title expand-icon="mdi-menu-down" class="bg-secondary">
                       Trimestre {{ index + 1 }}
                     </v-expansion-panel-title>
                     <v-expansion-panel-text>

@@ -46,7 +46,14 @@
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+
+          <v-list-item link @click="changeView('HomeAdmin')">
+            <v-list-item-content>
+              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> Info</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
         </v-list>
+        
       </v-navigation-drawer>
       
       <v-app-bar app>
@@ -68,7 +75,6 @@
   <script>
   import axios from 'axios';
   import { jwtDecode } from 'jwt-decode';
-  import Home from '~/components/Home.vue';
   import Compte from '~/components/Compte.vue';
   import AjoutEleve from '@/components/AjoutEleve';
   import GererEleve from '@/components/GererEleve';
@@ -77,17 +83,18 @@
   import GererEnseignant from '~/components/GererEnseignant.vue';
   import GererParent from '~/components/GererParent.vue';
   import GererMatiere from '~/components/GererMatiere.vue';
+  import HomeAdmin from '~/components/HomeAdmin.vue';
   export default {
     data() {
       return {
         id: null,
         admin: {},
         drawer: false,
-        currentView: 'Home',
+        currentView: 'HomeEleve',
       };
     },
     components: {
-      Home,
+      HomeAdmin,
       Compte,
       AjoutEleve,
       SupprimerEleve,

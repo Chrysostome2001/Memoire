@@ -51,6 +51,11 @@
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+          <v-list-item link @click="changeView('HomeEnseignant')">
+            <v-list-item-content>
+              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> info</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-navigation-drawer>
       
@@ -72,7 +77,7 @@
   
   <script>
   import axios from 'axios';
-  import Home from '~/components/Home.vue';
+  import HomeEnseignant from '~/components/HomeEnseignant.vue';
   import Compte from '~/components/Compte.vue';
   import DashboardEnseignant from '@/components/DashboardEnseignant';
   import { jwtDecode } from 'jwt-decode';
@@ -82,14 +87,14 @@
         id: null,
         enseignant: {},
         drawer: false,
-        currentView: 'Home',
+        currentView: 'HomeEnseignant',
         classes: [], // Utiliser un tableau vide pour stocker les classes récupérées
         currentClasseId: null,
         currentMatiereId: null,
       };
     },
     components: {
-      Home,
+      HomeEnseignant,
       Compte,
       DashboardEnseignant,
     },

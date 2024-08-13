@@ -3,7 +3,7 @@
     <h3>NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h3>
     <table>
       <thead>
-        <tr>
+        <tr class="text-primary">
           <th>Matière</th>
           <th>Coefficient</th>
           <th colspan="4">Interrogations</th>
@@ -12,7 +12,7 @@
           <th>Moyenne Générale</th>
           <th>Rang</th>
         </tr>
-        <tr>
+        <tr class="text-primary">
           <th></th>
           <th></th>
           <th>N°1</th>
@@ -26,7 +26,7 @@
       </thead>
       <tbody>
         <tr v-for="item in formattedNotes" :key="item.matiere">
-          <td>{{ item.matiere }}</td>
+          <td class="text-primary">{{ item.matiere }}</td>
           <td>{{ item.coefficient }}</td>
           <td>{{ item.note_inter_1 }}</td>
           <td>{{ item.note_inter_2 }}</td>
@@ -36,7 +36,7 @@
           <td>{{ item.note_devoir_1 }}</td>
           <td>{{ item.note_devoir_2 }}</td>
           <td>{{ item.moy_gen }}</td>
-          <td>{{ item.rang }}</td>
+          <td class="text-success">{{ item.rang }}</td>
         </tr>
       </tbody>
     </table>

@@ -3,7 +3,7 @@
     <h3>Notes de {{ studentName }} <br> SEXE : {{ sexe }}</h3>
     <table>
       <thead>
-        <tr>
+        <tr class="text-primary">
           <th>Matière</th>
           <th>Coefficient</th>
           <th colspan="4">Interrogations</th>
@@ -12,7 +12,7 @@
           <th>Moyenne Générale</th>
           <th>Rang</th>
         </tr>
-        <tr>
+        <tr class="text-primary">
           <th></th>
           <th></th>
           <th>N°1</th>
