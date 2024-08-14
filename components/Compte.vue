@@ -5,10 +5,11 @@
     class="d-flex justify-center align-center"
   >
     <v-row>
+      <!-- Password Change Section -->
       <v-col cols="12" md="6" lg="4">
-        <v-sheet class="mx-auto" width="100%">
-          <span class="d-flex justify-center">MOT DE PASSE</span>
-          <v-form @submit.prevent="changePassword" class="white-background">
+        <v-sheet class="mx-auto white-background" width="100%" padding="4" elevation="2">
+          <span class="d-flex justify-center headline mb-4">Changer Mot de Passe</span>
+          <v-form @submit.prevent="changePassword">
             <v-text-field
               v-model="currentPassword"
               :rules="currentPasswordRules"
@@ -33,32 +34,32 @@
               required
             ></v-text-field>
 
-            <v-btn class="mt-4" type="submit" outline color="primary">Changez mot de passe</v-btn>
+            <v-btn class="mt-4" type="submit" outlined color="primary">Changez mot de passe</v-btn>
           </v-form>
 
-          <!-- Snack-bar for success message -->
-          <v-snackbar v-model="alertSnackbar" :timeout="3000" :color="color">
+          <v-snackbar v-model="alertSnackbar" :timeout="3000" :color="color" top>
             {{ snackbarMessage }}
             <v-btn color="white" text @click="alertSnackbar = false">Fermer</v-btn>
           </v-snackbar>
         </v-sheet>
       </v-col>
+
+      <!-- Username Change Section -->
       <v-col cols="12" md="6" lg="4">
-        <v-sheet class="mx-auto d-flex flex-column align-center" width="100%" padding="4">
-          <v-avatar size="100">
-              <v-img
-                alt="Profile Image"
-                src="../assets/profil.png"
-              ></v-img>
-            </v-avatar>
-          <v-form @submit.prevent="changeUsername" class="white-background">
+        <v-sheet class="mx-auto white-background d-flex flex-column align-center" width="100%" padding="4" elevation="2">
+          <v-avatar size="100" class="mb-4">
+            <v-img
+              alt="Profile Image"
+              src="../assets/profil.png"
+            ></v-img>
+          </v-avatar>
+          <v-form @submit.prevent="changeUsername" class="w-100">
             <v-text-field
               v-model="userName"
               label="Nouveau nom d'utilisateur"
-              type="username"
               required
             ></v-text-field>
-            <v-btn class="mt-4" type="submit" outline color="primary">Changez votre username</v-btn>
+            <v-btn class="mt-4" type="submit" outlined color="primary">Changez votre username</v-btn>
           </v-form>
         </v-sheet>
       </v-col>
@@ -78,14 +79,14 @@ export default {
       newPassword: '',
       confirmPassword: '',
       currentPasswordRules: [
-        value => !!value || 'L\'ancien mot de passe est requi',
+        value => !!value || 'L\'ancien mot de passe est requis',
       ],
       newPasswordRules: [
-        value => !!value || 'Le nouveau mot de passe est requi',
-        value => (value && value.length >= 3) || 'New password must be at least 8 characters long',
+        value => !!value || 'Le nouveau mot de passe est requis',
+        value => (value && value.length >= 3) || 'Le mot de passe doit contenir au moins 8 caractères',
       ],
       confirmPasswordRules: [
-        value => !!value || 'S\' il vous plait confirmer le mot de passe',
+        value => !!value || 'Veuillez confirmer le mot de passe',
         value => value === this.newPassword || 'Le mot de passe ne correspond pas',
       ],
       alertSnackbar: false,
@@ -95,37 +96,36 @@ export default {
   },
   methods: {
     async changeUsername() {
-        try {
+      try {
+        const token = localStorage.getItem('token');
+        const decodedToken = jwtDecode(token);
 
-          const token = localStorage.getItem('token');
-          const decodedToken = jwtDecode(token);
+        const response = await axios.put(`http://localhost:8080/api/updateUsername/${decodedToken.id}`, {
+          role: decodedToken.role,
+          NuserName: this.userName
+        });
 
-          // Call API to change password
-          const response = await axios.put(`http://localhost:8080/api/updateUsername/${decodedToken.id}`, {
-            role: decodedToken.role,
-            NuserName: this.userName
-          });
-
-          if (response.status === 200) {
-            this.snackbarMessage = 'Username changer a avec success!';
-            this.alertSnackbar = true;
-            this.color = "success"
-          } else {
-            // Handle failure
-            this.snackbarMessage = 'Erreur lors du changement de l\'username';
-            this.alertSnackbar = true;
-            this.color = "error"
-          }
-        }catch(error){
-
+        if (response.status === 200) {
+          this.snackbarMessage = 'Nom d\'utilisateur changé avec succès!';
+          this.alertSnackbar = true;
+          this.color = "success";
+        } else {
+          this.snackbarMessage = 'Erreur lors du changement du nom d\'utilisateur';
+          this.alertSnackbar = true;
+          this.color = "error";
         }
+      } catch (error) {
+        console.error('Error changing username:', error);
+        this.snackbarMessage = 'Erreur lors du changement du nom d\'utilisateur';
+        this.alertSnackbar = true;
+        this.color = "error";
+      }
     },
     async changePassword() {
       try {
         const token = localStorage.getItem('token');
         const decodedToken = jwtDecode(token);
 
-        // Call API to change password
         const response = await axios.put(`http://localhost:8080/api/updatePassword/${decodedToken.id}`, {
           role: decodedToken.role,
           Apassword: this.currentPassword,
@@ -133,20 +133,19 @@ export default {
         });
 
         if (response.status === 200) {
-          this.snackbarMessage = 'Mot de passe changer a avec success!';
+          this.snackbarMessage = 'Mot de passe changé avec succès!';
           this.alertSnackbar = true;
-          this.color = "success"
+          this.color = "success";
         } else {
-          // Handle failure
           this.snackbarMessage = 'Erreur lors du changement du mot de passe';
           this.alertSnackbar = true;
-          this.color = "error"
+          this.color = "error";
         }
       } catch (error) {
         console.error('Error changing password:', error);
         this.snackbarMessage = 'Erreur lors du changement du mot de passe';
         this.alertSnackbar = true;
-        this.color = "error"
+        this.color = "error";
       }
     }
   }
@@ -154,10 +153,14 @@ export default {
 </script>
 
 <style>
-  .white-background {
-    background-color: #ffffff; /* Blanc */
-    padding: 16px; /* Ajoutez un peu d'espace autour du contenu */
-    border-radius: 8px; /* Pour des coins arrondis (optionnel) */
-  }
+.white-background {
+  background-color: #ffffff; /* White */
+  padding: 16px; /* Add space around the content */
+  border-radius: 8px; /* Optional rounded corners */
+}
 
+.headline {
+  font-weight: bold;
+  font-size: 1.25rem;
+}
 </style>

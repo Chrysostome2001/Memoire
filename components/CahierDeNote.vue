@@ -28,7 +28,7 @@
         <span @dblclick="item.interro2 === null ? editField(item, 'interro2') : null">{{ item.interro2 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro3="{ item }">
-        <span @dblclick="item.interro3 === null ? editField(item, 'interro3') : null">{{ item.interro3 ?? 'null' }}</span>
+        <span @dblclick="item.interro3 === null  ? editField(item, 'interro3') : null">{{ item.interro3 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro4="{ item }">
         <span @dblclick="item.interro4 === null ? editField(item, 'interro4') : null">{{ item.interro4 ?? 'null' }}</span>

@@ -4,7 +4,7 @@
         <v-main>
           <v-expansion-panels>
             <v-expansion-panel class="mt-6 mb-6" v-for="(TrimestreComponent, index) in TrimestreComponents" :key="index">
-              <v-expansion-panel-title expand-icon="mdi-menu-down">
+              <v-expansion-panel-title expand-icon="mdi-menu-down" class="bg-info">
                 Trimestre {{ index + 1 }}
               </v-expansion-panel-title>
               <v-expansion-panel-text>

@@ -1,10 +1,10 @@
 <template>
   <v-app>
-    <v-app class="d-flex fill-height neutral-background">
+    <v-container class="d-flex fill-height neutral-background" fluid>
       <v-row class="d-flex justify-center align-center">
         <v-col cols="12" md="4">
-          <v-card>
-            <v-card-title class="headline">Se connecter</v-card-title>
+          <v-card class="pa-4 elevation-8">
+            <v-card-title class="headline text-center">Se connecter</v-card-title>
             <v-card-text>
               <v-form v-model="valid">
                 <v-text-field
@@ -13,7 +13,8 @@
                   label="Nom d'utilisateur"
                   hide-details
                   required
-                  class="mb-2"
+                  class="mb-4"
+                  outlined
                 ></v-text-field>
 
                 <v-text-field
@@ -23,7 +24,8 @@
                   label="Mot de passe"
                   hide-details
                   required
-                  class="mb-2"
+                  class="mb-4"
+                  outlined
                 >
                   <template v-slot:append>
                     <v-icon
@@ -35,18 +37,19 @@
                   </template>
                 </v-text-field>
 
-                <v-btn :disabled="!valid" color="primary" @click="login">
+                <v-btn :disabled="!valid" color="primary" @click="login" class="mb-2">
                   Se connecter
                 </v-btn>
+
+                <v-alert v-if="loginError" type="error" class="mt-4">
+                  {{ loginError }}
+                </v-alert>
               </v-form>
-              <v-alert v-if="loginError" type="error">
-                {{ loginError }}
-              </v-alert>
             </v-card-text>
           </v-card>
         </v-col>
       </v-row>
-    </v-app>
+    </v-container>
     <router-view/>
   </v-app>
 </template>
@@ -110,10 +113,38 @@ export default {
 .fill-height {
   height: 100vh;
 }
+
 .cursor-pointer {
   cursor: pointer;
 }
+
 .neutral-background {
   background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
+}
+
+.v-card {
+  border-radius: 12px; /* Coins arrondis */
+}
+
+.v-card-title {
+  font-weight: bold;
+  color: #1976D2; /* Couleur du titre */
+}
+
+.v-text-field {
+  background-color: #fff; /* Fond blanc pour les champs de texte */
+}
+
+.v-text-field .v-input__control {
+  border-radius: 8px; /* Coins arrondis pour les champs de texte */
+}
+
+.v-btn {
+  border-radius: 20px; /* Coins arrondis pour le bouton */
+  font-weight: 600;
+}
+
+.v-alert {
+  border-radius: 8px; /* Coins arrondis pour l'alerte */
 }
 </style>

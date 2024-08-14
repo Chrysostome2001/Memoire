@@ -19,7 +19,7 @@
           </v-list-item>
           <v-list-item class="mt-5" link>
             <v-list-item-content>
-              <nuxt-link to="./" class="no-decoration">
+              <nuxt-link to="/" class="no-decoration">
                 <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
               </nuxt-link>
             </v-list-item-content>
@@ -39,7 +39,7 @@
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link @click="changeView('HomeParent')">
+          <v-list-item link @click="changeView('HomeParent'), drawer = !drawer">
             <v-list-item-content>
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> info</v-list-item-title>
             </v-list-item-content>
@@ -111,13 +111,50 @@
     },
   };
   </script>
-  
-  <style>
-    .no-decoration {
+
+<style scoped>
+.no-decoration {
       text-decoration: none; /* Enlève le soulignement */
       color: inherit; /* Utilise la couleur du texte environnant */
     }
     .neutral-background {
       background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
     }
-  </style>
+.bg-primary {
+  background-color: #1976D2; /* Couleur primaire pour le fond */
+}
+
+.no-decoration {
+  text-decoration: none; /* Enlève le soulignement */
+  color: inherit; /* Utilise la couleur du texte environnant */
+}
+
+.text-white {
+  color: white; /* Couleur du texte en blanc */
+}
+
+.fill-height {
+  height: 100vh;
+}
+
+.v-list-item {
+  border-radius: 8px; /* Coins arrondis pour les éléments de liste */
+  transition: background-color 0.3s ease; /* Effet de transition pour la couleur de fond */
+}
+
+.v-list-item:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Couleur de fond au survol */
+}
+
+.v-text-field {
+  background-color: #fff; /* Fond blanc pour les champs de texte */
+}
+
+.v-app-bar {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère pour la barre d'application */
+}
+
+.v-btn {
+  border-radius: 20px; /* Coins arrondis pour le bouton */
+}
+</style>

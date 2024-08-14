@@ -3,12 +3,12 @@
     <v-toolbar
       app
       flat
-      color="transparent"
+      color="primary"
       class="toolbar"
     >
-      <v-toolbar-title>Page d'Accueil</v-toolbar-title>
+      <v-toolbar-title class="toolbar-title">Page d'Accueil</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn @click="goToLoginPage" color="primary">Connexion</v-btn>
+      <v-btn @click="goToLoginPage" color="white" class="login-btn">Connexion</v-btn>
     </v-toolbar>
 
     <v-carousel
@@ -17,7 +17,7 @@
       :timeout="3000"
       hide-delimiter-background
       class="carousel"
-      height="auto"
+      height="calc(100vh - 64px)"
     >
       <v-carousel-item
         v-for="(item, i) in carouselItems"
@@ -55,10 +55,22 @@ export default {
 
 .toolbar {
   z-index: 1;
+  background-color: #1976D2; /* Couleur primaire */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+}
+
+.toolbar-title {
+  color: white; /* Couleur du texte */
+  font-weight: bold;
+}
+
+.login-btn {
+  border-radius: 20px;
+  text-transform: uppercase;
 }
 
 .carousel {
-  height: calc(100vh - 64px); /* Ajustez la valeur selon la hauteur du v-toolbar */
+  height: calc(100vh - 64px); /* Ajuste pour la hauteur du v-toolbar */
 }
 
 .v-carousel .v-carousel__controls {

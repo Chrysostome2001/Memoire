@@ -1,39 +1,46 @@
 <template>
   <v-app>
-    <v-layout class="rounded-md">
-      <v-main class="neutral-background">
-        <v-card class="vcard mt-5 ml-5 mb-5" variant="elevated" color="white" outlined>
-          <v-expansion-panels class="neutral-background">
-            <v-expansion-panel v-for="(enfant, i) in enfants" :key="i" class="mt-6">
-              <v-expansion-panel-title @click="loadNotes(enfant.id)" class="bg-info">
-                {{ enfant.nom }} {{ enfant.prenom }}
-              </v-expansion-panel-title>
-              <v-expansion-panel-text>
-                <v-card-text>
-                  <div>Classe: {{ enfant.classe }}</div>
-                </v-card-text>
+    <v-container class="py-4">
+      <v-card class="elevation-2 rounded-lg" color="white" outlined>
+        <v-expansion-panels>
+          <v-expansion-panel v-for="(enfant, i) in enfants" :key="i" class="mb-4">
+            <v-expansion-panel-title
+              @click="loadNotes(enfant.id)"
+              class="bg-primary text-white"
+            >
+              <v-icon left class="mr-2">mdi-account-circle</v-icon>
+              <span>{{ enfant.nom }} {{ enfant.prenom }}</span>
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <v-card-text>
+                <div class="d-flex justify-center mb-2">
+                  <h4 class="text-primary">Classe: {{ enfant.classe }}</h4>
+                </div>
                 <v-expansion-panels>
-                  <v-expansion-panel class="mt-6 mb-6" v-for="(TrimestreComponent, index) in TrimestreComponents" :key="index">
-                    <v-expansion-panel-title expand-icon="mdi-menu-down" class="bg-secondary">
+                  <v-expansion-panel v-for="(TrimestreComponent, index) in TrimestreComponents" :key="index" class="mb-4">
+                    <v-expansion-panel-title
+                      expand-icon="mdi-menu-down"
+                      class="bg-secondary text-white"
+                    >
                       Trimestre {{ index + 1 }}
                     </v-expansion-panel-title>
                     <v-expansion-panel-text>
-                      <component :is="TrimestreComponent" :trimestre="index + 1" :student-id="selectedStudentId"/>
+                      <component :is="TrimestreComponent" :trimestre="index + 1" :student-id="selectedStudentId" />
                     </v-expansion-panel-text>
                   </v-expansion-panel>
                 </v-expansion-panels>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </v-card>
-      </v-main>
-    </v-layout>
+              </v-card-text>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </v-card>
+    </v-container>
   </v-app>
 </template>
 
 <script>
 import TrimestresTrimestre1 from '@/components/Trimestres/trimestre1.vue';
-import TrimestresTrimestre2 from '@/components/Trimestres/trimestre2.vue'
+import TrimestresTrimestre2 from '@/components/Trimestres/trimestre2.vue';
 import TrimestresTrimestre3 from '@/components/Trimestres/trimestre3.vue';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
@@ -53,17 +60,17 @@ export default {
         TrimestresTrimestre2,
         TrimestresTrimestre3
       ],
-      selectedStudentId: null, // ID de l'élève sélectionné par le parent
+      selectedStudentId: null,
     };
   },
   methods: {
     loadNotes(studentId) {
-      this.selectedStudentId = studentId; // Met à jour l'ID de l'élève sélectionné
+      this.selectedStudentId = studentId;
     },
   },
   mounted() {
     const token = localStorage.getItem('token');
-    const decodedToken = jwtDecode(token)
+    const decodedToken = jwtDecode(token);
     axios.get(`http://localhost:8080/api/eleves/${decodedToken.id}`)
       .then(response => {
         this.enfants = response.data.map(eleve => ({
@@ -81,16 +88,56 @@ export default {
 </script>
 
 <style scoped>
-.v-application--wrap {
-  overflow-x: hidden;
+.v-container {
+  max-width: 1200px;
 }
+
+.elevation-2 {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rounded-lg {
+  border-radius: 12px;
+}
+
+.bg-primary {
+  background-color: #1976D2; /* Couleur primaire */
+}
+
+.bg-secondary {
+  background-color: #424242; /* Couleur secondaire */
+}
+
+.text-white {
+  color: white;
+}
+
+.text-primary {
+  color: #1976D2; /* Couleur primaire */
+}
+
 .d-flex {
+  display: flex;
   justify-content: center;
 }
-.vcard {
-  cursor: pointer;
+
+.mb-4 {
+  margin-bottom: 16px;
 }
-.vcard:hover {
-  background-color: #f0f0f0;
+
+.mb-2 {
+  margin-bottom: 8px;
+}
+
+.v-expansion-panel-title {
+  font-weight: bold;
+}
+
+.v-expansion-panel-title:hover {
+  background-color: #1565C0; /* Couleur de survol pour le titre */
+}
+
+.v-card-text {
+  padding: 16px;
 }
 </style>

@@ -19,7 +19,7 @@
           </v-list-item>
           <v-list-item class="mt-5" link>
             <v-list-item-content>
-              <nuxt-link to="./" class="no-decoration">
+              <nuxt-link to="/" class="no-decoration">
                 <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
               </nuxt-link>
             </v-list-item-content>
@@ -33,7 +33,7 @@
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link @click="changeView('HomeEleve')">
+          <v-list-item link @click="changeView('HomeEleve'), drawer = !drawer">
             <v-list-item-content>
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> info</v-list-item-title>
             </v-list-item-content>
@@ -43,7 +43,7 @@
       
       <v-app-bar app>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer" color="primary"></v-app-bar-nav-icon>
-        <v-toolbar-title class="text-primary">E-NOTE</v-toolbar-title>
+        <v-toolbar-title class="text-blue lighten-3">E-NOTE</v-toolbar-title>
         <v-btn outlined @click="logout" class="ml-2" color="error">
           Deconnexion
           <v-icon right class="ml-1">mdi-logout</v-icon>

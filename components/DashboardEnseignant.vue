@@ -1,17 +1,17 @@
 <template>
   <v-app class="neutral-background">
-    <v-layout class="rounded-md">
-      <v-main class="mt-5">
-        <v-container class="d-flex justify-center">
-          <v-btn @click="showCahier('Trimestre1')" class="mr-2">Trimestre 1</v-btn>
-          <v-btn @click="showCahier('Trimestre2')" class="mr-2">Trimestre 2</v-btn>
-          <v-btn @click="showCahier('Trimestre3')">Trimestre 3</v-btn>
-        </v-container>
-        <v-container>
+    <v-container class="main-container" fluid>
+      <v-row class="d-flex justify-center">
+        <v-btn @click="showCahier('Trimestre1')" class="trimestre-btn">Trimestre 1</v-btn>
+        <v-btn @click="showCahier('Trimestre2')" class="trimestre-btn">Trimestre 2</v-btn>
+        <v-btn @click="showCahier('Trimestre3')" class="trimestre-btn">Trimestre 3</v-btn>
+      </v-row>
+      <v-row>
+        <v-col cols="12">
           <CahierDeNote v-if="showComponent" :classeId="classeId" :trimester="currentTrimester" :matiereId="matiereId"/>
-        </v-container>
-      </v-main>
-    </v-layout>
+        </v-col>
+      </v-row>
+    </v-container>
   </v-app>
 </template>
 
@@ -43,16 +43,28 @@ export default {
 </script>
 
 <style scoped>
-.v-application--wrap {
-  overflow-x: hidden;
+.neutral-background {
+  background-color: #f5f5f5;
 }
-.d-flex {
-  justify-content: center;
+
+.main-container {
+  padding: 20px;
 }
-.vcard {
-  cursor: pointer;
+
+.trimestre-btn {
+  margin: 0 10px;
+  border-radius: 8px;
+  background-color: #1976d2;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
 }
-.vcard:hover {
-  background-color: #f0f0f0;
+
+.trimestre-btn:hover {
+  background-color: #155a9a;
+}
+
+.v-row {
+  margin-top: 20px;
 }
 </style>

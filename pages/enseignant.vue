@@ -3,6 +3,7 @@
       <v-navigation-drawer
         v-model="drawer"
         app
+        class="bg-primary"
       >
         <v-list dense>
           <v-list-item class="d-flex align-center justify-center">
@@ -14,11 +15,11 @@
             </v-avatar>
           </v-list-item>
           <v-list-item>
-            <v-list-item-title class="d-flex align-center ml-9 mt-2">{{ enseignant.username }}</v-list-item-title>
+            <v-list-item-title class="d-flex align-center ml-9 mt-2 text-white font-weight-bold">{{ enseignant.username }}</v-list-item-title>
           </v-list-item>
           <v-list-item class="mt-5" link>
             <v-list-item-content>
-              <nuxt-link to="./" class="no-decoration">
+              <nuxt-link to="/" class="no-decoration">
                 <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
               </nuxt-link>
             </v-list-item-content>
@@ -26,7 +27,7 @@
           <v-list-item>
             <v-expansion-panels variant="accordion">
               <v-expansion-panel class="mt-6 mb-6">
-                <v-expansion-panel-title>
+                <v-expansion-panel-title class="bg-primary">
                   Cahier de Note
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
@@ -51,7 +52,7 @@
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link @click="changeView('HomeEnseignant')">
+          <v-list-item link @click="changeView('HomeEnseignant'), drawer = !drawer">
             <v-list-item-content>
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> info</v-list-item-title>
             </v-list-item-content>
@@ -60,8 +61,8 @@
       </v-navigation-drawer>
       
       <v-app-bar app>
-        <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>E-NOTE</v-toolbar-title>
+        <v-app-bar-nav-icon @click.stop="drawer = !drawer" color="primary"></v-app-bar-nav-icon>
+        <v-toolbar-title class="text-blue lighten-3">E-NOTE</v-toolbar-title>
         <v-btn outlined @click="logout" class="ml-2" color="error">
           Deconnexion
           <v-icon right class="ml-1">mdi-logout</v-icon>
@@ -143,15 +144,49 @@
   </script>
   
   <style scoped>
-    .no-decoration {
+  .no-decoration {
       text-decoration: none; /* Enlève le soulignement */
       color: inherit; /* Utilise la couleur du texte environnant */
     }
     .neutral-background {
       background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
     }
-    .matiere {
-      color: blue;
-    }
+  .bg-primary {
+    background-color: #1976D2; /* Couleur primaire pour le fond */
+  }
+  
+  .no-decoration {
+    text-decoration: none; /* Enlève le soulignement */
+    color: inherit; /* Utilise la couleur du texte environnant */
+  }
+  
+  .text-white {
+    color: white; /* Couleur du texte en blanc */
+  }
+  
+  .fill-height {
+    height: 100vh;
+  }
+  
+  .v-list-item {
+    border-radius: 8px; /* Coins arrondis pour les éléments de liste */
+    transition: background-color 0.3s ease; /* Effet de transition pour la couleur de fond */
+  }
+  
+  .v-list-item:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Couleur de fond au survol */
+  }
+  
+  .v-text-field {
+    background-color: #fff; /* Fond blanc pour les champs de texte */
+  }
+  
+  .v-app-bar {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère pour la barre d'application */
+  }
+  
+  .v-btn {
+    border-radius: 20px; /* Coins arrondis pour le bouton */
+  }
   </style>
   

@@ -1,72 +1,83 @@
 <template>
   <div>
-    <h3>Notes de {{ studentName }} <br> SEXE : {{ sexe }}</h3>
-    <table>
-      <thead>
-        <tr class="text-primary">
-          <th>Matière</th>
-          <th>Coefficient</th>
-          <th colspan="4">Interrogations</th>
-          <th>Moyenne Interrogations</th>
-          <th colspan="2">Devoirs</th>
-          <th>Moyenne Générale</th>
-          <th>Rang</th>
-        </tr>
-        <tr class="text-primary">
-          <th></th>
-          <th></th>
-          <th>N°1</th>
-          <th>N°2</th>
-          <th>N°3</th>
-          <th>N°4</th>
-          <th></th>
-          <th>N°1</th>
-          <th>N°2</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in formattedNotes" :key="item.matiere">
-          <td>{{ item.matiere }}</td>
-          <td>{{ item.coefficient }}</td>
-          <td>{{ item.note_inter_1 }}</td>
-          <td>{{ item.note_inter_2 }}</td>
-          <td>{{ item.note_inter_3 }}</td>
-          <td>{{ item.note_inter_4 }}</td>
-          <td>{{ item.moy_Inter }}</td>
-          <td>{{ item.note_devoir_1 }}</td>
-          <td>{{ item.note_devoir_2 }}</td>
-          <td>{{ item.moy_gen }}</td>
-          <td>{{ item.rang }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <v-card class="elevation-2 rounded-lg p-4" color="white" outlined>
+      <v-card-title>
+        <h3>NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h3>
+      </v-card-title>
+      <v-data-table
+        :headers="headers"
+        :items="formattedNotes"
+        class="elevation-1"
+        item-key="matiere"
+        hide-default-footer
+      >
+        <template v-slot:column="{ column }">
+          <template v-if="column.value !== undefined">
+            <th>{{ column.value }}</th>
+          </template>
+        </template>
+        <template v-slot:items="props">
+          <tr :key="props.item.matiere">
+            <td>{{ props.item.matiere }}</td>
+            <td>{{ props.item.coefficient }}</td>
+            <td>{{ props.item.note_inter_1 }}</td>
+            <td>{{ props.item.note_inter_2 }}</td>
+            <td>{{ props.item.note_inter_3 }}</td>
+            <td>{{ props.item.note_inter_4 }}</td>
+            <td>{{ props.item.moy_Inter }}</td>
+            <td>{{ props.item.note_devoir_1 }}</td>
+            <td>{{ props.item.note_devoir_2 }}</td>
+            <td>{{ props.item.moy_gen }}</td>
+            <td class="text-success">{{ props.item.rang }}</td>
+          </tr>
+        </template>
+      </v-data-table>
+    </v-card>
   </div>
 </template>
 
-
 <script>
 import axios from 'axios';
-import { set } from '~/node_modules/nuxt/dist/app/compat/capi';
 import { jwtDecode } from 'jwt-decode';
 
 export default {
   props: ['trimestre', 'studentId'],
   data() {
     return {
-      headers: [
-        // Les headers ne sont pas nécessaires ici, car nous utilisons un tableau HTML standard
-      ],
       notes: [],
       studentName: '',
-      sexe:'',
+      sexe: '',
+      headers: [
+      { title: 'Matières', value: 'matiere' },
+        { title: 'Coefficient', value: 'coefficient' },
+        {
+          title: 'Interrogations',
+          children: [
+            { title: 'N°1', value: 'note_inter_1' },
+            { title: 'N°2', value: 'note_inter_2' },
+            { title: 'N°3', value: 'note_inter_3' },
+            { title: 'N°4', value: 'note_inter_4' },
+          ]
+        },
+        { title: 'Moyenne Interrogations', value: 'moy_Inter' },
+        {
+          title: 'Devoirs',
+          children: [
+            { title: 'Devoir N°1', value: 'note_devoir_1' },
+            { title: 'Devoir N°2', value: 'note_devoir_2' },
+          ]
+        },
+        { title: 'Moyenne Générale', value: 'moy_gen' },
+        { title: 'Rang', value: 'rang' },
+      ],
     };
   },
-
   computed: {
     formattedNotes() {
       const formatted = {};
       const seenNoteInterIds = new Set();
-      const seenNoteDevoirIds = new Set()
+      const seenNoteDevoirIds = new Set();
+
       this.notes.forEach(note => {
         if (!formatted[note.matiere]) {
           formatted[note.matiere] = {
@@ -85,7 +96,7 @@ export default {
         }
 
         if (note.note_inter && !seenNoteInterIds.has(note.note_inter_id)) {
-          seenNoteInterIds.add(note.note_inter_id)
+          seenNoteInterIds.add(note.note_inter_id);
           if (!formatted[note.matiere].note_inter_1) {
             formatted[note.matiere].note_inter_1 = note.note_inter;
           } else if (!formatted[note.matiere].note_inter_2) {
@@ -98,7 +109,7 @@ export default {
         }
 
         if (note.note_devoir && !seenNoteDevoirIds.has(note.note_devoir_id)) {
-          seenNoteDevoirIds.add(note.note_devoir_id)
+          seenNoteDevoirIds.add(note.note_devoir_id);
           if (!formatted[note.matiere].note_devoir_1) {
             formatted[note.matiere].note_devoir_1 = note.note_devoir;
           } else if (!formatted[note.matiere].note_devoir_2) {
@@ -118,7 +129,6 @@ export default {
         }
       });
 
-      // Calcul des moyennes d'interrogations et de devoirs
       Object.values(formatted).forEach(item => {
         const totalInterrogations = [item.note_inter_1, item.note_inter_2, item.note_inter_3, item.note_inter_4].filter(Boolean);
         const totalDevoirs = [item.note_devoir_1, item.note_devoir_2].filter(Boolean);
@@ -130,7 +140,7 @@ export default {
 
         if (totalDevoirs.length === 2) {
           const sumDevoirs = totalDevoirs.reduce((acc, val) => acc + val, 0);
-          item.moy_gen = parseFloat(this.formatToTwoDecimalPlaces(((item.moy_Inter + sumDevoirs) / 3))); // Exemple de calcul de la moyenne générale
+          item.moy_gen = parseFloat(this.formatToTwoDecimalPlaces(((item.moy_Inter + sumDevoirs) / 3)));
         }
       });
 
@@ -143,46 +153,34 @@ export default {
     },
   },
   mounted() {
-    // Exemple pour un élève spécifique
-    const name = this.$route.query.name
+    const name = this.$route.query.name;
     const token = localStorage.getItem('token');
-    const decodedId = jwtDecode(token)
-      if(decodedId.role === "eleve"){
-        axios.get(`http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=2`)
-        .then(response => {
-          if (response.data.length > 0) {
-            this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
-            this.sexe = response.data[0].eleve_sexe
-            this.notes = response.data;
-          }
-        })
-        .catch(error => {
-          console.error('Erreur lors de la récupération des notes:', error);
-        });
-      }else if(decodedId.role === "parent"){
-        axios.get(`http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`)
+    const decodedId = jwtDecode(token);
+
+    const url = decodedId.role === "eleve"
+      ? `http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=2`
+      : `http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`;
+
+    axios.get(url)
       .then(response => {
         if (response.data.length > 0) {
           this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
-          this.sexe = response.data[0].eleve_sexe
+          this.sexe = response.data[0].eleve_sexe;
           this.notes = response.data;
         }
       })
       .catch(error => {
         console.error('Erreur lors de la récupération des notes:', error);
       });
-      }
-    
   },
-
   watch: {
     studentId(newStudentId) {
       if (newStudentId) {
-        axios.get(`http://localhost:8080/api/eleve/${newStudentId}/notes?trimestre_id=${this.$props.trimestre}`)
+        axios.get(`http://localhost:8080/api/eleve/${newStudentId}/notes?trimestre_id=${this.trimestre}`)
           .then(response => {
             if (response.data.length > 0) {
               this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
-              this.sexe = response.data[0].eleve_sexe
+              this.sexe = response.data[0].eleve_sexe;
               this.notes = response.data;
             }
           })
@@ -196,16 +194,33 @@ export default {
 </script>
 
 <style scoped>
-table {
-  width: 100%;
-  border-collapse: collapse;
+.v-card {
+  max-width: 1000px;
+  margin: 0 auto;
 }
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
-th {
+
+.v-card-title {
   background-color: #f4f4f4;
+  padding: 16px;
+}
+
+.v-data-table {
+  border-radius: 8px;
+}
+
+:deep(.v-data-table th) {
+  background-color: #e3f2fd;
+  color: #0277bd;
+  border: 1px solid black;
+}
+
+:deep(.v-data-table td) {
+  border: 1px solid #e0e0e0;
+  padding: 8px;
+  border: 1px solid black;
+}
+
+:deep(.text-success) {
+  color: #388e3c;
 }
 </style>
