@@ -87,8 +87,8 @@ export default {
     },
     searchEleves() {
       this.filteredEleves = this.eleves.filter(eleve =>
-      eleve.eleve_nom.toLowerCase().includes(this.search.toLowerCase()) ||
-      eleve.eleve_prenom.toLowerCase().includes(this.search.toLowerCase())
+      eleve.nom.toLowerCase().includes(this.search.toLowerCase()) ||
+      eleve.prenom.toLowerCase().includes(this.search.toLowerCase())
       );
     },
     viewEleve(eleve) {

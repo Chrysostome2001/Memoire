@@ -79,9 +79,9 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar app color="primary" dark>
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-toolbar-title>E-NOTE</v-toolbar-title>
+    <v-app-bar app dark>
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer" color="primary"></v-app-bar-nav-icon>
+      <v-toolbar-title class="text-blue lighten-3">E-NOTE</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn outlined @click="logout" color="error">
         Déconnexion

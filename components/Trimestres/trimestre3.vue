@@ -2,7 +2,7 @@
   <div>
     <v-card class="elevation-2 rounded-lg p-4" color="white" outlined>
       <v-card-title>
-        <h3>NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h3>
+        <h5>NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h5>
       </v-card-title>
       <v-data-table
         :headers="headers"
@@ -153,7 +153,6 @@ export default {
     },
   },
   mounted() {
-    const name = this.$route.query.name;
     const token = localStorage.getItem('token');
     const decodedId = jwtDecode(token);
 
@@ -205,17 +204,16 @@ export default {
 }
 
 .v-data-table {
-  border-radius: 8px;
+  border-radius: 1px;
 }
 
 :deep(.v-data-table th) {
   background-color: #e3f2fd;
-  color: #0277bd;
+  color: #020fbd;
   border: 1px solid black;
 }
 
 :deep(.v-data-table td) {
-  border: 1px solid #e0e0e0;
   padding: 8px;
   border: 1px solid black;
 }

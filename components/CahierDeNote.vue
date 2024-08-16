@@ -16,37 +16,37 @@
       </template>
 
       <template v-slot:item.name="{ item }">
-        <span>{{ item.name }}</span>
+        <span><strong>{{ item.name }}</strong></span>
       </template>
       <template v-slot:item.coef="{ item }">
-        <span>{{ item.coef }}</span>
+        <span class="ml-5">{{ item.coef }}</span>
       </template>
       <template v-slot:item.interro1="{ item }">
-        <span @dblclick="item.interro1 === null ? editField(item, 'interro1') : null">{{ item.interro1 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="item.interro1 === null ? editField(item, 'interro1') : null">{{ item.interro1 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro2="{ item }">
-        <span @dblclick="item.interro2 === null ? editField(item, 'interro2') : null">{{ item.interro2 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="item.interro2 === null ? editField(item, 'interro2') : null">{{ item.interro2 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro3="{ item }">
-        <span @dblclick="item.interro3 === null  ? editField(item, 'interro3') : null">{{ item.interro3 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="item.interro3 === null  ? editField(item, 'interro3') : null">{{ item.interro3 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro4="{ item }">
-        <span @dblclick="item.interro4 === null ? editField(item, 'interro4') : null">{{ item.interro4 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="item.interro4 === null ? editField(item, 'interro4') : null">{{ item.interro4 ?? 'null' }}</span>
       </template>
       <template v-slot:item.devoir1="{ item }">
-        <span @dblclick="item.devoir1 === null ? editField(item, 'devoir1') : null">{{ item.devoir1 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="item.devoir1 === null ? editField(item, 'devoir1') : null">{{ item.devoir1 ?? 'null' }}</span>
       </template>
       <template v-slot:item.devoir2="{ item }">
-        <span @dblclick="item.devoir2 === null ? editField(item, 'devoir2') : null">{{ item.devoir2 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="item.devoir2 === null ? editField(item, 'devoir2') : null">{{ item.devoir2 ?? 'null' }}</span>
       </template>
       <template v-slot:item.averageInterro="{ item }">
-        <span>{{ item.averageInterro }}</span>
+        <span class="text-success ml-5 mr-5">{{ item.averageInterro }}</span>
       </template>
       <template v-slot:item.averageDevoir="{ item }">
-        <span>{{ item.averageDevoir }}</span>
+        <span class="text-success ml-5 mr-5">{{ item.averageDevoir }}</span>
       </template>
       <template v-slot:item.finalRank="{ item }">
-        <span>{{ item.finalRank }}</span>
+        <span class="mx-9 m-9">{{ item.finalRank }}</span>
       </template>
     </v-data-table>
 
@@ -228,7 +228,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'Nouvel Élève' : 'Modifier Élève';
+      return this.editedIndex === -1 ? 'Nouvel Élève' : 'Entrez note';
     },
   },
 
@@ -260,11 +260,14 @@ export default {
 
   methods: {
     initialize() {
-      this.students = [
-        
-        // Add more students here...
-      ];
-      this.updateAverages();
+      const storedNotes = localStorage.getItem('studentsNotes');
+      if (storedNotes) {
+        this.students = JSON.parse(storedNotes);
+        console.log('fsfvndiops',this.students);
+        this.updateAverages();
+      } else {
+        this.students = [];
+      }
     },
     setTrimesterId(trimester) {
       switch (trimester) {
@@ -310,6 +313,21 @@ export default {
           averageDevoir: 0,
           finalRank: student.rang_final,
         }));
+        
+        // Si les données du localStorage existent et sont valides
+        const storedNotes = JSON.parse(localStorage.getItem('studentsNotes') || '[]');
+          if (storedNotes.length > 0 && this.areStoredNotesValid(storedNotes, this.students)) {
+            // Utiliser les données du localStorage si elles sont valides
+            this.students = storedNotes;
+            console.log('Données affichées depuis le localStorage:', this.students);
+          } else {
+            // Sinon, utiliser les données récupérées depuis l'API
+            this.students = fetchedStudents;
+            console.log('Données affichées depuis l\'API:', this.students);
+            // Stocker les nouvelles données dans le localStorage
+            localStorage.setItem('studentsNotes', JSON.stringify(this.students));
+          }
+
         if (response.data.length > 0) {
         this.matiereNom = response.data[0].matiere_nom;
         this.trimestre_nom = response.data[0].trimestre_nom;
@@ -321,6 +339,26 @@ export default {
         console.error('Error fetching students data:', error);
       });
     },
+
+    areStoredNotesValid(storedNotes, fetchedStudents) {
+    // Créez des ensembles pour les trimestres et les étudiants
+    const storedTrimesters = new Set(storedNotes.map(student => student.trimestreId));
+    const fetchedTrimesters = new Set(fetchedStudents.map(student => student.trimestreId));
+
+    // Vérifiez que tous les trimestres stockés sont présents dans les trimestres récupérés
+    const areTrimestersValid = Array.from(storedTrimesters).every(id => fetchedTrimesters.has(id));
+
+    // Créez des ensembles pour les ID des étudiants
+    const storedIds = new Set(storedNotes.map(student => student.eleveId));
+    const fetchedIds = new Set(fetchedStudents.map(student => student.eleveId));
+
+    // Vérifiez que tous les étudiants récupérés sont présents dans les étudiants stockés
+    const areStudentsValid = Array.from(fetchedIds).every(id => storedIds.has(id));
+
+    // Retourne vrai si les trimestres et les étudiants sont valides
+    return areTrimestersValid && areStudentsValid;
+  },
+
     splitNotes(notesString, index) {
       if (!notesString) return null;
       const notesArray = notesString.split(',').map(note => parseFloat(note.trim()));
@@ -374,6 +412,10 @@ export default {
         this.students.push(this.editedItem);
       }
       this.updateAverages();
+      // Stocker les notes dans le localStorage
+      localStorage.setItem('studentsNotes', JSON.stringify(this.students));
+      const storedNotes = localStorage.getItem('studentsNotes')
+      console.log(JSON.parse(storedNotes))
       this.close();
     },
 
@@ -434,6 +476,8 @@ export default {
           this.snackbar.message = 'Notes enregistrées avec succès!';
           this.snackbar.color = 'success';
           this.snackbar.show = true;
+          // Nettoyer le localStorage après succès
+          localStorage.removeItem('studentsNotes');
         })
         .catch(error => {
           console.error('Erreur lors de l\'enregistrement des notes :', error);
@@ -453,5 +497,19 @@ export default {
 </script>
 
 <style scoped>
-/* Add custom styles here */
+:deep(.v-data-table th) {
+  background-color: #e3f2fd;
+  color: #020fbd;
+  border: 1px solid black;
+}
+
+:deep(.v-data-table td) {
+  border: 1px solid #e0e0e0;
+  padding: 8px;
+  border: 1px solid black;
+}
+
+:deep(.text-success) {
+  color: #388e3c;
+}
 </style>
