@@ -10,7 +10,7 @@
             <p class="body-1 mb-3">
               Dans cette section vous avez le cadre de l'école. Dans le coin haut droit vous avez le bouton <strong>CONNEXION</strong> qui vous dirige vers la page de connexion.
             </p>
-            <v-img src="../assets/parent/ConsultationNote.png" contain></v-img>
+            <v-img src="../assets/acceuil.png" contain></v-img>
           </v-card>
 
           <v-card class="my-4 pa-4">
@@ -18,7 +18,7 @@
             <p class="body-1 mb-3">
               Sur cette page vous aurez à saisir votre <strong>username</strong> et <strong>mot de passe</strong> pour vous connecter à votre compte.
             </p>
-            <v-img src="../assets/parent/ConsultationNote.png" contain></v-img>
+            <v-img src="../assets/connexion.png" contain></v-img>
           </v-card>
 
           <v-card class="my-4 pa-4">
@@ -26,11 +26,12 @@
             <p class="body-1 mb-3">
               Une fois connecté à votre compte vous verrez cette page.
             </p>
-            <v-img src="../assets/parent/ConsultationNote.png" contain></v-img>
+            <v-img src="../assets/utilisateur.png" contain></v-img>
+            <br>
             <p class="body-1 mt-3">
               Appuyez sur le bouton qui se trouve dans le coin haut gauche pour voir vos fonctionnalités sur le site.
             </p>
-            <v-img src="../assets/parent/ConsultationNote.png" contain></v-img>
+            <v-img src="../assets/parent/utilisateur.png" contain></v-img>
           </v-card>
 
           <v-card class="my-4 pa-4">
@@ -38,15 +39,19 @@
           </v-card>
 
           <v-card class="my-4 pa-4">
-            <h3 class="subheading mb-2">Consulter note</h3>
-            <p class="body-1 mb-3">
-              Vous verrez la liste des trimestres.
-            </p>
-            <v-img src="../assets/parent/ConsultationNote.png" contain></v-img>
+            <h3 class="subheading mb-2">Cahier de note</h3>
             <p class="body-1 mt-3">
-              Cliquez sur un trimestre pour voir les notes par matière et pour ce trimestre.
+              Cliquez sur "Cahier de note" pour voir les différentes classes où vous enseignez ainsi que la matiere qui vous y enseignez. 
             </p>
-            <v-img src="../assets/parent/ConsultationNote.png" contain></v-img>
+            <v-img src="../assets/enseignant/cahierdenote.png" contain></v-img>
+          </v-card>
+
+          <v-card class="my-4 pa-4">
+            <h3 class="subheading mb-2">Format du cahier de note</h3>
+            <p class="body-1 mt-3">
+              Vous aurez un cahier de note pour chaque trimestre. 
+            </p>
+            <v-img src="../assets/enseignant/format.png" contain></v-img>
           </v-card>
 
           <v-card class="my-4 pa-4">
@@ -54,7 +59,7 @@
             <p class="body-1 mb-3">
               Ici vous pouvez changer votre nom d'utilisateur ou votre mot de passe.
             </p>
-            <v-img src="../assets/parent/ConsultationNote.png" contain></v-img>
+            <v-img src="../assets/compte.png" contain></v-img>
           </v-card>
         </v-card>
       </v-col>

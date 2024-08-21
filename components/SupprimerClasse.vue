@@ -2,7 +2,13 @@
     <v-container class="mt-5">
       <v-row>
         <v-col cols="12">
-          <v-text-field v-model="search" label="Rechercher une classe" clearable @input="searchClass"></v-text-field>
+          <v-text-field 
+            v-model="search" 
+            label="Rechercher une classe" 
+            clearable 
+            @input="searchClass"
+            class="search-field"
+            ></v-text-field>
         </v-col>
       </v-row>
       <v-row>
@@ -11,7 +17,7 @@
             <v-card-title>Classe : {{ classe.nom }}</v-card-title>
             <v-card-subtitle>Nombre d'élève : {{ classe.nbEleve }}</v-card-subtitle>
             <v-card-actions>
-              <v-btn color="blue darken-1" text @click="confirmDelete(classe)">Supprimer</v-btn>
+              <v-btn color="error darken-1" text @click="confirmDelete(classe)">Supprimer</v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
@@ -19,7 +25,7 @@
   
       <!-- Dialogue de confirmation de suppression -->
       <v-dialog v-model="confirmDialog" max-width="400px">
-        <v-card>
+        <v-card class="confirm-dialog">
           <v-card-title>Confirmation de suppression</v-card-title>
           <v-card-text>
             Êtes-vous sûr de vouloir supprimer cette classe <strong>{{ classeToDelete.name }}</strong> ?
@@ -33,7 +39,7 @@
       </v-dialog>
   
       <!-- Message d'alerte de suppression réussie -->
-      <v-snackbar v-model="alertSnackbar" :timeout="3000" color="success">
+      <v-snackbar v-model="alertSnackbar" :timeout="3000" color="success" class="snackbar">
         L'élève a été supprimé avec succès.
         <v-btn color="white" text @click="alertSnackbar = false">Fermer</v-btn>
       </v-snackbar>
@@ -113,7 +119,18 @@
   };
   </script>
   
-  <style scoped>
-  /* Styles CSS personnalisés si nécessaire */
-  </style>
+<style scoped>
+  .search-field {
+    margin-bottom: 20px;
+  }
+  .confirm-dialog {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+
+  .snackbar {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+</style>
   

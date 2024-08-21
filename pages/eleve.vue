@@ -4,6 +4,7 @@
         v-model="drawer"
         app
         class="bg-primary"
+        style="position: fixed; height: 100vh;"
       >
         <v-list dense>
           <v-list-item class="d-flex align-center justify-center">
@@ -14,8 +15,8 @@
               ></v-img>
             </v-avatar>
           </v-list-item>
-          <v-list-item>
-            <v-list-item-title class="d-flex align-center">{{ eleve.fullName }}</v-list-item-title>
+          <v-list-item class="d-flex justify-center">
+            <v-list-item-title class="text-white font-weight-bold">{{ eleve.username }}</v-list-item-title>
           </v-list-item>
           <v-list-item class="mt-5" link>
             <v-list-item-content>
@@ -33,7 +34,7 @@
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item link @click="changeView('HomeEleve'), drawer = !drawer">
+          <v-list-item link @click="changeView('HomeEleve')">
             <v-list-item-content>
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> info</v-list-item-title>
             </v-list-item-content>

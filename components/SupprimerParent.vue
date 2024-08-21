@@ -17,7 +17,7 @@
           <v-card-title>{{ parent.fullName }}</v-card-title>
           <v-card-subtitle class="parent-subtitle">Nombre d'enfants: {{ parent.nbEnfant }}</v-card-subtitle>
           <v-card-actions>
-            <v-btn color="blue darken-1" text @click="confirmDelete(parent)">Supprimer</v-btn>
+            <v-btn color="error darken-1" text @click="confirmDelete(parent)">Supprimer</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>

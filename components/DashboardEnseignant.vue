@@ -2,13 +2,11 @@
   <v-app class="neutral-background">
     <v-container class="main-container" fluid>
       <v-row class="d-flex justify-center">
-        <v-btn @click="showCahier('Trimestre1')" class="trimestre-btn">Trimestre 1</v-btn>
-        <v-btn @click="showCahier('Trimestre2')" class="trimestre-btn">Trimestre 2</v-btn>
-        <v-btn @click="showCahier('Trimestre3')" class="trimestre-btn">Trimestre 3</v-btn>
+        <v-btn v-for="trimestre in Trimestres" :key="trimestre.idTrimestre" @click="showCahier(trimestre)" class="trimestre-btn">{{ trimestre.trimestreNom }}</v-btn>
       </v-row>
       <v-row>
         <v-col cols="12">
-          <CahierDeNote v-if="showComponent" :classeId="classeId" :trimester="currentTrimester" :matiereId="matiereId"/>
+          <CahierDeNote v-if="showComponent" :classeId="classeId" :trimester="currentTrimester" :trimestreNom="currentTrimesterNom" :matiereId="matiereId"/>
         </v-col>
       </v-row>
     </v-container>
@@ -16,6 +14,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import CahierDeNote from './CahierDeNote.vue';
 
 export default {
@@ -30,15 +29,35 @@ export default {
   data() {
     return {
       showComponent: false,
-      currentTrimester: '',
+      currentTrimester: null,
+      currentTrimesterNom: '',
+      Trimestres: [],
     };
   },
   methods: {
-    showCahier(trimester) {
-      this.currentTrimester = trimester;
+    showCahier(trimestre) {
+      this.currentTrimester = trimestre.idTrimestre;
+      this.currentTrimesterNom = trimestre.trimestreNom;
       this.showComponent = true;
     },
   },
+  mounted(){
+    axios.get('http://localhost:8080/api/trimestres/')
+    .then(response => {
+      console.log('Trimestre data:', response.data);  // Log class data
+      if (response.data && response.data.length > 0) {
+        this.Trimestres = response.data.map(Trimestre => ({
+          idTrimestre: Trimestre.trimestre_id,
+          trimestreNom: Trimestre.trimestre_nom,
+        }));
+      }else {
+        console.warn('No class data found');
+      }
+    })
+    .catch(error => {
+      console.error('Error class not found', error);
+    });
+  }
 }
 </script>
 

@@ -56,8 +56,8 @@
     </div>
 
     <div v-else>
-      <v-btn @click="deselectStudent" class="mb-4">Retour aux élèves</v-btn>
-      <v-card>
+      <v-btn @click="deselectStudent" class="mb-4 bg-warning">Retour aux élèves</v-btn>
+      <v-card class="bg-primary">
         <v-card-title>{{ selectedStudent.name }} {{ selectedStudent.surname }}</v-card-title>
         <v-card-subtitle>{{ selectedClass.name }}</v-card-subtitle>
         <v-card-text>
@@ -75,11 +75,11 @@
                     :key="term"
                     class="mt-2 mb-2"
                   >
-                    <v-expansion-panel-title> Trimestre {{ term }}</v-expansion-panel-title>
+                    <v-expansion-panel-title class="bg-primary"> Trimestre {{ term }}</v-expansion-panel-title>
                     <v-expansion-panel-text>
-                      <table class="v-data-table elevation-1">
+                      <v-data-table class="v-data-table elevation-1">
                         <thead>
-                          <tr>
+                          <tr class="text-primary">
                             <th>Interro 1</th>
                             <th>Interro 2</th>
                             <th>Interro 3</th>
@@ -156,7 +156,7 @@
                             <td>{{ item.devoirAverage }}</td>
                           </tr>
                         </tbody>
-                      </table>
+                      </v-data-table>
                       <v-btn @click="validateGrades(subjectId, term)" color="primary" class="mt-4">
                         Valider
                       </v-btn>
@@ -318,7 +318,7 @@ export default {
       const grades = this.prepareGradesTable(this.gradesData[subjectId].terms).find(g => g.term === term);
 
       if (!grades) {
-        console.error('Aucune note trouvée pour le trimestre spécifié');
+        console.error('Aucune note trouvée pour le trimestre spécifié', subjectId, term);
         return;
       }
 
@@ -390,11 +390,11 @@ table {
   border-collapse: collapse;
 }
 th, td {
-  border: 1px solid #ddd;
+  border: 1px solid black;
   padding: 8px;
 }
 th {
-  background-color: #f4f4f4;
+  background-color: #f4f4f496;
 }
 .v-text-field {
   width: 100%;

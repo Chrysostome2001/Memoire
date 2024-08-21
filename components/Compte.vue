@@ -13,26 +13,53 @@
             <v-text-field
               v-model="currentPassword"
               :rules="currentPasswordRules"
-              label="Ancien mot de passe"
-              type="password"
+              :type="showCurrentPassword ? 'text' : 'password'"
+              label="Ancien mot de passe"             
               required
-            ></v-text-field>
+            >
+            <template v-slot:append>
+                <v-icon
+                  @click="showCurrentPassword = !showCurrentPassword"
+                  class="cursor-pointer"
+                >
+                  {{ showCurrentPassword ? 'mdi-eye' : 'mdi-eye-off' }}
+                </v-icon>
+              </template>
+            </v-text-field>
 
             <v-text-field
               v-model="newPassword"
               :rules="newPasswordRules"
+              :type="showNewPassword ? 'text' : 'password'"
               label="Nouveau mot de passe"
-              type="password"
               required
-            ></v-text-field>
+            >
+            <template v-slot:append>
+                <v-icon
+                  @click="showNewPassword = !showNewPassword"
+                  class="cursor-pointer"
+                >
+                  {{ showNewPassword ? 'mdi-eye' : 'mdi-eye-off' }}
+                </v-icon>
+              </template>
+            </v-text-field>
 
             <v-text-field
               v-model="confirmPassword"
               :rules="confirmPasswordRules"
+              :type="showConfirmPassword ? 'text' : 'password'"
               label="Confirmer mot de passe"
-              type="password"
               required
-            ></v-text-field>
+            >
+              <template v-slot:append>
+                <v-icon
+                  @click="showConfirmPassword = !showConfirmPassword"
+                  class="cursor-pointer"
+                >
+                  {{ showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off' }}
+                </v-icon>
+              </template>
+            </v-text-field>
 
             <v-btn class="mt-4" type="submit" outlined color="primary">Changez mot de passe</v-btn>
           </v-form>
@@ -59,6 +86,22 @@
               label="Nouveau nom d'utilisateur"
               required
             ></v-text-field>
+            <v-text-field
+              v-model="Password"
+              :rules="PasswordRules"
+              :type="showPassword ? 'text' : 'password'"
+              label="Mot de passe"             
+              required
+            >
+            <template v-slot:append>
+                <v-icon
+                  @click="showPassword = !showPassword"
+                  class="cursor-pointer"
+                >
+                  {{ showPassword ? 'mdi-eye' : 'mdi-eye-off' }}
+                </v-icon>
+              </template>
+            </v-text-field>
             <v-btn class="mt-4" type="submit" outlined color="primary">Changez votre username</v-btn>
           </v-form>
         </v-sheet>
@@ -75,9 +118,17 @@ export default {
   data() {
     return {
       userName: '',
+      Password: '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: '',
+      showPassword: false,
+      showNewPassword: false,
+      showCurrentPassword: false,
+      showConfirmPassword: false,
+      PasswordRules: [
+        value => !!value || 'Le mot de passe est requis',
+      ],
       currentPasswordRules: [
         value => !!value || 'L\'ancien mot de passe est requis',
       ],
@@ -102,7 +153,8 @@ export default {
 
         const response = await axios.put(`http://localhost:8080/api/updateUsername/${decodedToken.id}`, {
           role: decodedToken.role,
-          NuserName: this.userName
+          NuserName: this.userName,
+          Password: this.Password
         });
 
         if (response.status === 200) {
@@ -123,24 +175,29 @@ export default {
     },
     async changePassword() {
       try {
-        const token = localStorage.getItem('token');
-        const decodedToken = jwtDecode(token);
+        if(this.newPassword === this.confirmPassword){
+          const token = localStorage.getItem('token');
+          const decodedToken = jwtDecode(token);
 
-        const response = await axios.put(`http://localhost:8080/api/updatePassword/${decodedToken.id}`, {
-          role: decodedToken.role,
-          Apassword: this.currentPassword,
-          Npassword: this.newPassword
-        });
-
-        if (response.status === 200) {
-          this.snackbarMessage = 'Mot de passe changé avec succès!';
-          this.alertSnackbar = true;
-          this.color = "success";
+            const response = await axios.put(`http://localhost:8080/api/updatePassword/${decodedToken.id}`, {
+              role: decodedToken.role,
+              Apassword: this.currentPassword,
+              Npassword: this.newPassword
+            });
+          if (response.status === 200) {
+            this.snackbarMessage = 'Mot de passe changé avec succès!';
+            this.alertSnackbar = true;
+            this.color = "success";
+          } else {
+            this.snackbarMessage = 'Erreur lors du changement du mot de passe';
+            this.alertSnackbar = true;
+            this.color = "error";
+          }
         } else {
           this.snackbarMessage = 'Erreur lors du changement du mot de passe';
           this.alertSnackbar = true;
           this.color = "error";
-        }
+        }       
       } catch (error) {
         console.error('Error changing password:', error);
         this.snackbarMessage = 'Erreur lors du changement du mot de passe';

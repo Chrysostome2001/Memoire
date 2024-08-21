@@ -3,8 +3,8 @@
     <v-navigation-drawer
       v-model="drawer"
       app
-      class="navigation-drawer"
       color="primary" 
+      style="position: fixed; height: 100vh;"
     >
       <v-list dense>
         <v-list-item class="d-flex align-center justify-center">
@@ -15,17 +15,17 @@
             ></v-img>
           </v-avatar>
         </v-list-item>
-        <v-list-item class="username-item">
-          <v-list-item-title class="text-h6">{{ admin.username }}</v-list-item-title>
+        <v-list-item class="d-flex justify-center">
+          <v-list-item-title class="text-white font-weight-bold">{{ admin.username }}</v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
-        <v-list-item link @click="changeView('Home')">
-          <v-list-item-content>
-            <v-list-item-title>
-              <v-icon left color="orange">mdi-home</v-icon> Accueil
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+        <v-list-item class="mt-5" link>
+            <v-list-item-content>
+              <nuxt-link to="/" class="no-decoration">
+                <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
+              </nuxt-link>
+            </v-list-item-content>
+          </v-list-item>
         <v-list-item link @click="changeView('GererParent')">
           <v-list-item-content>
             <v-list-item-title>
@@ -61,7 +61,6 @@
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-divider></v-divider>
         <v-list-item link @click="changeView('Compte')">
           <v-list-item-content>
             <v-list-item-title>
@@ -69,7 +68,7 @@
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item link @click="changeView('HomeAdmin'), drawer = !drawer">
+        <v-list-item link @click="changeView('HomeAdmin')">
           <v-list-item-content>
             <v-list-item-title>
               <v-icon left color="blue">mdi-information-outline</v-icon> Infos
@@ -83,9 +82,9 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" color="primary"></v-app-bar-nav-icon>
       <v-toolbar-title class="text-blue lighten-3">E-NOTE</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn outlined @click="logout" color="error">
+      <v-btn outlined @click="logout" class="ml-2" color="error">
         Déconnexion
-        <v-icon right>mdi-logout</v-icon>
+        <v-icon right class="ml-1">mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
 
@@ -153,13 +152,12 @@ export default {
 </script>
 
 <style scoped>
-.navigation-drawer {
-  width: 250px;
-  background-color: #fff;
-  color: #333;
-}
 .username-item {
   text-align: center;
+}
+.no-decoration {
+    text-decoration: none; /* Enlève le soulignement */
+    color: inherit; /* Utilise la couleur du texte environnant */
 }
 .v-list-item-title {
   font-weight: bold;

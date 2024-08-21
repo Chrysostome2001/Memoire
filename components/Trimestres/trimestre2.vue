@@ -32,12 +32,15 @@
           </tr>
         </template>
       </v-data-table>
+      <v-btn @click="downloadPDF" class="mt-4 mb-2 ml-4" color="primary">Télécharger</v-btn>
     </v-card>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { jwtDecode } from 'jwt-decode';
 
 export default {
@@ -150,6 +153,41 @@ export default {
   methods: {
     formatToTwoDecimalPlaces(value) {
       return (Math.floor(value * 100) / 100).toFixed(2);
+    },
+    downloadPDF() {
+      const doc = new jsPDF();
+      const headers = this.headers.flatMap(header => {
+        if (header.children) {
+          return header.children.map(child => child.title);
+        } else {
+          return header.title;
+        }
+      });
+
+      const data = this.formattedNotes.map(note => [
+        note.matiere,
+        note.coefficient,
+        note.note_inter_1,
+        note.note_inter_2,
+        note.note_inter_3,
+        note.note_inter_4,
+        note.moy_Inter,
+        note.note_devoir_1,
+        note.note_devoir_2,
+        note.moy_gen,
+        note.rang,
+      ]);
+
+      doc.text(`NOM : ${this.studentName}`, 10, 10);
+      doc.text(`SEXE : ${this.sexe}`, 10, 20);
+
+      autoTable(doc, {
+        head: [headers],
+        body: data,
+        startY: 30,
+      });
+
+      doc.save(`${this.studentName}_notes.pdf`);
     },
   },
   mounted() {

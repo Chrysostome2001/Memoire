@@ -367,6 +367,25 @@ app.get('/api/classes/', (req, res) => {
   });
 });
 
+app.get('/api/trimestres/', (req, res) => {
+  const sql = `
+              SELECT 
+                  Trimestre.nom AS trimestre_nom, 
+                  Trimestre.id AS trimestre_id 
+              FROM Trimestre  
+  `;
+  
+  db.query(sql, (error, results) => {
+    if (error) {
+      return res.status(500).json({ message: error.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Aucun trimestre trouvé' });
+    }
+    res.json(results);
+  });
+});
+
 
 app.get('/api/notes', (req, res) => {
   const classeId = req.query.classe_id;
@@ -382,6 +401,7 @@ app.get('/api/notes', (req, res) => {
       Coefficient.coefficient AS coefficient,
       Matiere.matiere AS matiere_nom,
       Matiere.id AS matiere_id,
+      Classe.id AS classe_id,
       Classe.nom AS classe_nom,
       Trimestre.nom AS trimestre_nom,
       Trimestre.id AS trimestre_id,
@@ -1440,14 +1460,38 @@ app.put('/api/updatePassword/:id', async (req, res) => {
 
 app.put('/api/updateUsername/:id', async (req, res) => {
   const { id } = req.params;
-  const { NuserName, role } = req.body;
+  const { NuserName, role, Password } = req.body;
 
-  if (!NuserName) {
+  if (!NuserName || !Password) {
     return res.status(400).json({ error: 'Le mot de passe est requis' });
   }
 
   try {
     
+    let user;
+    // Récupérer l'utilisateur selon son rôle
+    if (role === "eleve") {
+      user = await prisma.eleve.findUnique({ where: { id: parseInt(id) } });
+    } else if (role === "parent") {
+      user = await prisma.parent.findUnique({ where: { id: parseInt(id) } });
+    } else if (role === "enseignant") {
+      user = await prisma.enseignant.findUnique({ where: { id: parseInt(id) } });
+    } else if (role === "admin") {
+      user = await prisma.admin.findUnique({ where: { id: parseInt(id) } });
+    } else {
+      return res.status(400).json({ error: 'Rôle invalide' });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    // Vérifier l'ancien mot de passe
+    const isPasswordValid = await bcrypt.compare(Password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'L\'ancien mot de passe est incorrect' });
+    }
+
     // Mettre à jour le mot de passe de l'utilisateur
     if (role === "eleve") {
       const updatedUsername = await prisma.eleve.update({

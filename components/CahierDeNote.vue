@@ -9,7 +9,7 @@
         <v-toolbar flat class="bg-primary">
           <v-toolbar-title>Cahier de note : {{ classeNom }}</v-toolbar-title>
           <h3>{{ matiereNom }}</h3>
-          <h4 class="ml-9">{{ trimestre_nom }}</h4>
+          <h4 class="ml-9">{{ $props.trimestreNom }}</h4>
           <v-spacer></v-spacer>
           <v-btn  @click="validateNotes">Valider les notes</v-btn>
         </v-toolbar>
@@ -22,22 +22,22 @@
         <span class="ml-5">{{ item.coef }}</span>
       </template>
       <template v-slot:item.interro1="{ item }">
-        <span class="ml-5 mr-5" @dblclick="item.interro1 === null ? editField(item, 'interro1') : null">{{ item.interro1 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="editField(item, 'interro1')">{{ item.interro1 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro2="{ item }">
-        <span class="ml-5 mr-5" @dblclick="item.interro2 === null ? editField(item, 'interro2') : null">{{ item.interro2 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="editField(item, 'interro2')">{{ item.interro2 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro3="{ item }">
-        <span class="ml-5 mr-5" @dblclick="item.interro3 === null  ? editField(item, 'interro3') : null">{{ item.interro3 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="editField(item, 'interro3')">{{ item.interro3 ?? 'null' }}</span>
       </template>
       <template v-slot:item.interro4="{ item }">
-        <span class="ml-5 mr-5" @dblclick="item.interro4 === null ? editField(item, 'interro4') : null">{{ item.interro4 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="editField(item, 'interro4')">{{ item.interro4 ?? 'null' }}</span>
       </template>
       <template v-slot:item.devoir1="{ item }">
-        <span class="ml-5 mr-5" @dblclick="item.devoir1 === null ? editField(item, 'devoir1') : null">{{ item.devoir1 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="editField(item, 'devoir1')">{{ item.devoir1 ?? 'null' }}</span>
       </template>
       <template v-slot:item.devoir2="{ item }">
-        <span class="ml-5 mr-5" @dblclick="item.devoir2 === null ? editField(item, 'devoir2') : null">{{ item.devoir2 ?? 'null' }}</span>
+        <span class="ml-5 mr-5" @dblclick="editField(item, 'devoir2')">{{ item.devoir2 ?? 'null' }}</span>
       </template>
       <template v-slot:item.averageInterro="{ item }">
         <span class="text-success ml-5 mr-5">{{ item.averageInterro }}</span>
@@ -158,6 +158,10 @@ export default {
       required: true,
     },
     trimester:{
+      type: Number,
+      required: true,
+    },
+    trimestreNom: {
       type: String,
       required: true,
     },
@@ -241,7 +245,6 @@ export default {
     },
 
     trimester(newTrimester) {
-      this.setTrimesterId(newTrimester);
       this.fetchStudentsData();
     },
     classeId(newClasseId) {
@@ -254,13 +257,13 @@ export default {
 
   created() {
     this.initialize();
-    this.setTrimesterId(this.trimester);
     this.fetchStudentsData();
   },
 
   methods: {
     initialize() {
-      const storedNotes = localStorage.getItem('studentsNotes');
+      const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
+      const storedNotes = localStorage.getItem(key);
       if (storedNotes) {
         this.students = JSON.parse(storedNotes);
         console.log('fsfvndiops',this.students);
@@ -269,35 +272,19 @@ export default {
         this.students = [];
       }
     },
-    setTrimesterId(trimester) {
-      switch (trimester) {
-        case 'Trimestre1':
-          this.trimesterId = 1;
-          break;
-        case 'Trimestre2':
-          this.trimesterId = 2;
-          break;
-        case 'Trimestre3':
-          this.trimesterId = 3;
-          break;
-        default:
-          this.trimesterId = null;
-          break;
-      }
-    },
     fetchStudentsData() {
-      console.log(this.trimesterId)
       console.log('mat',this.$props.matiereId, this.$props.classeId)
       const token = localStorage.getItem('token');
       const decodedToken = jwtDecode(token)
       
-    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${decodedToken.id}&trimestre_id=${this.trimesterId}&matiere_id=${this.$props.matiereId}`)
+    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${decodedToken.id}&trimestre_id=${this.$props.trimester}&matiere_id=${this.$props.matiereId}`)
       .then(response => {
         this.students = response.data.map(student => ({
           name: `${student.eleve_nom} ${student.eleve_prenom}`,
           eleveId: student.eleve_id,
           nomMatiere: student.matiere_nom,
           matiereId: student.matiere_id,
+          idClasse: student.classe_id,
           nomClasse: student.classe_nom,
           enseignantId: student.enseignant_id,
           trimestreNom: student.trimestre_nom,
@@ -315,18 +302,13 @@ export default {
         }));
         
         // Si les données du localStorage existent et sont valides
-        const storedNotes = JSON.parse(localStorage.getItem('studentsNotes') || '[]');
-          if (storedNotes.length > 0 && this.areStoredNotesValid(storedNotes, this.students)) {
-            // Utiliser les données du localStorage si elles sont valides
-            this.students = storedNotes;
-            console.log('Données affichées depuis le localStorage:', this.students);
-          } else {
-            // Sinon, utiliser les données récupérées depuis l'API
-            this.students = fetchedStudents;
-            console.log('Données affichées depuis l\'API:', this.students);
-            // Stocker les nouvelles données dans le localStorage
-            localStorage.setItem('studentsNotes', JSON.stringify(this.students));
-          }
+        const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
+        const storedNotes = localStorage.getItem(key);
+        if (storedNotes.length > 0 && this.areStoredNotesValid(storedNotes, this.students)) {
+          // Utiliser les données du localStorage si elles sont valides
+          this.students = JSON.parse(storedNotes);;
+          console.log('Données affichées depuis le localStorage:', this.students);
+        }
 
         if (response.data.length > 0) {
         this.matiereNom = response.data[0].matiere_nom;
@@ -341,23 +323,15 @@ export default {
     },
 
     areStoredNotesValid(storedNotes, fetchedStudents) {
-    // Créez des ensembles pour les trimestres et les étudiants
-    const storedTrimesters = new Set(storedNotes.map(student => student.trimestreId));
-    const fetchedTrimesters = new Set(fetchedStudents.map(student => student.trimestreId));
+      const parsedNotes = JSON.parse(storedNotes);
+      return parsedNotes.every(note => 
+        fetchedStudents.some(student => student.eleveId === note.eleveId) && 
+        storedNotes.trimestreId === fetchedStudents.trimestreId &&
+        storedNotes.matiereId === fetchedStudents.matiereId &&
+        storedNotes.classeId === fetchedStudents.classeId
+      );
+    },
 
-    // Vérifiez que tous les trimestres stockés sont présents dans les trimestres récupérés
-    const areTrimestersValid = Array.from(storedTrimesters).every(id => fetchedTrimesters.has(id));
-
-    // Créez des ensembles pour les ID des étudiants
-    const storedIds = new Set(storedNotes.map(student => student.eleveId));
-    const fetchedIds = new Set(fetchedStudents.map(student => student.eleveId));
-
-    // Vérifiez que tous les étudiants récupérés sont présents dans les étudiants stockés
-    const areStudentsValid = Array.from(fetchedIds).every(id => storedIds.has(id));
-
-    // Retourne vrai si les trimestres et les étudiants sont valides
-    return areTrimestersValid && areStudentsValid;
-  },
 
     splitNotes(notesString, index) {
       if (!notesString) return null;
@@ -413,9 +387,9 @@ export default {
       }
       this.updateAverages();
       // Stocker les notes dans le localStorage
-      localStorage.setItem('studentsNotes', JSON.stringify(this.students));
-      const storedNotes = localStorage.getItem('studentsNotes')
-      console.log(JSON.parse(storedNotes))
+      const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
+      localStorage.setItem(key, JSON.stringify(this.students));
+
       this.close();
     },
 
@@ -477,7 +451,8 @@ export default {
           this.snackbar.color = 'success';
           this.snackbar.show = true;
           // Nettoyer le localStorage après succès
-          localStorage.removeItem('studentsNotes');
+          const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
+          localStorage.removeItem(key);
         })
         .catch(error => {
           console.error('Erreur lors de l\'enregistrement des notes :', error);
