@@ -1,8 +1,15 @@
 <template>
   <div>
     <v-card class="elevation-2 rounded-lg p-4" color="white" outlined>
-      <v-card-title>
-        <h5>NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h5>
+      <v-card-title class="title-section">
+        <v-row justify="space-between" align="center">
+          <v-col>
+            <h5 class="student-info">NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h5>
+          </v-col>
+          <v-col class="text-right">
+            <h5 class="term-info">Trimestre 3</h5>
+          </v-col>
+        </v-row>
       </v-card-title>
       <v-data-table
         :headers="headers"
@@ -155,22 +162,34 @@ export default {
       return (Math.floor(value * 100) / 100).toFixed(2);
     },
     async downloadPDF() {
-      const element = this.$el.querySelector('.v-card'); // Sélectionnez l'élément à capturer
-      const canvas = await html2canvas(element, { scale: 2 }); // Capturez l'image du tableau
+      // Créez un clone du tableau avec toutes les colonnes visibles
+      const tableElement = this.$el.querySelector('.v-card');
+      const clone = tableElement.cloneNode(true);
+
+      // Assurez-vous que le clone est visible
+      clone.style.position = 'absolute';
+      clone.style.top = '-9999px'; // Placez-le hors de la vue
+      clone.style.width = 'auto';
+      clone.style.overflow = 'visible'; // Assurer que toutes les colonnes sont visibles
+      document.body.appendChild(clone);
+
+      // Capturez le clone comme une image
+      const canvas = await html2canvas(clone, { scale: 3 });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
 
-      // Calcul pour ajuster l'image capturée à la taille de la page PDF
-      const imgWidth = 210; // Largeur de l'image en mm sur une page A4
-      const pageHeight = 295; // Hauteur d'une page A4
+      // Calculer les dimensions pour la page PDF
+      const imgWidth = 210; // Largeur de la page A4 en mm
+      const pageHeight = 295; // Hauteur de la page A4 en mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
       let position = 0;
 
+      // Ajouter l'image au PDF
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
-      // Si l'image est plus grande que la page, créer de nouvelles pages
+      // Si l'image est plus grande que la page, ajouter des pages supplémentaires
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
@@ -178,7 +197,11 @@ export default {
         heightLeft -= pageHeight;
       }
 
+      // Enregistrer le PDF
       pdf.save(`${this.studentName}_notes.pdf`);
+
+      // Nettoyez le DOM en supprimant le clone
+      document.body.removeChild(clone);
     },
   },
   mounted() {
@@ -222,9 +245,26 @@ export default {
 </script>
 
 <style scoped>
+.title-section {
+  background-color: #f5f5f5; /* Couleur de fond douce */
+  padding: 16px; /* Espacement autour du contenu */
+  border-bottom: 2px solid #e0e0e0; /* Ligne séparatrice en bas */
+}
+
+.student-info {
+  font-weight: bold; /* Met en gras le texte du nom et du sexe */
+  font-size: 1.1rem; /* Taille de police légèrement plus grande */
+  color: #424242; /* Couleur du texte */
+}
+
+.term-info {
+  font-weight: bold; /* Met en gras le texte du trimestre */
+  font-size: 1.2rem; /* Taille de police légèrement plus grande pour le trimestre */
+  color: #1976d2; /* Couleur bleue pour accentuer */
+}
 .v-card {
-  max-width: 1000px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .v-card-title {
@@ -233,7 +273,7 @@ export default {
 }
 
 .v-data-table {
-  border-radius: 8px;
+  border-radius: 1px;
 }
 
 :deep(.v-data-table th) {
