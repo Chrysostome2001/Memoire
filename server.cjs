@@ -303,6 +303,55 @@ app.get('/api/eleves/:id', (req, res) => {
   });
 });
 
+app.get('/api/student-bulletin/:id_eleve/:id_trimestre', async (req, res) => {
+  const { id_eleve, id_trimestre } = req.params;
+
+  try {
+    const bulletinData = await prisma.$queryRaw`
+      SELECT 
+    m.id AS matiere_id,
+    m.matiere AS matiere_name,
+    c.coefficient AS coefficient,
+    TRUNCATE((si.moy_interro + COALESCE(sd.total_devoir, 0)) / 3, 2) AS moyenne,
+    r.rang AS rang
+FROM 
+    Matiere m
+    JOIN Coefficient c ON m.id = c.id
+    JOIN Rang r ON m.id = r.id_matiere
+    LEFT JOIN (
+        SELECT 
+            ni.id_matiere,
+            AVG(ni.inter) AS moy_interro
+        FROM 
+            Note_inter ni
+        WHERE 
+            ni.id_eleve = ${Number(id_eleve)} AND ni.id_trimestre = ${Number(id_trimestre)}
+        GROUP BY 
+            ni.id_matiere
+    ) si ON m.id = si.id_matiere
+    LEFT JOIN (
+        SELECT 
+            nd.id_matiere,
+            SUM(nd.devoir) AS total_devoir
+        FROM 
+            Note_devoir nd
+        WHERE 
+            nd.id_eleve = ${Number(id_eleve)} AND nd.id_trimestre = ${Number(id_trimestre)}
+        GROUP BY 
+            nd.id_matiere
+    ) sd ON m.id = sd.id_matiere
+WHERE 
+    r.id_eleve = ${Number(id_eleve)} AND r.id_trimestre = ${Number(id_trimestre)}
+GROUP BY 
+    m.id, m.matiere, c.coefficient, r.rang;
+    `;
+
+    res.json(bulletinData);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des données du bulletin:", error);
+    res.status(500).json({ error: "Erreur interne du serveur" });
+  }
+});
 
 
 

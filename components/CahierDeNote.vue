@@ -277,37 +277,42 @@ export default {
       const token = localStorage.getItem('token');
       const decodedToken = jwtDecode(token)
       
-    axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${decodedToken.id}&trimestre_id=${this.$props.trimester}&matiere_id=${this.$props.matiereId}`)
-      .then(response => {
-        this.students = response.data.map(student => ({
-          name: `${student.eleve_nom} ${student.eleve_prenom}`,
-          eleveId: student.eleve_id,
-          nomMatiere: student.matiere_nom,
-          matiereId: student.matiere_id,
-          idClasse: student.classe_id,
-          nomClasse: student.classe_nom,
-          enseignantId: student.enseignant_id,
-          trimestreNom: student.trimestre_nom,
-          trimestreId: student.trimestre_id,
-          coef: student.coefficient,
-          interro1: this.splitNotes(student.note_interrogation, 1), // Pass index for each note
-          interro2: this.splitNotes(student.note_interrogation, 2),
-          interro3: this.splitNotes(student.note_interrogation, 3),
-          interro4: this.splitNotes(student.note_interrogation, 4),
-          devoir1: this.splitNotes(student.note_devoir, 1),
-          devoir2: this.splitNotes(student.note_devoir, 2),
-          averageInterro: 0,
-          averageDevoir: 0,
-          finalRank: student.rang_final,
-        }));
+      axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${decodedToken.id}&trimestre_id=${this.$props.trimester}&matiere_id=${this.$props.matiereId}`)
+        .then(response => {
+          this.students = response.data.map(student => ({
+            name: `${student.eleve_nom} ${student.eleve_prenom}`,
+            eleveId: student.eleve_id,
+            nomMatiere: student.matiere_nom,
+            matiereId: student.matiere_id,
+            idClasse: student.classe_id,
+            nomClasse: student.classe_nom,
+            enseignantId: student.enseignant_id,
+            trimestreNom: student.trimestre_nom,
+            trimestreId: student.trimestre_id,
+            coef: student.coefficient,
+            interro1: this.splitNotes(student.note_interrogation, 1), // Pass index for each note
+            interro2: this.splitNotes(student.note_interrogation, 2),
+            interro3: this.splitNotes(student.note_interrogation, 3),
+            interro4: this.splitNotes(student.note_interrogation, 4),
+            devoir1: this.splitNotes(student.note_devoir, 1),
+            devoir2: this.splitNotes(student.note_devoir, 2),
+            averageInterro: 0,
+            averageDevoir: 0,
+            finalRank: student.rang_final,
+          }));
         
         // Si les données du localStorage existent et sont valides
         const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
         const storedNotes = localStorage.getItem(key);
-        if (storedNotes.length > 0 && this.areStoredNotesValid(storedNotes, this.students)) {
-          // Utiliser les données du localStorage si elles sont valides
-          this.students = JSON.parse(storedNotes);;
-          console.log('Données affichées depuis le localStorage:', this.students);
+        if(storedNotes && storedNotes.length > 0){
+          if (this.areStoredNotesValid(storedNotes, this.students)) {
+            // Utiliser les données du localStorage si elles sont valides
+            this.students = JSON.parse(storedNotes);;
+            console.log('Données affichées depuis le localStorage:', this.students);
+          }
+        }else {
+          console.log('Aucune donnée trouvée dans le localStorage, chargement depuis l\'API...');
+          this.fetchStudentsData(); // Recharger les données depuis l'API
         }
 
         if (response.data.length > 0) {
