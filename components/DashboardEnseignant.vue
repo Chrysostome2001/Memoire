@@ -2,11 +2,23 @@
   <v-app class="neutral-background">
     <v-container class="main-container" fluid>
       <v-row class="d-flex justify-center">
-        <v-btn v-for="trimestre in Trimestres" :key="trimestre.idTrimestre" @click="showCahier(trimestre)" class="trimestre-btn">{{ trimestre.trimestreNom }}</v-btn>
+        <v-btn
+          v-for="trimestre in Trimestres"
+          :key="trimestre.idTrimestre"
+          @click="showCahier(trimestre)"
+          class="trimestre-btn"
+        >
+          {{ trimestre.trimestreNom }}
+        </v-btn>
       </v-row>
-      <v-row>
+      <v-row v-if="showComponent">
         <v-col cols="12">
-          <CahierDeNote v-if="showComponent" :classeId="classeId" :trimester="currentTrimester" :trimestreNom="currentTrimesterNom" :matiereId="matiereId"/>
+          <CahierDeNote
+            :classeId="classeId"
+            :trimester="currentTrimester"
+            :trimestreNom="currentTrimesterNom"
+            :matiereId="matiereId"
+          />
         </v-col>
       </v-row>
     </v-container>
@@ -41,23 +53,31 @@ export default {
       this.showComponent = true;
     },
   },
-  mounted(){
+  mounted() {
     axios.get('http://localhost:8080/api/trimestres/')
-    .then(response => {
-      console.log('Trimestre data:', response.data);  // Log class data
-      if (response.data && response.data.length > 0) {
-        this.Trimestres = response.data.map(Trimestre => ({
-          idTrimestre: Trimestre.trimestre_id,
-          trimestreNom: Trimestre.trimestre_nom,
-        }));
-      }else {
-        console.warn('No class data found');
-      }
-    })
-    .catch(error => {
-      console.error('Error class not found', error);
-    });
-  }
+      .then(response => {
+        console.log('Trimestre data:', response.data);  // Log class data
+        if (response.data && response.data.length > 0) {
+          this.Trimestres = response.data.map(trimestre => ({
+            idTrimestre: trimestre.trimestre_id,
+            trimestreNom: trimestre.trimestre_nom,
+          }));
+        } else {
+          console.warn('No trimestre data found');
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching trimestre data', error);
+      });
+  },
+  watch: {
+    classeId() {
+      this.showComponent = false;
+    },
+    matiereId() {
+      this.showComponent = false;
+    },
+  },
 }
 </script>
 

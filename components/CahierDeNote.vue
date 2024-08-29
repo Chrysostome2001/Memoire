@@ -273,58 +273,73 @@ export default {
       }
     },
     fetchStudentsData() {
-      console.log('mat',this.$props.matiereId, this.$props.classeId)
+      console.log('mat', this.$props.matiereId, this.$props.classeId);
+      
       const token = localStorage.getItem('token');
-      const decodedToken = jwtDecode(token)
+      const decodedToken = jwtDecode(token);
       
       axios.get(`http://localhost:8080/api/notes?classe_id=${this.$props.classeId}&enseignant_id=${decodedToken.id}&trimestre_id=${this.$props.trimester}&matiere_id=${this.$props.matiereId}`)
         .then(response => {
-          this.students = response.data.map(student => ({
-            name: `${student.eleve_nom} ${student.eleve_prenom}`,
-            eleveId: student.eleve_id,
-            nomMatiere: student.matiere_nom,
-            matiereId: student.matiere_id,
-            idClasse: student.classe_id,
-            nomClasse: student.classe_nom,
-            enseignantId: student.enseignant_id,
-            trimestreNom: student.trimestre_nom,
-            trimestreId: student.trimestre_id,
-            coef: student.coefficient,
-            interro1: this.splitNotes(student.note_interrogation, 1), // Pass index for each note
-            interro2: this.splitNotes(student.note_interrogation, 2),
-            interro3: this.splitNotes(student.note_interrogation, 3),
-            interro4: this.splitNotes(student.note_interrogation, 4),
-            devoir1: this.splitNotes(student.note_devoir, 1),
-            devoir2: this.splitNotes(student.note_devoir, 2),
-            averageInterro: 0,
-            averageDevoir: 0,
-            finalRank: student.rang_final,
-          }));
-        
-        // Si les données du localStorage existent et sont valides
-        const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
-        const storedNotes = localStorage.getItem(key);
-        if(storedNotes && storedNotes.length > 0){
-          if (this.areStoredNotesValid(storedNotes, this.students)) {
-            // Utiliser les données du localStorage si elles sont valides
-            this.students = JSON.parse(storedNotes);;
-            console.log('Données affichées depuis le localStorage:', this.students);
+          // Vérifie si les données sont stockées dans le localStorage et sont valides
+          const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
+          const storedNotes = localStorage.getItem(key);
+          
+          if (storedNotes && storedNotes.length > 0) {
+            if (this.areStoredNotesValid(storedNotes, this.students)) {
+              // Utiliser les données du localStorage si elles sont valides
+              this.students = JSON.parse(storedNotes);
+              console.log('Données affichées depuis le localStorage:', this.students);
+            } else {
+              // Si les données stockées ne sont pas valides, les remplacer par celles de l'API
+              this.updateStudentData(response.data);
+            }
+          } else {
+            // Si aucune donnée n'est stockée, charger les données depuis l'API
+            this.updateStudentData(response.data);
           }
-        }else {
-          console.log('Aucune donnée trouvée dans le localStorage, chargement depuis l\'API...');
-          this.fetchStudentsData(); // Recharger les données depuis l'API
-        }
+          
+          if (response.data.length > 0) {
+            this.matiereNom = response.data[0].matiere_nom;
+            this.trimestre_nom = response.data[0].trimestre_nom;
+            this.classeNom = response.data[0].classe_nom;
+          }
+          
+          this.updateAverages();
+        })
+        .catch(error => {
+          console.error('Error fetching students data:', error);
+        });
+    },
 
-        if (response.data.length > 0) {
-        this.matiereNom = response.data[0].matiere_nom;
-        this.trimestre_nom = response.data[0].trimestre_nom;
-        this.classeNom = response.data[0].classe_nom
-      }
-        this.updateAverages();
-      })
-      .catch(error => {
-        console.error('Error fetching students data:', error);
-      });
+    // Fonction pour mettre à jour les données des étudiants et stocker les données dans le localStorage
+    updateStudentData(data) {
+      this.students = this.transformData(data);
+      console.log('Données chargées depuis l\'API:', this.students);
+    },
+
+    // Fonction pour transformer les données reçues de l'API
+    transformData(data) {
+      return data.map(student => ({
+        name: `${student.eleve_nom} ${student.eleve_prenom}`,
+        eleveId: student.eleve_id,
+        nomMatiere: student.matiere_nom,
+        matiereId: student.matiere_id,
+        idClasse: student.classe_id,
+        nomClasse: student.classe_nom,
+        enseignantId: student.enseignant_id,
+        trimestreNom: student.trimestre_nom,
+        trimestreId: student.trimestre_id,
+        coef: student.coefficient,
+        interro1: this.splitNotes(student.note_interrogation, 1),
+        interro2: this.splitNotes(student.note_interrogation, 2),
+        interro3: this.splitNotes(student.note_interrogation, 3),
+        interro4: this.splitNotes(student.note_interrogation, 4),
+        devoir1: this.splitNotes(student.note_devoir, 1),
+        devoir2: this.splitNotes(student.note_devoir, 2),
+        averageInterro: 0,
+        averageDevoir: 0,
+        finalRank: student.rang_final,
+      }));
     },
 
     areStoredNotesValid(storedNotes, fetchedStudents) {
