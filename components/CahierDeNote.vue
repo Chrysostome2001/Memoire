@@ -140,10 +140,37 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- Dialog pour l'ajout de pièce jointe -->
+    <v-dialog v-model="attachmentDialog" max-width="500px">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">Ajouter une pièce jointe</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-file-input
+                  v-model="attachment"
+                  label="Choisir une pièce jointe"
+                  accept="image/*,.pdf"
+                  prepend-icon="mdi-paperclip"
+                ></v-file-input>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue-darken-1" @click="closeAttachmentDialog">Annuler</v-btn>
+          <v-btn color="blue-darken-1" @click="submitAttachment">Valider</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
-  {{ snackbar.message }}
-  <v-btn text @click="snackbar.show = false">Fermer</v-btn>
-</v-snackbar>
+        {{ snackbar.message }}
+      <v-btn text @click="snackbar.show = false">Fermer</v-btn>
+    </v-snackbar>
 
   </v-app>
 </template>
@@ -191,6 +218,8 @@ export default {
       { title: 'Moy Devoir', key: 'averageDevoir' },
       { title: 'Rang Final', key: 'finalRank' },
     ],
+    attachmentDialog: false,
+    attachment: null, // Pour stocker la pièce jointe
     snackbar: {
       show: false,
       message: '',
@@ -444,49 +473,49 @@ export default {
       return (Math.floor(value * 100) / 100).toFixed(2);
     },
     validateNotes() {
-      const token = localStorage.getItem('token');
-      const decodedToken = jwtDecode(token)
-      // Filtrer les étudiants dont les notes n'ont pas d'ID
-      const notesToSave = this.students 
-      .map(student => ({
-        id_eleve: student.eleveId, // Ajoutez la propriété id ou un identifiant unique pour chaque étudiant
-        enseignant_id: decodedToken.id, /* Remplacez par l'ID de l'enseignant */
-        matiere_id: student.matiereId, /* Remplacez par l'ID de la matière */
-        trimestre_id: student.trimestreId,
-        note_inter1: student.interro1,
-        note_inter2: student.interro2,
-        note_inter3: student.interro3,
-        note_inter4: student.interro4,
-        note_devoir1: student.devoir1,
-        note_devoir2: student.devoir2,
-        rang_final: student.finalRank,
-      }));
+        const token = localStorage.getItem('token');
+        const decodedToken = jwtDecode(token)
+        // Filtrer les étudiants dont les notes n'ont pas d'ID
+        const notesToSave = this.students 
+        .map(student => ({
+          id_eleve: student.eleveId, // Ajoutez la propriété id ou un identifiant unique pour chaque étudiant
+          enseignant_id: decodedToken.id, /* Remplacez par l'ID de l'enseignant */
+          matiere_id: student.matiereId, /* Remplacez par l'ID de la matière */
+          trimestre_id: student.trimestreId,
+          note_inter1: student.interro1,
+          note_inter2: student.interro2,
+          note_inter3: student.interro3,
+          note_inter4: student.interro4,
+          note_devoir1: student.devoir1,
+          note_devoir2: student.devoir2,
+          rang_final: student.finalRank,
+        }));
 
-    if (notesToSave.length > 0) {
-      axios.post('http://localhost:8080/api/save-notes', notesToSave)
-        .then(response => {
-          console.log('Notes enregistrées avec succès !');
-          // Mise à jour du snackbar pour le succès
-          this.snackbar.message = 'Notes enregistrées avec succès!';
-          this.snackbar.color = 'success';
-          this.snackbar.show = true;
-          // Nettoyer le localStorage après succès
-          const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
-          localStorage.removeItem(key);
-        })
-        .catch(error => {
-          console.error('Erreur lors de l\'enregistrement des notes :', error);
-          this.snackbar.message = 'Erreur lors de l\'enregistrement des notes.';
-          this.snackbar.color = 'error';
-          this.snackbar.show = true;
-        });
-    } else {
-      console.log('Aucune note à enregistrer.');
-      this.snackbar.message = 'Aucune note à enregistrer.';
-      this.snackbar.color = 'info';
-      this.snackbar.show = true;
-    }
-  },
+      if (notesToSave.length > 0) {
+        axios.post('http://localhost:8080/api/save-notes', notesToSave)
+          .then(response => {
+            console.log('Notes enregistrées avec succès !');
+            // Mise à jour du snackbar pour le succès
+            this.snackbar.message = 'Notes enregistrées avec succès!';
+            this.snackbar.color = 'success';
+            this.snackbar.show = true;
+            // Nettoyer le localStorage après succès
+            const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
+            localStorage.removeItem(key);
+          })
+          .catch(error => {
+            console.error('Erreur lors de l\'enregistrement des notes :', error);
+            this.snackbar.message = 'Erreur lors de l\'enregistrement des notes.';
+            this.snackbar.color = 'error';
+            this.snackbar.show = true;
+          });
+      } else {
+        console.log('Aucune note à enregistrer.');
+        this.snackbar.message = 'Aucune note à enregistrer.';
+        this.snackbar.color = 'info';
+        this.snackbar.show = true;
+      }
+    },
   },
 };
 </script>

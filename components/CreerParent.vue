@@ -41,10 +41,6 @@
     <!-- Message d'alerte d'ajout réussie -->
     <v-snackbar v-model="alertSnackbar" :timeout="3000" color="success" class="snackbar">
       Le parent a été créé avec succès.
-      <div v-if="generatedUsername && generatedPassword">
-        <p>Nom d'utilisateur: {{ generatedUsername }}</p>
-        <p>Mot de passe: {{ generatedPassword }}</p>
-      </div>
       <v-btn color="white" text @click="alertSnackbar = false">Fermer</v-btn>
     </v-snackbar>
   </v-container>
@@ -52,7 +48,7 @@
 
 <script>
 import axios from 'axios';
-
+import jsPDF from 'jspdf';
 export default {
   data() {
     return {
@@ -79,6 +75,8 @@ export default {
         this.generatedUsername = response.data.generatedUsername;
         this.generatedPassword = response.data.generatedPassword;
         this.alertSnackbar = true;
+        // Generate and download the PDF
+        this.generatePDF(this.generatedUsername, this.generatedPassword, this.parent.parentNom, this.parent.parentPrenom);
         // Reset form fields after submission
         this.parent.parentNom = '';
         this.parent.parentPrenom = '';
@@ -87,6 +85,18 @@ export default {
       .catch(error => {
         console.error('Error adding parent:', error);
       });
+    },
+    generatePDF(username, password, nom, prenom) {
+      const doc = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.text('Informations du compte parent', 10, 10);
+      doc.setFontSize(12);
+      doc.text(`Nom et prenom: ${nom} ${prenom}`, 10, 20)
+      doc.text(`Nom d'utilisateur: ${username}`, 10, 30);
+      doc.text(`Mot de passe: ${password}`, 10, 40);
+
+      doc.save(`${nom}_${prenom}.pdf`);
     },
   },
 };

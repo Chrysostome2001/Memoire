@@ -39,10 +39,6 @@
      <!-- Message d'alerte d'ajout réussie -->
      <v-snackbar v-model="alertSnackbar" :timeout="3000" color="success">
         L'élève a été ajouter avec succès.
-        <div v-if="generatedUsername && generatedPassword">
-            <p>Nom d'utilisateur: {{ generatedUsername }}</p>
-            <p>Mot de passe: {{ generatedPassword }}</p>
-          </div>
         <v-btn color="white" text @click="alertSnackbar = false">Fermer</v-btn>
       </v-snackbar>
   </v-container>
