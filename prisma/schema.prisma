@@ -17,6 +17,7 @@ model Classe {
   nom       String
   eleves Eleve[]
   enseignant_classe Enseignant_Classe[]
+  piecejointe PieceJointe[]
 }
 
 model Matiere {
@@ -30,6 +31,8 @@ model Matiere {
   coeffient Coefficient @relation(fields: [id_coefficient],references: [id])
   enseignant_matiere Enseignant_Classe[]
   id_coefficient Int
+  commentaire Commentaire[]
+  piecejointe PieceJointe[]
 }
 
 model Rang {
@@ -83,6 +86,8 @@ model Enseignant {
   enseignant_classe Enseignant_Classe[]
   note_inter Note_inter[]
   note_devoir Note_devoir[]
+  commentaire Commentaire[]
+  piecejointe PieceJointe[]
 }
 
 model Eleve {
@@ -103,8 +108,37 @@ model Eleve {
   note_inter Note_inter[]
   note_devoir Note_devoir[]
   rang Rang[]
+  commentaire Commentaire[]
 }
 
+model Commentaire {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  contenu String
+  id_eleve Int
+  id_enseignant Int
+  id_matiere Int
+  id_trimestre Int
+  eleve Eleve @relation(fields: [id_eleve], references: [id])
+  enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
+  matiere Matiere @relation(fields: [id_matiere], references: [id])
+  trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
+}
+
+model PieceJointe {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  titre String
+  piece Bytes
+  id_classe Int
+  id_matiere Int
+  id_enseignant Int
+  classe Classe @relation(fields: [id_classe], references: [id])
+  matiere Matiere @relation(fields: [id_matiere], references: [id])
+  enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
+}
 model Enseignant_Classe {
   id           Int       @id @default(autoincrement())
   createdAt    DateTime  @default(now())
@@ -125,6 +159,7 @@ model Trimestre {
   note_inter Note_inter[]
   note_devoir Note_devoir[]
   rang Rang[]
+  commenstaire Commentaire[]
 }
 model Note_inter {
   id           Int       @id @default(autoincrement())

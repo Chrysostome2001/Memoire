@@ -28,7 +28,7 @@
           <v-list-item>
             <v-expansion-panels variant="accordion">
               <v-expansion-panel class="mt-6 mb-6">
-                <v-expansion-panel-title class="bg-primary">
+                <v-expansion-panel-title color="primary">
                   Cahier de Note
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
@@ -40,7 +40,10 @@
                       @click="changeView('DashboardEnseignant'), loadId(classe.classe_id, classe.matiere_id)"
                     >
                       <v-list-item-content>
-                        <v-list-item-title><strong>{{ classe.classe_nom }}</strong> <span class="matiere">{{ classe.matiere_nom }}</span></v-list-item-title>
+                        <v-list-item-title :class="{'selected-title': selectedClasseId === classe.classe_id}">
+                          <strong>{{ classe.classe_nom }}</strong>
+                          <span class="matiere">{{ classe.matiere_nom }}</span>
+                        </v-list-item-title>
                       </v-list-item-content>
                     </v-list-item>
                   </v-list>
@@ -55,7 +58,7 @@
           </v-list-item>
           <v-list-item link @click="changeView('HomeEnseignant')">
             <v-list-item-content>
-              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> info</v-list-item-title>
+              <v-list-item-title><v-icon left color="blue">mdi-information-outline</v-icon> info</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -93,6 +96,7 @@
         classes: [], // Utiliser un tableau vide pour stocker les classes récupérées
         currentClasseId: null,
         currentMatiereId: null,
+        selectedClasseId: null, // Nouveau : ID de la classe sélectionnée
       };
     },
     components: {
@@ -107,8 +111,9 @@
       loadId(classeId, matiereId) {
         this.currentClasseId = classeId;
         this.currentMatiereId = matiereId;
-        console.log('Updated currentClasseId:', this.currentClasseId); // Met à jour l'ID de l'élève sélectionné
-        console.log('Updated currentMatiere:', this.currentMatiereId)
+        this.selectedClasseId = classeId; // Mettre à jour l'ID de la classe sélectionnée
+        console.log('Updated currentClasseId:', this.currentClasseId);
+        console.log('Updated currentMatiere:', this.currentMatiereId);
       },
       async fetchData() {
         const token = localStorage.getItem('token');
@@ -145,6 +150,9 @@
   </script>
   
   <style scoped>
+  .selected-title {
+    color: orange; /* Modifier cette couleur selon vos besoins */
+  }
   .no-decoration {
       text-decoration: none; /* Enlève le soulignement */
       color: inherit; /* Utilise la couleur du texte environnant */

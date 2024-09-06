@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card>
+    <v-card v-if="!selectedTrimester">
       <v-card-title>
         Liste des élèves
       </v-card-title>
@@ -18,51 +18,55 @@
       </v-card-text>
     </v-card>
 
-    <v-card v-if="selectedStudent">
-      <v-card-title>
-        Bulletin Scolaire
-      </v-card-title>
-      <v-card-subtitle>
-        Nom de l'élève: {{ selectedStudent.nom }} {{ selectedStudent.prenom }}
-      </v-card-subtitle>
-      <v-card-text>
-        <v-select
-          v-model="selectedTrimester"
-          :items="trimesters"
-          item-title="name"
-          item-value="id"
-          label="Sélectionnez un trimestre"
-        ></v-select>
+    <v-dialog v-model="dialog" max-width="500">
+      <v-card>
+        <v-card-title class="headline">Sélectionnez un trimestre</v-card-title>
+        <v-card-text>
+          <v-select
+            v-model="selectedTrimester"
+            :items="trimesters"
+            item-title="name"
+            item-value="id"
+            label="Sélectionnez un trimestre"
+          ></v-select>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="generateBulletin">Générer Bulletin</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
-        <v-btn v-if="selectedTrimester" @click="fetchBulletinData">
-          Générer Bulletin
-        </v-btn>
-
-        <div v-if="bulletinData.length" ref="pdfContent">
-          <table>
-            <thead>
-              <tr>
-                <th>Matières</th>
-                <th>Coefficient</th>
-                <th>Moyenne Générale</th>
-                <th>Rang</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(subject, index) in bulletinData" :key="index">
-                <td>{{ subject.matiere_name }}</td>
-                <td class="text-right">{{ subject.coefficient }}</td>
-                <td class="text-right">{{ subject.moyenne }}</td>
-                <td class="text-right">{{ subject.rang }}</td>
-              </tr>
-            </tbody>
-          </table>
+    <div v-if="showBulletin" class="bulletin-container">
+      <v-btn @click="closeBulletin" class="mb-4" color="warning">Retour</v-btn>
+      <div ref="pdfContent">
+        <div>
+          <h1>Nom de l'école</h1>
+          <h2>Nom: {{ selectedStudentNom }} {{ selectedStudentPrenom }}</h2>
         </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn @click="downloadPDF">Télécharger le bulletin</v-btn>
-      </v-card-actions>
-    </v-card>
+        <table class="mt-6">
+          <thead>
+            <tr>
+              <th>Matières</th>
+              <th>Coefficient</th>
+              <th>Moyenne Générale</th>
+              <th>Moyenne Coefficiée</th>
+              <th>Rang</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(subject, index) in bulletinData" :key="index">
+              <td>{{ subject.matiere_name }}</td>
+              <td class="text-right">{{ subject.coefficient }}</td>
+              <td class="text-right">{{ subject.moyenne }}</td>
+              <td class="text-right">{{ subject.coefficient * subject.moyenne }}</td>
+              <td class="text-right">{{ subject.rang }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <v-btn @click="downloadPDF" class="mt-4" color="success">Télécharger le bulletin</v-btn>
+    </div>
   </v-container>
 </template>
 
@@ -76,9 +80,14 @@ export default {
     return {
       students: [],
       selectedStudent: null,
+      selectedStudentNom: null,
+      selectedStudentPrenom: null,
+      selectedStudentClasse: null,
       trimesters: [],
       selectedTrimester: null,
       bulletinData: [],
+      dialog: false,
+      showBulletin: false,
     };
   },
 
@@ -105,7 +114,11 @@ export default {
 
     selectStudent(student) {
       this.selectedStudent = student;
+      this.selectedStudentNom = student.nom;
+      this.selectedStudentPrenom = student.prenom;
+      this.selectedStudentClasse = student.classeNom;
       this.fetchTrimesters(student.classeId);
+      this.dialog = true;
     },
 
     fetchTrimesters(classeId) {
@@ -123,16 +136,27 @@ export default {
         });
     },
 
+    generateBulletin() {
+      this.dialog = false;
+      this.fetchBulletinData();
+    },
+
     fetchBulletinData() {
       if (this.selectedTrimester) {
         axios.get(`http://localhost:8080/api/student-bulletin/${this.selectedStudent.id}/${this.selectedTrimester}`)
           .then(response => {
             this.bulletinData = response.data;
+            this.showBulletin = true;
           })
           .catch(error => {
             console.error("Erreur lors de la récupération des données du bulletin:", error);
           });
       }
+    },
+
+    closeBulletin() {
+      this.showBulletin = false;
+      this.selectedTrimester = null;
     },
 
     downloadPDF() {
@@ -141,7 +165,7 @@ export default {
       html2canvas(element).then(canvas => {
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF();
-        pdf.addImage(imgData, 'PNG', 10, 10, 190, 0); // Adjust size and position as needed
+        pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
         pdf.save('bulletin-scolaire.pdf');
       });
     },
@@ -159,18 +183,41 @@ export default {
   background-color: #f0f0f0;
 }
 
+.bulletin-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  z-index: 9999;
+  padding: 20px;
+  overflow-y: auto;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
 }
+
 th, td {
   border: 1px solid #ddd;
   padding: 8px;
 }
+
 th {
   background-color: #f4f4f4;
 }
+
 .text-right {
   text-align: right;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.mt-4 {
+  margin-top: 16px;
 }
 </style>

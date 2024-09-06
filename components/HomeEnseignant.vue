@@ -26,12 +26,10 @@
             <p class="body-1 mb-3">
               Une fois connecté à votre compte vous verrez cette page.
             </p>
-            <v-img src="../assets/utilisateur.png" contain></v-img>
-            <br>
             <p class="body-1 mt-3">
               Appuyez sur le bouton qui se trouve dans le coin haut gauche pour voir vos fonctionnalités sur le site.
             </p>
-            <v-img src="../assets/parent/utilisateur.png" contain></v-img>
+            <v-img src="../assets/utilisateur.png" contain></v-img>
           </v-card>
 
           <v-card class="my-4 pa-4">

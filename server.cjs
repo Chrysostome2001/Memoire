@@ -927,8 +927,48 @@ app.get('/api/trimesters/', (req, res) => {
   });
 });
 
+app.get('/api/parent/:parentId/commentaires', (req, res) => {
+  const { parentId } = req.params;
+  const query = `
+    SELECT 
+        e.id AS eleve_id,
+        e.nom AS eleve_nom,
+        e.prenom AS eleve_prenom,
+        c.contenu AS commentaire,
+        ens.nom AS enseignant_nom,
+        ens.prenom AS enseignant_prenom,
+        m.matiere AS matiere_nom,
+        t.nom AS trimestre_nom,
+        c.createdAt AS date_commentaire
+      FROM 
+        Eleve e
+      JOIN 
+        Commentaire c ON e.id = c.id_eleve
+      JOIN 
+        Enseignant ens ON c.id_enseignant = ens.id
+      JOIN 
+        Matiere m ON c.id_matiere = m.id
+      JOIN 
+        Trimestre t ON c.id_trimestre = t.id
+      WHERE 
+        e.id_parent = ?
+  `;
 
-app.use(express.json());
+  db.query(query, [parentId], (error, results) => {
+    if (error) {
+      console.error('Erreur lors de la récupération des commentaires.', error);
+      return res.status(500).json({ error: 'Erreur lors de la récupération des commentaires.' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Aucun commentaire trouvé pour ce parent.' });
+    }
+
+    // Envoyer les données de la matière en réponse
+    res.json(results);
+  });
+});
+
 
 // Fonction pour générer une chaîne aléatoire
 function generateRandomString(length) {
@@ -1185,6 +1225,35 @@ app.post('/api/classes', async (req, res) => {
   } catch (error) {
     console.error('Error adding class:', error);
     res.status(500).json({ error: 'Erreur lors de l\'ajout de la classe' });
+  }
+});
+
+app.post('/api/commentaire', async (req, res) => {
+  try {
+    const { id_eleve, id_enseignant, id_matiere, id_trimestre, contenu } = req.body;
+
+    // Validation de la requête
+    if (!id_eleve || !id_enseignant || !id_matiere || !id_trimestre || !contenu) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+
+    // Ajout du commentaire
+    const newCommentaire = await prisma.commentaire.create({
+      data: {
+        id_eleve,
+        id_enseignant,
+        id_matiere,
+        id_trimestre,
+        contenu,
+      }
+    });
+
+    res.status(201).json({ 
+      ...newCommentaire,
+    });
+  } catch (error) {
+    console.error('Error adding commentaire:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout du commentaire.' });
   }
 });
 

@@ -68,30 +68,29 @@
         this.confirmDialog = false;
       },
       deleteEnseignant() {
-  if (this.enseignantToDelete) {
-    // Envoyer la requête DELETE à l'API
-    axios.delete(`http://localhost:8080/api/supprimerenseignant/${this.enseignantToDelete.enseignant_classeId}`)
-      .then(response => {
-        // Supprimer l'enseignant de la liste locale
-        const index = this.enseignants.findIndex(enseignant => enseignant.id === this.enseignantToDelete.id);
-        if (index !== -1) {
-          this.enseignants.splice(index, 1);
-          this.filteredEnseignant = this.filteredEnseignant.filter(enseignant => enseignant.id !== this.enseignantToDelete.id);
-          // Afficher le message d'alerte de suppression réussie
-          this.alertSnackbar = true;
+        if (this.enseignantToDelete) {
+          // Envoyer la requête DELETE à l'API
+          axios.delete(`http://localhost:8080/api/supprimerenseignant/${this.enseignantToDelete.enseignant_classeId}`)
+            .then(response => {
+              // Supprimer l'enseignant de la liste locale
+              const index = this.enseignants.findIndex(enseignant => enseignant.id === this.enseignantToDelete.id);
+              if (index !== -1) {
+                this.enseignants.splice(index, 1);
+                this.filteredEnseignant = this.filteredEnseignant.filter(enseignant => enseignant.id !== this.enseignantToDelete.id);
+                // Afficher le message d'alerte de suppression réussie
+                this.alertSnackbar = true;
+              }
+              this.confirmDialog = false;
+            })
+            .catch(error => {
+              console.error('Erreur lors de la suppression de l\'enseignant', error);
+              this.confirmDialog = false;
+              this.enseignantToDelete = null;
+            });
+        } else {
+          this.confirmDialog = false;
         }
-        this.confirmDialog = false;
-      })
-      .catch(error => {
-        console.error('Erreur lors de la suppression de l\'enseignant', error);
-        this.confirmDialog = false;
-        this.enseignantToDelete = null;
-      });
-  } else {
-    this.confirmDialog = false;
-  }
-}
-
+      }
     },
     mounted(){
       axios.get('http://localhost:8080/api/enseignants-classe/')

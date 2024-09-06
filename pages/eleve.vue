@@ -3,7 +3,7 @@
       <v-navigation-drawer
         v-model="drawer"
         app
-        class="bg-primary"
+        color="primary"
         style="position: fixed; height: 100vh;"
       >
         <v-list dense>
@@ -18,27 +18,29 @@
           <v-list-item class="d-flex justify-center">
             <v-list-item-title class="text-white font-weight-bold">{{ eleve.username }}</v-list-item-title>
           </v-list-item>
-          <v-list-item class="mt-5" link>
+          <v-divider></v-divider>
+          <v-list-item link>
+          <nuxt-link to="/" class="no-decoration" @click="selectedItem = 'Acceuil'">
             <v-list-item-content>
-              <nuxt-link to="/" class="no-decoration">
-                <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
-              </nuxt-link>
+              <v-list-item-title :class="{ 'selected-title': selectedItem === 'Acceuil' }">
+                <v-icon color="orange">mdi-home</v-icon> Accueil
+              </v-list-item-title>
             </v-list-item-content>
-          </v-list-item>
-          
-          <v-list-item link @click="changeView('DashboardEleve')"> 
-            <v-list-item-title><v-icon left color="green">mdi-school</v-icon> Consulter note</v-list-item-title>
-          </v-list-item>
-          <v-list-item link @click="changeView('Compte')">
-            <v-list-item-content>
-              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item link @click="changeView('HomeEleve')">
-            <v-list-item-content>
-              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> info</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+          </nuxt-link>
+        </v-list-item>
+
+        <v-list-item
+          v-for="item in menuItems"
+          :key="item.name"
+          link
+          @click="changeView(item)"
+        >
+          <v-list-item-content>
+            <v-list-item-title :class="{ 'selected-title': selectedItem === item.name }">
+              <v-icon :color="item.iconColor">{{ item.icon }}</v-icon> {{ item.label }}
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
         </v-list>
       </v-navigation-drawer>
       
@@ -72,6 +74,12 @@
         eleve: {},
         drawer: false,
         currentView: 'HomeEleve',
+        selectedItem: 'HomeEleve',
+        menuItems: [
+          { name: 'Notes', label: 'Consulter note', component: 'DashboardEleve', icon: 'mdi-school', iconColor: 'green' },
+          { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
+          { name: 'HomeEleve', label: 'Infos', component: 'HomeEleve', icon: 'mdi-information-outline', iconColor: 'blue' },
+        ],
       };
     },
     components: {
@@ -125,9 +133,10 @@
           }
         }
       },
-      changeView(view) {
-        this.currentView = view;
-      },
+      changeView(item) {
+      this.currentView = item.component;
+      this.selectedItem = item.name;
+    },
       logout() {
         this.$router.push({ name: 'index' });
       },
@@ -136,6 +145,9 @@
   </script>
   
   <style scoped>
+    .selected-title {
+      color: navajowhite; /* La couleur que vous voulez appliquer au titre sélectionné */
+    }
     .no-decoration {
       text-decoration: none; /* Enlève le soulignement */
       color: inherit; /* Utilise la couleur du texte environnant */

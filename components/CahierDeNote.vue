@@ -4,6 +4,7 @@
       :headers="headers"
       :items="students"
       :search="search"
+      hide-default-footer
     >
       <template v-slot:top>
         <v-toolbar flat class="bg-primary">
@@ -140,6 +141,16 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-container>
+      <v-row>
+        <v-col cols="12" sm="6" md="3">
+          <v-btn variant="text" @click="attachmentDialog = !attachmentDialog">Ajouter une pièce jointe</v-btn>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-btn variant="text" @click="CommentaireDialog = !CommentaireDialog">Avis sur un élève</v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
     <!-- Dialog pour l'ajout de pièce jointe -->
     <v-dialog v-model="attachmentDialog" max-width="500px">
       <v-card>
@@ -149,6 +160,13 @@
         <v-card-text>
           <v-container>
             <v-row>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="titre"
+                  label="Entrez le titre de l'interrogation ou du devoir"
+                  required
+                ></v-text-field>
+              </v-col>
               <v-col cols="12">
                 <v-file-input
                   v-model="attachment"
@@ -162,8 +180,46 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue-darken-1" @click="closeAttachmentDialog">Annuler</v-btn>
-          <v-btn color="blue-darken-1" @click="submitAttachment">Valider</v-btn>
+          <v-btn color="blue-darken-1" @click="attachmentDialog=!attachmentDialog">Annuler</v-btn>
+          <v-btn color="blue-darken-1" @click="SendPieceJointe(titre, attachment)">Valider</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog pour l'ajout d'un commentaire sur un eleve -->
+    <v-dialog v-model="CommentaireDialog" max-width="500px">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">Ajouter un commentaire</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-combobox
+                  v-model="selectEleve"
+                  :items="students"
+                  item-value="eleveId"
+                  item-title="name"
+                  label="Nom et prénom de l'élève"
+                  required
+                ></v-combobox>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12">
+                <v-textarea
+                  v-model="commentaire"
+                  label="Votre avis"
+                  outlined
+                ></v-textarea>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue-darken-1" @click="CommentaireDialog=!CommentaireDialog">Annuler</v-btn>
+          <v-btn color="blue-darken-1" @click="sendCommentaire(selectEleve, commentaire), CommentaireDialog=!CommentaireDialog">Valider</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -171,7 +227,6 @@
         {{ snackbar.message }}
       <v-btn text @click="snackbar.show = false">Fermer</v-btn>
     </v-snackbar>
-
   </v-app>
 </template>
 
@@ -220,6 +275,9 @@ export default {
     ],
     attachmentDialog: false,
     attachment: null, // Pour stocker la pièce jointe
+    selectEleve: null,
+    titre: null,
+    CommentaireDialog: false,
     snackbar: {
       show: false,
       message: '',
@@ -300,6 +358,28 @@ export default {
       } else {
         this.students = [];
       }
+    },
+    sendCommentaire(selectEleve, commentaire) {
+      const token = localStorage.getItem('token');
+      const decodedToken = jwtDecode(token)
+      axios.post('http://localhost:8080/api/commentaire', {
+          id_eleve: selectEleve.eleveId,
+          id_matiere: this.$props.matiereId,
+          id_enseignant: decodedToken.id,
+          id_trimestre: this.$props.trimester,
+          contenu: commentaire,
+        })
+        .then(response => {
+          console.log('Commentaire added successfully:', response.data);
+          commentaire = null
+          selectEleve = null
+        })
+        .catch(error => {
+          console.error('Error adding commentaire:', error);
+        });
+    },
+    SendPieceJointe(titre, attachment){
+
     },
     fetchStudentsData() {
       console.log('mat', this.$props.matiereId, this.$props.classeId);

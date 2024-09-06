@@ -19,59 +19,25 @@
           <v-list-item-title class="text-white font-weight-bold">{{ admin.username }}</v-list-item-title>
         </v-list-item>
         <v-divider></v-divider>
-        <v-list-item class="mt-5" link>
+        <v-list-item link>
+          <nuxt-link to="/" class="no-decoration" @click="selectedItem = 'Acceuil'">
             <v-list-item-content>
-              <nuxt-link to="/" class="no-decoration">
-                <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
-              </nuxt-link>
+              <v-list-item-title :class="{ 'selected-title': selectedItem === 'Acceuil' }">
+                <v-icon color="orange">mdi-home</v-icon> Accueil
+              </v-list-item-title>
             </v-list-item-content>
-          </v-list-item>
-        <v-list-item link @click="changeView('GererParent')">
-          <v-list-item-content>
-            <v-list-item-title>
-              <v-icon color="success">mdi-account</v-icon> Gérer parent
-            </v-list-item-title>
-          </v-list-item-content>
+          </nuxt-link>
         </v-list-item>
-        <v-list-item link @click="changeView('GererClasse')">
+
+        <v-list-item
+          v-for="item in menuItems"
+          :key="item.name"
+          link
+          @click="changeView(item)"
+        >
           <v-list-item-content>
-            <v-list-item-title>
-              <v-icon color="secondary">mdi-school</v-icon> Gérer classe
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item link @click="changeView('GererEleve')">
-          <v-list-item-content>
-            <v-list-item-title>
-              <v-icon color="blue">mdi-account-multiple</v-icon> Gérer élève
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item link @click="changeView('GererEnseignant')">
-          <v-list-item-content>
-            <v-list-item-title>
-              <v-icon color="success">mdi-account</v-icon> Gérer enseignant
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item link @click="changeView('GererMatiere')">
-          <v-list-item-content>
-            <v-list-item-title>
-              <v-icon color="yellow">mdi-book-open</v-icon> Gérer matière
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item link @click="changeView('Compte')">
-          <v-list-item-content>
-            <v-list-item-title>
-              <v-icon left color="blue">mdi-account-circle</v-icon> Compte
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item link @click="changeView('HomeAdmin')">
-          <v-list-item-content>
-            <v-list-item-title>
-              <v-icon left color="blue">mdi-information-outline</v-icon> Infos
+            <v-list-item-title :class="{ 'selected-title': selectedItem === item.name }">
+              <v-icon :color="item.iconColor">{{ item.icon }}</v-icon> {{ item.label }}
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
@@ -113,6 +79,16 @@ export default {
       admin: {},
       drawer: false,
       currentView: 'HomeAdmin',
+      selectedItem: 'HomeAdmin',
+      menuItems: [
+        { name: 'GererParent', label: 'Gérer parent', component: 'GererParent', icon: 'mdi-account', iconColor: 'success' },
+        { name: 'GererClasse', label: 'Gérer classe', component: 'GererClasse', icon: 'mdi-school', iconColor: 'secondary' },
+        { name: 'GererEleve', label: 'Gérer élève', component: 'GererEleve', icon: 'mdi-account-multiple', iconColor: 'blue' },
+        { name: 'GererEnseignant', label: 'Gérer enseignant', component: 'GererEnseignant', icon: 'mdi-account', iconColor: 'success' },
+        { name: 'GererMatiere', label: 'Gérer matière', component: 'GererMatiere', icon: 'mdi-book-open', iconColor: 'yellow' },
+        { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
+        { name: 'HomeAdmin', label: 'Infos', component: 'HomeAdmin', icon: 'mdi-information-outline', iconColor: 'blue' },
+      ],
     };
   },
   components: {
@@ -141,8 +117,9 @@ export default {
         console.error(error);
       }
     },
-    changeView(view) {
-      this.currentView = view;
+    changeView(item) {
+      this.currentView = item.component;
+      this.selectedItem = item.name;
     },
     logout() {
       this.$router.push({ name: 'index' });
@@ -152,6 +129,9 @@ export default {
 </script>
 
 <style scoped>
+.selected-title {
+  color: navajowhite; /* La couleur que vous voulez appliquer au titre sélectionné */
+}
 .username-item {
   text-align: center;
 }

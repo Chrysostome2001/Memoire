@@ -3,7 +3,7 @@
       <v-navigation-drawer
         v-model="drawer"
         app
-        class="bg-primary"
+        color="primary"
         style="position: fixed; height: 100vh;"
       >
         <v-list dense>
@@ -18,31 +18,26 @@
           <v-list-item class="d-flex justify-center">
             <v-list-item-title class="text-white font-weight-bold">{{ parent.username }}</v-list-item-title>
           </v-list-item>
-          <v-list-item class="mt-5" link>
+            <v-list-item link>
+            <nuxt-link to="/" class="no-decoration" @click="selectedItem = 'Acceuil'">
+              <v-list-item-content>
+                <v-list-item-title :class="{ 'selected-title': selectedItem === 'Acceuil' }">
+                  <v-icon color="orange">mdi-home</v-icon> Accueil
+                </v-list-item-title>
+              </v-list-item-content>
+            </nuxt-link>
+          </v-list-item>
+
+          <v-list-item
+            v-for="item in menuItems"
+            :key="item.name"
+            link
+            @click="changeView(item)"
+          >
             <v-list-item-content>
-              <nuxt-link to="/" class="no-decoration">
-                <v-list-item-title><v-icon left color="orange">mdi-home</v-icon> Acceuil</v-list-item-title>
-              </nuxt-link>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item link @click="changeView('DashboardParent')">
-            <v-list-item-title><v-icon left color="green">mdi-school</v-icon> Consulter note</v-list-item-title>
-          </v-list-item>
-          <v-list-item v-if="showSearch">
-            <v-text-field
-              v-model="search"
-              label="Rechercher..."
-              @input="updateContent"
-            ></v-text-field>
-          </v-list-item>
-          <v-list-item link @click="changeView('Compte')">
-            <v-list-item-content>
-              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item link @click="changeView('HomeParent')">
-            <v-list-item-content>
-              <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> info</v-list-item-title>
+              <v-list-item-title :class="{ 'selected-title': selectedItem === item.name }">
+                <v-icon :color="item.iconColor">{{ item.icon }}</v-icon> {{ item.label }}
+              </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -70,6 +65,7 @@
   import HomeParent from '~/components/HomeParent.vue';
   import Compte from '~/components/Compte.vue';
   import DashboardParent from '@/components/DashboardParent';
+  import VoirAvis from '~/components/VoirAvis.vue';
   export default {
     data() {
       return {
@@ -77,12 +73,20 @@
         parent: {},
         drawer: false,
         currentView: 'HomeParent',
+        selectedItem: 'HomeParent',
+        menuItems: [
+          { name: 'Notes', label: 'Consulter notes', component: 'DashboardParent', icon: 'mdi-school', iconColor: 'green' },
+          { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
+          { name: 'VoirAvis', label: 'Avis des profs', component: 'VoirAvis', icon: 'mdi-comment-text-outline', iconColor: '#00FF00' },
+          { name: 'HomeParent', label: 'Infos', component: 'HomeParent', icon: 'mdi-information-outline', iconColor: 'blue' },
+        ],
       };
     },
     components: {
       HomeParent,
       Compte,
       DashboardParent,
+      VoirAvis,
     },
     created() {
       this.fetchData();
@@ -103,8 +107,9 @@
           console.error(error);
         }
       },
-      changeView(view) {
-        this.currentView = view;
+      changeView(item) {
+        this.currentView = item.component;
+        this.selectedItem = item.name;
       },
       logout() {
         this.$router.push({ name: 'index' });
@@ -114,6 +119,9 @@
   </script>
 
 <style scoped>
+.selected-title {
+  color: navajowhite; /* La couleur que vous voulez appliquer au titre sélectionné */
+}
 .no-decoration {
       text-decoration: none; /* Enlève le soulignement */
       color: inherit; /* Utilise la couleur du texte environnant */
