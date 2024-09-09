@@ -1257,6 +1257,38 @@ app.post('/api/commentaire', async (req, res) => {
   }
 });
 
+app.post('/api/piecejointe', async (req, res) => {
+  try {
+    const { id_classe, id_matiere, id_enseignant, titre, piece } = req.body;
+
+    // Validation de la requête
+    if (!id_classe || !id_matiere || !id_enseignant || !titre || !piece ) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+
+    const photoPath = path.join(__dirname, piece);
+    const photoData = fs.readFileSync(photoPath);
+
+    // Ajout du parent dans la base de données avec le mot de passe haché
+    const newPieceJointe = await prisma.pieceJointe.create({
+      data: {
+        id_classe,
+        id_matiere,
+        id_enseignant,
+        piece: photoData,
+        titre,
+      }
+    });
+
+    res.status(201).json({ 
+      ...newPieceJointe,
+    });
+  } catch (error) {
+    console.error('Error adding piece jointe:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'ajout de la piece jointe' });
+  }
+});
+
 app.post('/api/trimestre', async (req, res) => {
   try {
     const { nom } = req.body;

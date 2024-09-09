@@ -28,16 +28,16 @@
                 <v-icon>mdi-account</v-icon>
               </v-avatar>
               <div>
-                <strong>{{ commentaire.eleve_nom }} {{ commentaire.eleve_prenom }}</strong> - {{ commentaire.matiere_nom }}
+                <strong>{{ commentaire.eleve_nom }} {{ commentaire.eleve_prenom }}</strong>
               </div>
             </v-card-title>
   
             <v-card-subtitle class="text--secondary">
-              Trimestre : {{ commentaire.trimestre_nom }} - {{ new Date(commentaire.date_commentaire).toLocaleDateString() }}
+              {{ commentaire.trimestre_nom }} - {{ new Date(commentaire.date_commentaire).toLocaleDateString() }}
             </v-card-subtitle>
   
             <v-card-text>
-              <strong>Avis de l'enseignant</strong> <br>
+              <strong>Avis de l'enseignant de {{ commentaire.matiere_nom }}</strong> <br>
               {{ commentaire.commentaire }}
             </v-card-text>
           </v-card>

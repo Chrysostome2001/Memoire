@@ -186,7 +186,7 @@
       </v-card>
     </v-dialog>
     <!-- Dialog pour l'ajout d'un commentaire sur un eleve -->
-    <v-dialog v-model="CommentaireDialog" max-width="500px">
+    <v-dialog v-model="CommentaireDialog" max-width="700px">
       <v-card>
         <v-card-title>
           <span class="text-h5">Ajouter un commentaire</span>
@@ -379,7 +379,24 @@ export default {
         });
     },
     SendPieceJointe(titre, attachment){
-
+      console.log('piece jointe', titre, attachment)
+      const token = localStorage.getItem('token');
+      const decodedToken = jwtDecode(token)
+      axios.post('http://localhost:8080/api/piecejointe', {
+          id_classe: this.$props.classeId,
+          id_matiere: this.$props.matiereId,
+          id_enseignant: decodedToken.id,
+          titre: titre,
+          piece: attachment,
+        })
+        .then(response => {
+          console.log('Piece jointe added successfully:', response.data);
+          titre = null
+          attachment = null
+        })
+        .catch(error => {
+          console.error('Error adding piece jointe:', error);
+        });
     },
     fetchStudentsData() {
       console.log('mat', this.$props.matiereId, this.$props.classeId);

@@ -76,8 +76,8 @@
         selectedItem: 'HomeParent',
         menuItems: [
           { name: 'Notes', label: 'Consulter notes', component: 'DashboardParent', icon: 'mdi-school', iconColor: 'green' },
-          { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
           { name: 'VoirAvis', label: 'Avis des profs', component: 'VoirAvis', icon: 'mdi-comment-text-outline', iconColor: '#00FF00' },
+          { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
           { name: 'HomeParent', label: 'Infos', component: 'HomeParent', icon: 'mdi-information-outline', iconColor: 'blue' },
         ],
       };
