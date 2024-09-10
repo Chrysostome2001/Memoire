@@ -4,7 +4,7 @@
         v-model="drawer"
         app
         color="primary"
-        style="position: fixed; height: 100vh;"
+        style="position: fixed; height: 100vh; overflow-y: auto;"
       >
         <v-list dense>
           <v-list-item class="d-flex align-center justify-center">
@@ -36,7 +36,39 @@
           >
             <v-list-item-content>
               <v-list-item-title :class="{ 'selected-title': selectedItem === item.name }">
-                <v-icon :color="item.iconColor">{{ item.icon }}</v-icon> {{ item.label }}
+                <v-icon :color="item.iconColor">{{ item.icon }}</v-icon>
+                 <!-- Ajout de la notification pour Avis des profs -->
+                <template v-if="item.name === 'VoirAvis'">
+                  <v-badge
+                    v-if="newAvisCount > 0"
+                    :content="newAvisCount"
+                    color="red"
+                    overlap
+                  >
+                    Avis des profs
+                  </v-badge>
+                <template v-else>
+                  {{ item.label }}
+                </template>
+                </template>
+                <!-- Ajout de la notification pour les notes -->
+                <template v-else-if="item.name === 'Notes'">
+                  <v-badge
+                    v-if="newNotesCount > 0"
+                    :content="newNotesCount"
+                    color="red"
+                    overlap
+                  >
+                    Consulter notes
+                  </v-badge>
+                  <template v-else>
+                    {{ item.label }}
+                  </template>
+                </template>
+
+                <template v-else>
+                  {{ item.label }}
+                </template>
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
@@ -52,7 +84,7 @@
         </v-btn>
       </v-app-bar>
       
-      <v-main class="neutral-background">
+      <v-main class="neutral-background" style="overflow-y: auto;">
         <component :is="currentView" />
         <router-view />
       </v-main>
@@ -74,6 +106,8 @@
         drawer: false,
         currentView: 'HomeParent',
         selectedItem: 'HomeParent',
+        newAvisCount: 0, // Compteur des nouveaux avis
+        newNotesCount: 0,
         menuItems: [
           { name: 'Notes', label: 'Consulter notes', component: 'DashboardParent', icon: 'mdi-school', iconColor: 'green' },
           { name: 'VoirAvis', label: 'Avis des profs', component: 'VoirAvis', icon: 'mdi-comment-text-outline', iconColor: '#00FF00' },
@@ -102,6 +136,15 @@
             fullName: `${response.data.parent_nom} ${response.data.parent_prenom}`,
             username: response.data.parent_username,
           }
+
+          // Récupérer le nombre de nouveaux avis
+          const avisResponse = await axios.get(`http://localhost:8080/api/parent/${decodedToken.id}/nouveaux-avis`);
+          this.newAvisCount = avisResponse.data.nouveauxAvisCount;
+
+          // Récupérer le nombre de nouvelles notes
+          const NotesResponses = await axios.get(`http://localhost:8080/api/parent/${decodedToken.id}/nouveaux-notes`);
+          this.newNotesCount = NotesResponses.data.nouveauxNotesCount;
+
           console.log(this.parent)
         } catch (error) {
           console.error(error);
@@ -110,6 +153,9 @@
       changeView(item) {
         this.currentView = item.component;
         this.selectedItem = item.name;
+        if (item.name === 'VoirAvis') {
+          this.newAvisCount = 0;
+        }
       },
       logout() {
         this.$router.push({ name: 'index' });

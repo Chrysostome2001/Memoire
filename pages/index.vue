@@ -43,6 +43,8 @@ export default {
   methods: {
     goToLoginPage() {
       this.$router.push('/Connexion');
+      localStorage.clear();
+
     },
   },
 };

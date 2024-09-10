@@ -46,7 +46,7 @@
 
 <script>
 import axios from 'axios';
-
+import jsPDF from 'jspdf';
 export default {
   data() {
     return {
@@ -82,9 +82,11 @@ export default {
         this.generatedUsername = response.data.generatedUsername;
         this.generatedPassword = response.data.generatedPassword;
         this.alertSnackbar = true;
+         // Generate and download the PDF
+         this.generatePDF(this.generatedUsername, this.generatedPassword, this.student.name, this.student.surname);
         // Reset form fields after submission
         this.student.name = '';
-        this.student.surname = '';
+        this.student.surname = ''; 
         this.student.sexe = '';
         this.student.parentId = null;
         this.student.className = null;
@@ -93,6 +95,18 @@ export default {
         console.error('Error adding student:', error);
       });
     },
+    generatePDF(username, password, nom, prenom) {
+      const doc = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.text('Informations du compte parent', 10, 10);
+      doc.setFontSize(12);
+      doc.text(`Nom et prenom: ${nom} ${prenom}`, 10, 20)
+      doc.text(`Nom d'utilisateur: ${username}`, 10, 30);
+      doc.text(`Mot de passe: ${password}`, 10, 40);
+
+      doc.save(`${nom}_${prenom}.pdf`);
+    }
   },
   mounted(){
     axios.get('http://localhost:8080/api/classes/')

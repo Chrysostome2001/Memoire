@@ -10,6 +10,15 @@
             >
               <v-icon left class="mr-2">mdi-account-circle</v-icon>
               <span>{{ enfant.nom }} {{ enfant.prenom }}</span>
+              <v-badge
+                v-if="enfant.newNotesCount > 0"
+                :content="count"
+                color="red"
+                overlap
+                class="ml-2"
+              >
+                <v-icon right>mdi-bell</v-icon>
+              </v-badge>
             </v-expansion-panel-title>
             <v-expansion-panel-text>
               <v-card-text>
@@ -61,11 +70,19 @@ export default {
         TrimestresTrimestre3
       ],
       selectedStudentId: null,
+      count: 0
     };
   },
   methods: {
     loadNotes(studentId) {
       this.selectedStudentId = studentId;
+      try {
+        // Mettre à jour les notes comme vues
+        axios.post(`http://localhost:8080/api/eleves/${studentId}/marquer-notes-vues`);
+        this.count = 0
+      } catch (error) {
+        console.error('Erreur lors de la récupération des notes:', error);
+      }
     },
   },
   mounted() {
@@ -77,8 +94,18 @@ export default {
           nom: eleve.eleve_nom,
           prenom: eleve.eleve_prenom,
           classe: eleve.eleve_classe,
-          id: eleve.eleve_id
+          id: eleve.eleve_id,
+          newNotesCount: 0,
         }));
+
+        // Récupérer le nombre de nouvelles notes pour chaque enfant
+        const notesPromises = this.enfants.map(enfant => 
+          axios.get(`http://localhost:8080/api/eleves/${enfant.id}/nouveaux-notes`)
+            .then(response => {
+              enfant.newNotesCount = response.data.nouveauxNotesCount;
+              this.count = enfant.newNotesCount
+            })
+        );
       })
       .catch(error => {
         console.error('Erreur lors de la récupération des notes:', error);

@@ -454,8 +454,8 @@ app.get('/api/notes', (req, res) => {
       Classe.nom AS classe_nom,
       Trimestre.nom AS trimestre_nom,
       Trimestre.id AS trimestre_id,
-      GROUP_CONCAT(DISTINCT IF(Note_inter.id_trimestre = ?, Note_inter.inter, NULL)) AS note_interrogation,
-      GROUP_CONCAT(DISTINCT IF(Note_devoir.id_trimestre = ?, Note_devoir.devoir, NULL)) AS note_devoir
+      GROUP_CONCAT(DISTINCT IF(Note_inter.id_trimestre = ?, Note_inter.inter, NULL) ORDER BY Note_inter.id ASC) AS note_interrogation,
+      GROUP_CONCAT(DISTINCT IF(Note_devoir.id_trimestre = ?, Note_devoir.devoir, NULL) ORDER BY Note_devoir.id ASC) AS note_devoir
     FROM 
       Eleve
     JOIN 
@@ -498,45 +498,25 @@ app.post('/api/save-notes', async (req, res) => {
   const notesToSave = req.body;
 
   try {
-    // Suppression des anciennes notes
     for (const note of notesToSave) {
-      // Suppression des notes d'interrogation existantes
-      await prisma.note_inter.deleteMany({
-        where: {
-          id_eleve: parseInt(note.id_eleve),
-          id_enseignant: parseInt(note.enseignant_id),
-          id_matiere: parseInt(note.matiere_id),
-          id_trimestre: parseInt(note.trimestre_id),
-        },
-      });
-
-      // Suppression des notes de devoir existantes
-      await prisma.note_devoir.deleteMany({
-        where: {
-          id_eleve: parseInt(note.id_eleve),
-          id_enseignant: parseInt(note.enseignant_id),
-          id_matiere: parseInt(note.matiere_id),
-          id_trimestre: parseInt(note.trimestre_id),
-        },
-      });
-      // Suppression des notes de devoir existantes
-      await prisma.rang.deleteMany({
-        where: {
-          id_eleve: parseInt(note.id_eleve),
-          id_matiere: parseInt(note.matiere_id),
-          id_trimestre: parseInt(note.trimestre_id),
-        },
-      });
-    }
-
-    // Enregistrement des nouvelles notes
-    for (const note of notesToSave) {
-      // Vérification et enregistrement des notes d'interrogation
+      // Mise à jour ou création des notes d'interrogation
       if (note.note_inter1 || note.note_inter2 || note.note_inter3 || note.note_inter4) {
-        // Créez une entrée pour chaque note d'interrogation
+        // Note_inter1
         if (note.note_inter1) {
-          await prisma.note_inter.create({
-            data: {
+          await prisma.note_inter.upsert({
+            where: {
+              id_eleve_id_enseignant_id_matiere_id_trimestre_inter: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: parseInt(note.matiere_id),
+                id_trimestre: parseInt(note.trimestre_id),
+                inter: parseFloat(note.note_inter1),
+              },
+            },
+            update: {
+              inter: parseFloat(note.note_inter1),
+            },
+            create: {
               eleve: { connect: { id: note.id_eleve } },
               enseignant: { connect: { id: parseInt(note.enseignant_id) } },
               matiere: { connect: { id: note.matiere_id } },
@@ -545,9 +525,22 @@ app.post('/api/save-notes', async (req, res) => {
             },
           });
         }
+        // Note_inter2
         if (note.note_inter2) {
-          await prisma.note_inter.create({
-            data: {
+          await prisma.note_inter.upsert({
+            where: {
+              id_eleve_id_enseignant_id_matiere_id_trimestre_inter: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: parseInt(note.matiere_id),
+                id_trimestre: parseInt(note.trimestre_id),
+                inter: parseFloat(note.note_inter2),
+              },
+            },
+            update: {
+              inter: parseFloat(note.note_inter2),
+            },
+            create: {
               eleve: { connect: { id: note.id_eleve } },
               enseignant: { connect: { id: parseInt(note.enseignant_id) } },
               matiere: { connect: { id: note.matiere_id } },
@@ -556,9 +549,22 @@ app.post('/api/save-notes', async (req, res) => {
             },
           });
         }
+        // Note_inter3
         if (note.note_inter3) {
-          await prisma.note_inter.create({
-            data: {
+          await prisma.note_inter.upsert({
+            where: {
+              id_eleve_id_enseignant_id_matiere_id_trimestre_inter: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: parseInt(note.matiere_id),
+                id_trimestre: parseInt(note.trimestre_id),
+                inter: parseFloat(note.note_inter3),
+              },
+            },
+            update: {
+              inter: parseFloat(note.note_inter3),
+            },
+            create: {
               eleve: { connect: { id: note.id_eleve } },
               enseignant: { connect: { id: parseInt(note.enseignant_id) } },
               matiere: { connect: { id: note.matiere_id } },
@@ -567,9 +573,22 @@ app.post('/api/save-notes', async (req, res) => {
             },
           });
         }
+        // Note_inter4
         if (note.note_inter4) {
-          await prisma.note_inter.create({
-            data: {
+          await prisma.note_inter.upsert({
+            where: {
+              id_eleve_id_enseignant_id_matiere_id_trimestre_inter: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: parseInt(note.matiere_id),
+                id_trimestre: parseInt(note.trimestre_id),
+                inter: parseFloat(note.note_inter4),
+              },
+            },
+            update: {
+              inter: parseFloat(note.note_inter4),
+            },
+            create: {
               eleve: { connect: { id: note.id_eleve } },
               enseignant: { connect: { id: parseInt(note.enseignant_id) } },
               matiere: { connect: { id: note.matiere_id } },
@@ -580,12 +599,24 @@ app.post('/api/save-notes', async (req, res) => {
         }
       }
 
-      // Vérification et enregistrement des notes de devoir
+      // Mise à jour ou création des notes de devoir
       if (note.note_devoir1 || note.note_devoir2) {
-        // Créez une entrée pour chaque note de devoir
+        // Note_devoir1
         if (note.note_devoir1) {
-          await prisma.note_devoir.create({
-            data: {
+          await prisma.note_devoir.upsert({
+            where: {
+              id_eleve_id_enseignant_id_matiere_id_trimestre_devoir: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: parseInt(note.matiere_id),
+                id_trimestre: parseInt(note.trimestre_id),
+                devoir: parseFloat(note.note_devoir1),
+              },
+            },
+            update: {
+              devoir: parseFloat(note.note_devoir1),
+            },
+            create: {
               eleve: { connect: { id: note.id_eleve } },
               enseignant: { connect: { id: parseInt(note.enseignant_id) } },
               matiere: { connect: { id: note.matiere_id } },
@@ -594,9 +625,23 @@ app.post('/api/save-notes', async (req, res) => {
             },
           });
         }
+
+        // Note_devoir2
         if (note.note_devoir2) {
-          await prisma.note_devoir.create({
-            data: {
+          await prisma.note_devoir.upsert({
+            where: {
+              id_eleve_id_enseignant_id_matiere_id_trimestre_devoir: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: parseInt(note.matiere_id),
+                id_trimestre: parseInt(note.trimestre_id),
+                devoir: parseFloat(note.note_devoir2),
+              },
+            },
+            update: {
+              devoir: parseFloat(note.note_devoir2),
+            },
+            create: {
               eleve: { connect: { id: note.id_eleve } },
               enseignant: { connect: { id: parseInt(note.enseignant_id) } },
               matiere: { connect: { id: note.matiere_id } },
@@ -604,27 +649,41 @@ app.post('/api/save-notes', async (req, res) => {
               devoir: parseFloat(note.note_devoir2),
             },
           });
+        }
+      }
 
-          await prisma.rang.create({
-           data: {
+      // Mise à jour ou création des rangs
+      if (note.rang_final) {
+        await prisma.rang.upsert({
+          where: {
+            id_eleve_id_matiere_id_trimestre: {
+              id_eleve: parseInt(note.id_eleve),
+              id_matiere: parseInt(note.matiere_id),
+              id_trimestre: parseInt(note.trimestre_id),
+            },
+          },
+          update: {
+            rang: parseInt(note.rang_final),
+          },
+          create: {
+            eleve: { connect: { id: note.id_eleve } },
             matiere: { connect: { id: note.matiere_id } },
             trimestre: { connect: { id: note.trimestre_id } },
-            eleve: { connect: { id: note.id_eleve } },
             rang: parseInt(note.rang_final),
-           } 
-          })
-        }
+          },
+        });
       }
     }
 
-    res.status(200).send('Notes enregistrées avec succès !');
+    res.status(200).send('Notes enregistrées ou mises à jour avec succès !');
   } catch (error) {
-    console.error('Erreur lors de l\'enregistrement des notes :', error);
-    res.status(500).send('Une erreur est survenue lors de l\'enregistrement des notes.');
+    console.error('Erreur lors de l\'enregistrement ou la mise à jour des notes :', error);
+    res.status(500).send('Une erreur est survenue lors de l\'enregistrement ou la mise à jour des notes.');
   } finally {
     await prisma.$disconnect();
   }
 });
+
 
 
 
@@ -929,32 +988,36 @@ app.get('/api/trimesters/', (req, res) => {
 
 app.get('/api/parent/:parentId/commentaires', (req, res) => {
   const { parentId } = req.params;
-  const query = `
+  
+  // Étape 1: Récupérer les commentaires
+  const querySelect = `
     SELECT 
-        e.id AS eleve_id,
-        e.nom AS eleve_nom,
-        e.prenom AS eleve_prenom,
-        c.contenu AS commentaire,
-        ens.nom AS enseignant_nom,
-        ens.prenom AS enseignant_prenom,
-        m.matiere AS matiere_nom,
-        t.nom AS trimestre_nom,
-        c.createdAt AS date_commentaire
-      FROM 
-        Eleve e
-      JOIN 
-        Commentaire c ON e.id = c.id_eleve
-      JOIN 
-        Enseignant ens ON c.id_enseignant = ens.id
-      JOIN 
-        Matiere m ON c.id_matiere = m.id
-      JOIN 
-        Trimestre t ON c.id_trimestre = t.id
-      WHERE 
-        e.id_parent = ?
+      e.id AS eleve_id,
+      e.nom AS eleve_nom,
+      e.prenom AS eleve_prenom,
+      c.id AS commentaire_id,
+      c.contenu AS commentaire,
+      ens.nom AS enseignant_nom,
+      ens.prenom AS enseignant_prenom,
+      m.matiere AS matiere_nom,
+      t.nom AS trimestre_nom,
+      c.createdAt AS date_commentaire,
+      c.vu AS vu
+    FROM 
+      Eleve e
+    JOIN 
+      Commentaire c ON e.id = c.id_eleve
+    JOIN 
+      Enseignant ens ON c.id_enseignant = ens.id
+    JOIN 
+      Matiere m ON c.id_matiere = m.id
+    JOIN 
+      Trimestre t ON c.id_trimestre = t.id
+    WHERE 
+      e.id_parent = ?
   `;
 
-  db.query(query, [parentId], (error, results) => {
+  db.query(querySelect, [parentId], (error, results) => {
     if (error) {
       console.error('Erreur lors de la récupération des commentaires.', error);
       return res.status(500).json({ error: 'Erreur lors de la récupération des commentaires.' });
@@ -964,10 +1027,31 @@ app.get('/api/parent/:parentId/commentaires', (req, res) => {
       return res.status(404).json({ error: 'Aucun commentaire trouvé pour ce parent.' });
     }
 
-    // Envoyer les données de la matière en réponse
-    res.json(results);
+    // Étape 2: Mettre à jour la colonne `vu` pour tous les commentaires récupérés
+    const commentaireIds = results.map(row => row.commentaire_id); // Récupérer les IDs des commentaires
+
+    if (commentaireIds.length > 0) {
+      const queryUpdateVu = `
+        UPDATE Commentaire
+        SET vu = true
+        WHERE id IN (?)
+      `;
+      
+      db.query(queryUpdateVu, [commentaireIds], (updateError) => {
+        if (updateError) {
+          console.error('Erreur lors de la mise à jour des commentaires.', updateError);
+          return res.status(500).json({ error: 'Erreur lors de la mise à jour des commentaires.' });
+        }
+
+        // Envoyer les résultats une fois la mise à jour effectuée
+        res.json(results);
+      });
+    } else {
+      res.json(results); // Si aucun commentaire à mettre à jour, on retourne juste les résultats
+    }
   });
 });
+
 
 
 // Fonction pour générer une chaîne aléatoire
@@ -1254,6 +1338,148 @@ app.post('/api/commentaire', async (req, res) => {
   } catch (error) {
     console.error('Error adding commentaire:', error);
     res.status(500).json({ error: 'Erreur lors de l\'ajout du commentaire.' });
+  }
+});
+
+// Exemple de route backend pour les nouveaux avis
+app.get('/api/parent/:id/nouveaux-avis', async (req, res) => {
+  const parentId = parseInt(req.params.id);
+
+  try {
+    // Trouver tous les élèves liés à ce parent
+    const eleves = await prisma.eleve.findMany({
+      where: {
+        id_parent: parentId
+      },
+      select: {
+        id: true,  // On ne récupère que l'ID des élèves
+      },
+    });
+
+    // Extraire les IDs des élèves
+    const eleveIds = eleves.map(eleve => eleve.id);
+
+    // Compter les commentaires non vus pour ces élèves
+    const nouveauxAvisCount = await prisma.commentaire.count({
+      where: {
+        id_eleve: {
+          in: eleveIds,  // Filtrer les commentaires pour les élèves du parent
+        },
+        vu: false,  // Seulement les avis non vus
+      },
+    });
+
+    res.json({ nouveauxAvisCount });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des avis:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des avis.' });
+  }
+});
+
+// Exemple de route backend pour les nouveaux avis
+app.get('/api/parent/:id/nouveaux-notes', async (req, res) => {
+  const parentId = parseInt(req.params.id);
+
+  try {
+    // Trouver tous les élèves liés à ce parent
+    const eleves = await prisma.eleve.findMany({
+      where: {
+        id_parent: parentId
+      },
+      select: {
+        id: true,  // On ne récupère que l'ID des élèves
+      },
+    });
+
+    // Extraire les IDs des élèves
+    const eleveIds = eleves.map(eleve => eleve.id);
+
+    // Compter les notes d'interrogation non vus pour ces élèves
+    const nouveauxNotesInterCount = await prisma.note_inter.count({
+      where: {
+        id_eleve: {
+          in: eleveIds, 
+        },
+        vu: false, 
+      },
+    });
+
+    // Compter les notes de devoirs non vus pour ces élèves
+    const nouveauxNotesDevoirCount = await prisma.note_devoir.count({
+      where: {
+        id_eleve: {
+          in: eleveIds, 
+        },
+        vu: false, 
+      },
+    });
+    const nouveauxNotesCount = nouveauxNotesDevoirCount + nouveauxNotesInterCount
+    res.json({
+      nouveauxNotesCount
+     });
+  } catch (error) {
+    console.error('Erreur lors de la récupération du nombre de notes:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération du nombre de notes.' });
+  }
+});
+
+// Endpoint pour récupérer le nombre de nouvelles notes pour un élève
+app.get('/api/eleves/:id/nouveaux-notes', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Compter le nombre de notes d'interrogation non vues pour l'élève spécifié
+    const nouveauxNotesInterCount = await prisma.note_inter.count({
+      where: {
+        id_eleve: parseInt(id),
+        vu: false,
+      },
+    });
+    // Compter le nombre de notes de devoirs non vues pour l'élève spécifié
+    const nouveauxNotesDevoirCount = await prisma.note_devoir.count({
+      where: {
+        id_eleve: parseInt(id),
+        vu: false,
+      },
+    });
+    const nouveauxNotesCount = nouveauxNotesDevoirCount + nouveauxNotesInterCount
+    res.json({
+      nouveauxNotesCount
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des nouvelles notes:', error);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
+  }
+});
+app.post('/api/eleves/:id/marquer-notes-vues', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await prisma.$transaction([
+      prisma.note_inter.updateMany({
+        where: {
+          id_eleve: parseInt(id),
+          vu: false,
+        },
+        data: {
+          vu: true,
+        },
+      }),
+      prisma.note_devoir.updateMany({
+        where: {
+          id_eleve: parseInt(id),
+          vu: false,
+        },
+        data: {
+          vu: true,
+        },
+      }),
+    ]);
+
+    res.status(200).json({ message: 'Notes marquées comme vues.' });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour des notes:', error);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 });
 

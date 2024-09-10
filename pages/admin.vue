@@ -4,7 +4,7 @@
       v-model="drawer"
       app
       color="primary" 
-      style="position: fixed; height: 100vh;"
+      style="position: fixed; height: 100vh; overflow-y: auto;"
     >
       <v-list dense>
         <v-list-item class="d-flex align-center justify-center">
@@ -54,7 +54,7 @@
       </v-btn>
     </v-app-bar>
 
-    <v-main class="neutral-background">
+    <v-main class="neutral-background" style="overflow-y: auto;">
       <component :is="currentView" />
       <router-view />
     </v-main>
