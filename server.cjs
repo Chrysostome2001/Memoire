@@ -1050,6 +1050,74 @@ app.get('/api/parent/:parentId/commentaires', (req, res) => {
   });
 });
 
+app.get('/api/eleves/:eleveId/commentaires', (req, res) => {
+  const { eleveId } = req.params;
+  
+  // Étape 1: Récupérer les commentaires
+  const querySelect = `
+    SELECT 
+      e.id AS eleve_id,
+      e.nom AS eleve_nom,
+      e.prenom AS eleve_prenom,
+      c.id AS commentaire_id,
+      c.contenu AS commentaire,
+      ens.nom AS enseignant_nom,
+      ens.prenom AS enseignant_prenom,
+      m.matiere AS matiere_nom,
+      t.nom AS trimestre_nom,
+      c.createdAt AS date_commentaire,
+      c.vu AS vu
+    FROM 
+      Eleve e
+    JOIN 
+      Commentaire c ON e.id = c.id_eleve
+    JOIN 
+      Enseignant ens ON c.id_enseignant = ens.id
+    JOIN 
+      Matiere m ON c.id_matiere = m.id
+    JOIN 
+      Trimestre t ON c.id_trimestre = t.id
+    WHERE 
+      e.id = ?
+    ORDER BY
+      c.id DESC
+  `;
+
+  db.query(querySelect, [eleveId], (error, results) => {
+    if (error) {
+      console.error('Erreur lors de la récupération des commentaires.', error);
+      return res.status(500).json({ error: 'Erreur lors de la récupération des commentaires.' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Aucun commentaire trouvé pour ce parent.' });
+    }
+
+    // Étape 2: Mettre à jour la colonne `vu` pour tous les commentaires récupérés
+    const commentaireIds = results.map(row => row.commentaire_id); // Récupérer les IDs des commentaires
+
+    if (commentaireIds.length > 0) {
+      const queryUpdateVu = `
+        UPDATE Commentaire
+        SET vu = true
+        WHERE id IN (?)
+      `;
+      
+      db.query(queryUpdateVu, [commentaireIds], (updateError) => {
+        if (updateError) {
+          console.error('Erreur lors de la mise à jour des commentaires.', updateError);
+          return res.status(500).json({ error: 'Erreur lors de la mise à jour des commentaires.' });
+        }
+
+        // Envoyer les résultats une fois la mise à jour effectuée
+        res.json(results);
+      });
+    } else {
+      res.json(results); // Si aucun commentaire à mettre à jour, on retourne juste les résultats
+    }
+  });
+});
+
 
 
 // Fonction pour générer une chaîne aléatoire
