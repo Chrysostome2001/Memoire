@@ -1,73 +1,75 @@
 <template>
-    <v-app>
-      <v-layout class="rounded-md">
-        <v-main>
-          <v-expansion-panels>
-            <v-expansion-panel class="mt-6 mb-6" v-for="(TrimestreComponent, index) in TrimestreComponents" :key="index">
-              <v-expansion-panel-title expand-icon="mdi-menu-down" class="bg-info">
-                Trimestre {{ index + 1 }}
-              </v-expansion-panel-title>
-              <v-expansion-panel-text>
-                <component :is="TrimestreComponent" :trimestre="index + 1"/>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </v-main>
-      </v-layout>
-    </v-app>
-  </template>
-  
-  <script>
-  import TrimestresTrimestre1 from '@/components/Trimestres/trimestre1.vue';
-  import TrimestresTrimestre2 from '@/components/Trimestres/trimestre2.vue';
-  import TrimestresTrimestre3 from '@/components/Trimestres/trimestre3.vue';
-  export default {
-    name: "App",
-    components: {
-      TrimestresTrimestre1,
-      TrimestresTrimestre2,
-      TrimestresTrimestre3,
+  <v-app>
+    <v-layout class="rounded-md">
+      <v-main>
+        <v-expansion-panels>
+          <v-expansion-panel class="mt-6 mb-6" v-for="trimestre in Trimestres" :key="trimestre.id">
+            <v-expansion-panel-title expand-icon="mdi-menu-down" class="bg-info">
+              {{ trimestre.nom }}
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <trimestre :trimestre="trimestre.id"/>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </v-main>
+    </v-layout>
+  </v-app>
+</template>
+
+<script>
+import trimestre from '@/components/trimestre.vue'
+import axios from 'axios';
+
+export default {
+  name: "App",
+  components: {
+    trimestre
+  },
+  data() {
+    return {
+      showSearch: false,
+      tab: null,
+      Trimestres: [],  // Liste des trimestres récupérés
+    };
+  },
+  methods: {
+    toggleSearch() {
+      this.showSearch = !this.showSearch;
     },
-    data() {
-      return {
-        showSearch: false,
-        tab: null,
-        TrimestreComponents: [
-        TrimestresTrimestre1,
-        TrimestresTrimestre2,
-        TrimestresTrimestre3
-      ]
-      };
+    updateContent() {
+      this.mainContent = this.search;
     },
-    methods: {
-      toggleSearch() {
-        this.showSearch = !this.showSearch;
-      },
-      updateContent() {
-        this.mainContent = this.search;
-      },
-      logout() {
-        // Ajoutez ici votre logique de déconnexion
-        console.log('Déconnexion');
-        // Exemple : rediriger vers la page de connexion
-        this.$router.push('/Connexion');
-      }
+    logout() {
+      this.$router.push('/Connexion');
     }
+  },
+  mounted() {
+    axios.get('http://localhost:8080/api/trimestres/')
+      .then(response => {
+        this.Trimestres = response.data.map(trimestre => ({
+          id: trimestre.trimestre_id,
+          nom: trimestre.trimestre_nom
+        }));
+      })
+      .catch(error => {
+        console.error('Erreur lors de la récupération des trimestres:', error);
+      });
   }
-  </script>
-  
-  <style scoped>
-  .v-application--wrap {
-    overflow-x: hidden;
-  }
-  .d-flex {
-    justify-content: center;
-  }
-  .vcard {
-    cursor: pointer;
-  }
-  .vcard:hover {
-    background-color: #f0f0f0;
-  }
-  </style>
-  
+}
+</script>
+
+<style scoped>
+.v-application--wrap {
+  overflow-x: hidden;
+}
+.d-flex {
+  justify-content: center;
+}
+.vcard {
+  cursor: pointer;
+}
+.vcard:hover {
+  background-color: #f0f0f0;
+}
+</style>

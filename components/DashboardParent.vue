@@ -12,7 +12,7 @@
               <span>{{ enfant.nom }} {{ enfant.prenom }}</span>
               <v-badge
                 v-if="enfant.newNotesCount > 0"
-                :content="count"
+                :content="enfant.newNotesCount"
                 color="red"
                 overlap
                 class="ml-2"
@@ -26,15 +26,24 @@
                   <h4 class="text-primary">Classe: {{ enfant.classe }}</h4>
                 </div>
                 <v-expansion-panels>
-                  <v-expansion-panel v-for="(TrimestreComponent, index) in TrimestreComponents" :key="index" class="mb-4">
+                  <!-- Dynamique: boucle sur les trimestres récupérés -->
+                  <v-expansion-panel
+                    v-for="trimestre in Trimestres"
+                    :key="trimestre.id"
+                    class="mb-4"
+                  >
                     <v-expansion-panel-title
                       expand-icon="mdi-menu-down"
                       class="bg-secondary text-white"
                     >
-                      Trimestre {{ index + 1 }}
+                      {{ trimestre.nom }}
                     </v-expansion-panel-title>
                     <v-expansion-panel-text>
-                      <component :is="TrimestreComponent" :trimestre="index + 1" :student-id="selectedStudentId" />
+                      <!-- Vous pouvez ajouter ici les composants de notes pour ce trimestre -->
+                      <trimestre
+                        :trimestre="trimestre.id"
+                        :student-id="selectedStudentId"
+                      />
                     </v-expansion-panel-text>
                   </v-expansion-panel>
                 </v-expansion-panels>
@@ -48,27 +57,19 @@
 </template>
 
 <script>
-import TrimestresTrimestre1 from '@/components/Trimestres/trimestre1.vue';
-import TrimestresTrimestre2 from '@/components/Trimestres/trimestre2.vue';
-import TrimestresTrimestre3 from '@/components/Trimestres/trimestre3.vue';
+import trimestre from '@/components/trimestre.vue'
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 export default {
   name: "App",
   components: {
-    TrimestresTrimestre1,
-    TrimestresTrimestre2,
-    TrimestresTrimestre3,
+    trimestre
   },
   data() {
     return {
       enfants: [],
-      TrimestreComponents: [
-        TrimestresTrimestre1,
-        TrimestresTrimestre2,
-        TrimestresTrimestre3
-      ],
+      Trimestres: [], // Pour stocker les trimestres depuis l'API
       selectedStudentId: null,
       count: 0
     };
@@ -79,7 +80,6 @@ export default {
       try {
         // Mettre à jour les notes comme vues
         axios.post(`http://localhost:8080/api/eleves/${studentId}/marquer-notes-vues`);
-        this.count = 0
       } catch (error) {
         console.error('Erreur lors de la récupération des notes:', error);
       }
@@ -88,6 +88,8 @@ export default {
   mounted() {
     const token = localStorage.getItem('token');
     const decodedToken = jwtDecode(token);
+    
+    // Récupérer les informations des enfants
     axios.get(`http://localhost:8080/api/eleves/${decodedToken.id}`)
       .then(response => {
         this.enfants = response.data.map(eleve => ({
@@ -103,12 +105,23 @@ export default {
           axios.get(`http://localhost:8080/api/eleves/${enfant.id}/nouveaux-notes`)
             .then(response => {
               enfant.newNotesCount = response.data.nouveauxNotesCount;
-              this.count = enfant.newNotesCount
             })
         );
       })
       .catch(error => {
         console.error('Erreur lors de la récupération des notes:', error);
+      });
+
+    // Récupérer les trimestres depuis l'API
+    axios.get(`http://localhost:8080/api/trimestres/`)
+      .then(response => {
+        this.Trimestres = response.data.map(trimestre => ({
+          id: trimestre.trimestre_id,
+          nom: trimestre.trimestre_nom,
+        }));
+      })
+      .catch(error => {
+        console.error('Erreur lors de la récupération des trimestres:', error);
       });
   }
 };
@@ -128,11 +141,11 @@ export default {
 }
 
 .bg-primary {
-  background-color: #1976D2; /* Couleur primaire */
+  background-color: #1976D2;
 }
 
 .bg-secondary {
-  background-color: #424242; /* Couleur secondaire */
+  background-color: #424242;
 }
 
 .text-white {
@@ -140,7 +153,7 @@ export default {
 }
 
 .text-primary {
-  color: #1976D2; /* Couleur primaire */
+  color: #1976D2;
 }
 
 .d-flex {
@@ -152,19 +165,7 @@ export default {
   margin-bottom: 16px;
 }
 
-.mb-2 {
-  margin-bottom: 8px;
-}
-
 .v-expansion-panel-title {
   font-weight: bold;
-}
-
-.v-expansion-panel-title:hover {
-  background-color: #1565C0; /* Couleur de survol pour le titre */
-}
-
-.v-card-text {
-  padding: 16px;
 }
 </style>

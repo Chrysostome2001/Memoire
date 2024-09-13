@@ -71,6 +71,7 @@ import GererEnseignant from '~/components/GererEnseignant.vue';
 import GererParent from '~/components/GererParent.vue';
 import GererMatiere from '~/components/GererMatiere.vue';
 import HomeAdmin from '~/components/HomeAdmin.vue';
+import InitierTrimestre from '~/components/InitierTrimestre.vue';
 
 export default {
   data() {
@@ -86,6 +87,7 @@ export default {
         { name: 'GererEleve', label: 'Gérer élève', component: 'GererEleve', icon: 'mdi-account-multiple', iconColor: 'blue' },
         { name: 'GererEnseignant', label: 'Gérer enseignant', component: 'GererEnseignant', icon: 'mdi-account', iconColor: 'success' },
         { name: 'GererMatiere', label: 'Gérer matière', component: 'GererMatiere', icon: 'mdi-book-open', iconColor: 'yellow' },
+        { name: 'InitierTrimestre', label: 'Initier trimestre', component: 'InitierTrimestre', icon: 'mdi-school', iconColor: 'secondary' },
         { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
         { name: 'HomeAdmin', label: 'Infos', component: 'HomeAdmin', icon: 'mdi-information-outline', iconColor: 'blue' },
       ],
@@ -99,6 +101,7 @@ export default {
     GererEnseignant,
     GererParent,
     GererMatiere,
+    InitierTrimestre,
   },
   created() {
     this.fetchData();

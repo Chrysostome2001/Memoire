@@ -1,16 +1,17 @@
 <template>
   <div>
-    <v-card class="elevation-2 rounded-lg p-4" color="white" outlined>
+    <v-card class="elevation-2 rounded-lg" color="white" outlined>
       <v-card-title class="title-section">
         <v-row justify="space-between" align="center">
           <v-col>
             <h5 class="student-info">NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h5>
           </v-col>
           <v-col class="text-right">
-            <h5 class="term-info">Trimestre 3</h5>
+            <h5 class="term-info">Trimestre 1</h5>
           </v-col>
         </v-row>
       </v-card-title>
+
       <v-data-table
         :headers="headers"
         :items="formattedNotes"
@@ -105,25 +106,25 @@ export default {
           };
         }
 
-        if (note.note_inter && !seenNoteInterIds.has(note.note_inter_id)) {
-          seenNoteInterIds.add(note.note_inter_id);
+        if (note.note && note.type_note === 'Interrogation' && !seenNoteInterIds.has(note.id_note)) {
+          seenNoteInterIds.add(note.id_note);
           if (!formatted[note.matiere].note_inter_1) {
-            formatted[note.matiere].note_inter_1 = note.note_inter;
+            formatted[note.matiere].note_inter_1 = note.note;
           } else if (!formatted[note.matiere].note_inter_2) {
-            formatted[note.matiere].note_inter_2 = note.note_inter;
+            formatted[note.matiere].note_inter_2 = note.note;
           } else if (!formatted[note.matiere].note_inter_3) {
-            formatted[note.matiere].note_inter_3 = note.note_inter;
+            formatted[note.matiere].note_inter_3 = note.note;
           } else if (!formatted[note.matiere].note_inter_4) {
-            formatted[note.matiere].note_inter_4 = note.note_inter;
+            formatted[note.matiere].note_inter_4 = note.note;
           }
         }
 
-        if (note.note_devoir && !seenNoteDevoirIds.has(note.note_devoir_id)) {
-          seenNoteDevoirIds.add(note.note_devoir_id);
+        if (note.note && note.type_note === 'Devoir' && !seenNoteDevoirIds.has(note.id_note)) {
+          seenNoteDevoirIds.add(note.id_note);
           if (!formatted[note.matiere].note_devoir_1) {
-            formatted[note.matiere].note_devoir_1 = note.note_devoir;
+            formatted[note.matiere].note_devoir_1 = note.note;
           } else if (!formatted[note.matiere].note_devoir_2) {
-            formatted[note.matiere].note_devoir_2 = note.note_devoir;
+            formatted[note.matiere].note_devoir_2 = note.note;
           }
         }
 
@@ -209,7 +210,7 @@ export default {
     const decodedId = jwtDecode(token);
 
     const url = decodedId.role === "eleve"
-      ? `http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=3`
+      ? `http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=${this.trimestre}`
       : `http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`;
 
     axios.get(url)
@@ -274,6 +275,7 @@ export default {
 
 .v-data-table {
   border-radius: 1px;
+  border: 1px solid black;
 }
 
 :deep(.v-data-table th) {
@@ -283,12 +285,10 @@ export default {
 }
 
 :deep(.v-data-table td) {
-  border: 1px solid #e0e0e0;
-  padding: 8px;
   border: 1px solid black;
 }
 
 :deep(.text-success) {
-  color: #388e3c;
+  color: #388e3c !important;
 }
 </style>

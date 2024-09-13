@@ -46,6 +46,7 @@
                     overlap
                   >
                     Avis des profs
+                    <v-icon right>mdi-bell</v-icon>
                   </v-badge>
                 <template v-else>
                   {{ item.label }}

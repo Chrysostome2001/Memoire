@@ -106,25 +106,25 @@ export default {
           };
         }
 
-        if (note.note_inter && !seenNoteInterIds.has(note.note_inter_id)) {
-          seenNoteInterIds.add(note.note_inter_id);
+        if (note.note && note.type_note === 'Interrogation' && !seenNoteInterIds.has(note.id_note)) {
+          seenNoteInterIds.add(note.id_note);
           if (!formatted[note.matiere].note_inter_1) {
-            formatted[note.matiere].note_inter_1 = note.note_inter;
+            formatted[note.matiere].note_inter_1 = note.note;
           } else if (!formatted[note.matiere].note_inter_2) {
-            formatted[note.matiere].note_inter_2 = note.note_inter;
+            formatted[note.matiere].note_inter_2 = note.note;
           } else if (!formatted[note.matiere].note_inter_3) {
-            formatted[note.matiere].note_inter_3 = note.note_inter;
+            formatted[note.matiere].note_inter_3 = note.note;
           } else if (!formatted[note.matiere].note_inter_4) {
-            formatted[note.matiere].note_inter_4 = note.note_inter;
+            formatted[note.matiere].note_inter_4 = note.note;
           }
         }
 
-        if (note.note_devoir && !seenNoteDevoirIds.has(note.note_devoir_id)) {
-          seenNoteDevoirIds.add(note.note_devoir_id);
+        if (note.note && note.type_note === 'Devoir' && !seenNoteDevoirIds.has(note.id_note)) {
+          seenNoteDevoirIds.add(note.id_note);
           if (!formatted[note.matiere].note_devoir_1) {
-            formatted[note.matiere].note_devoir_1 = note.note_devoir;
+            formatted[note.matiere].note_devoir_1 = note.note;
           } else if (!formatted[note.matiere].note_devoir_2) {
-            formatted[note.matiere].note_devoir_2 = note.note_devoir;
+            formatted[note.matiere].note_devoir_2 = note.note;
           }
         }
 
@@ -210,7 +210,7 @@ export default {
     const decodedId = jwtDecode(token);
 
     const url = decodedId.role === "eleve"
-      ? `http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=1`
+      ? `http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=${this.trimestre}`
       : `http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`;
 
     axios.get(url)

@@ -215,10 +215,9 @@ app.get('/api/eleve/:id/notes', (req, res) => {
     Classe.nom AS classe_nom,
     Parent.nom AS nom_parent,
     Matiere.matiere AS matiere,
-    NI.inter AS note_inter,
-    ND.devoir AS note_devoir,
-    NI.id AS note_inter_id,
-    ND.id AS note_devoir_id,
+    Notes.note AS note,
+    Notes.type_note AS type_note,  
+    Notes.id_note AS id_note,      
     Coefficient.coefficient AS coef,
     Rang.rang AS rang,
     Trimestre.id AS trimestre_id
@@ -234,39 +233,41 @@ LEFT JOIN
     Matiere ON Matiere.id = Enseignant_Classe.id_matiere
 LEFT JOIN (
     SELECT 
-        id,
         id_eleve,
         id_matiere,
-        inter,
+        inter AS note,
+        'Interrogation' AS type_note,
+        id AS id_note,
         id_enseignant
     FROM 
         Note_inter
     WHERE 
         id_trimestre = ?
-) AS NI ON Eleve.id = NI.id_eleve AND Matiere.id = NI.id_matiere
-LEFT JOIN (
+    UNION ALL
     SELECT 
-        id,
         id_eleve,
         id_matiere,
-        devoir,
+        devoir AS note,
+        'Devoir' AS type_note,
+        id AS id_note,
         id_enseignant
     FROM 
         Note_devoir
     WHERE 
-        id_trimestre = ? 
-) AS ND ON Eleve.id = ND.id_eleve AND Matiere.id = ND.id_matiere
+        id_trimestre = ?
+) AS Notes ON Eleve.id = Notes.id_eleve AND Matiere.id = Notes.id_matiere
 LEFT JOIN 
     Coefficient ON Coefficient.id = Matiere.id_coefficient 
 LEFT JOIN 
     Trimestre ON Trimestre.id = ?
 LEFT JOIN 
-    Enseignant ON Enseignant.id = NI.id_enseignant OR Enseignant.id = ND.id_enseignant
+    Enseignant ON Enseignant.id = Notes.id_enseignant
 LEFT JOIN 
     Rang ON Rang.id_eleve = Eleve.id AND Rang.id_matiere = Matiere.id AND Rang.id_trimestre = Trimestre.id
-   
 WHERE 
     Eleve.id = ?
+ORDER BY 
+    id_note ASC;
 
 
   `;
@@ -454,7 +455,9 @@ app.get('/api/notes', (req, res) => {
       Classe.nom AS classe_nom,
       Trimestre.nom AS trimestre_nom,
       Trimestre.id AS trimestre_id,
+      GROUP_CONCAT(DISTINCT IF(Note_inter.id_trimestre = ?, Note_inter.id, NULL) ORDER BY Note_inter.id ASC) AS note_inter_id,
       GROUP_CONCAT(DISTINCT IF(Note_inter.id_trimestre = ?, Note_inter.inter, NULL) ORDER BY Note_inter.id ASC) AS note_interrogation,
+      GROUP_CONCAT(DISTINCT IF(Note_devoir.id_trimestre = ?, Note_devoir.id, NULL) ORDER BY Note_devoir.id ASC) AS note_devoir_id,
       GROUP_CONCAT(DISTINCT IF(Note_devoir.id_trimestre = ?, Note_devoir.devoir, NULL) ORDER BY Note_devoir.id ASC) AS note_devoir
     FROM 
       Eleve
@@ -482,7 +485,7 @@ app.get('/api/notes', (req, res) => {
       Eleve.id
   `;
 
-  db.query(sql, [trimestreId, trimestreId, trimestreId, classeId, enseignantId, matiereId], (error, results) => {
+  db.query(sql, [trimestreId, trimestreId, trimestreId, trimestreId, trimestreId, classeId, enseignantId, matiereId], (error, results) => {
     if (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -503,99 +506,95 @@ app.post('/api/save-notes', async (req, res) => {
       if (note.note_inter1 || note.note_inter2 || note.note_inter3 || note.note_inter4) {
         // Note_inter1
         if (note.note_inter1) {
-          await prisma.note_inter.upsert({
-            where: {
-              id_eleve_id_enseignant_id_matiere_id_trimestre_inter: {
-                id_eleve: parseInt(note.id_eleve),
-                id_enseignant: parseInt(note.enseignant_id),
-                id_matiere: parseInt(note.matiere_id),
-                id_trimestre: parseInt(note.trimestre_id),
+          if(note.note_inter1_id){
+            await prisma.note_inter.update({
+              where: {
+                id: parseInt(note.note_inter1_id),
+              },
+              data: {
                 inter: parseFloat(note.note_inter1),
               },
-            },
-            update: {
-              inter: parseFloat(note.note_inter1),
-            },
-            create: {
-              eleve: { connect: { id: note.id_eleve } },
-              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-              matiere: { connect: { id: note.matiere_id } },
-              trimestre: { connect: { id: note.trimestre_id } },
-              inter: parseFloat(note.note_inter1),
-            },
-          });
+            })
+          }else{
+            await prisma.note_inter.create({
+              data: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: note.matiere_id,
+                id_trimestre: note.trimestre_id,
+                inter: parseFloat(note.note_inter1),
+              }
+            })
+          }
         }
         // Note_inter2
         if (note.note_inter2) {
-          await prisma.note_inter.upsert({
-            where: {
-              id_eleve_id_enseignant_id_matiere_id_trimestre_inter: {
-                id_eleve: parseInt(note.id_eleve),
-                id_enseignant: parseInt(note.enseignant_id),
-                id_matiere: parseInt(note.matiere_id),
-                id_trimestre: parseInt(note.trimestre_id),
+          if(note.note_inter2_id){
+            await prisma.note_inter.update({
+              where: {
+                id: parseInt(note.note_inter2_id),
+              },
+              data: {
                 inter: parseFloat(note.note_inter2),
               },
-            },
-            update: {
-              inter: parseFloat(note.note_inter2),
-            },
-            create: {
-              eleve: { connect: { id: note.id_eleve } },
-              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-              matiere: { connect: { id: note.matiere_id } },
-              trimestre: { connect: { id: note.trimestre_id } },
-              inter: parseFloat(note.note_inter2),
-            },
-          });
+            })
+          }else{
+            await prisma.note_inter.create({
+              data: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: note.matiere_id,
+                id_trimestre: note.trimestre_id,
+                inter: parseFloat(note.note_inter2),
+              }
+            })
+          }
         }
         // Note_inter3
         if (note.note_inter3) {
-          await prisma.note_inter.upsert({
-            where: {
-              id_eleve_id_enseignant_id_matiere_id_trimestre_inter: {
-                id_eleve: parseInt(note.id_eleve),
-                id_enseignant: parseInt(note.enseignant_id),
-                id_matiere: parseInt(note.matiere_id),
-                id_trimestre: parseInt(note.trimestre_id),
+          if(note.note_inter3_id){
+            await prisma.note_inter.update({
+              where: {
+                id: parseInt(note.note_inter3_id),
+              },
+              data: {
                 inter: parseFloat(note.note_inter3),
               },
-            },
-            update: {
-              inter: parseFloat(note.note_inter3),
-            },
-            create: {
-              eleve: { connect: { id: note.id_eleve } },
-              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-              matiere: { connect: { id: note.matiere_id } },
-              trimestre: { connect: { id: note.trimestre_id } },
-              inter: parseFloat(note.note_inter3),
-            },
-          });
+            })
+          }else{
+            await prisma.note_inter.create({
+              data: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: note.matiere_id,
+                id_trimestre: note.trimestre_id,
+                inter: parseFloat(note.note_inter3),
+              }
+            })
+          }
         }
         // Note_inter4
         if (note.note_inter4) {
-          await prisma.note_inter.upsert({
-            where: {
-              id_eleve_id_enseignant_id_matiere_id_trimestre_inter: {
-                id_eleve: parseInt(note.id_eleve),
-                id_enseignant: parseInt(note.enseignant_id),
-                id_matiere: parseInt(note.matiere_id),
-                id_trimestre: parseInt(note.trimestre_id),
+          if(note.note_inter4_id){
+            await prisma.note_inter.update({
+              where: {
+                id: parseInt(note.note_inter4_id),
+              },
+              data: {
                 inter: parseFloat(note.note_inter4),
               },
-            },
-            update: {
-              inter: parseFloat(note.note_inter4),
-            },
-            create: {
-              eleve: { connect: { id: note.id_eleve } },
-              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-              matiere: { connect: { id: note.matiere_id } },
-              trimestre: { connect: { id: note.trimestre_id } },
-              inter: parseFloat(note.note_inter4),
-            },
-          });
+            })
+          }else{
+            await prisma.note_inter.create({
+              data: {
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: note.matiere_id,
+                id_trimestre: note.trimestre_id,
+                inter: parseFloat(note.note_inter4),
+              }
+            })
+          }
         }
       }
 
@@ -603,52 +602,50 @@ app.post('/api/save-notes', async (req, res) => {
       if (note.note_devoir1 || note.note_devoir2) {
         // Note_devoir1
         if (note.note_devoir1) {
-          await prisma.note_devoir.upsert({
-            where: {
-              id_eleve_id_enseignant_id_matiere_id_trimestre_devoir: {
-                id_eleve: parseInt(note.id_eleve),
-                id_enseignant: parseInt(note.enseignant_id),
-                id_matiere: parseInt(note.matiere_id),
-                id_trimestre: parseInt(note.trimestre_id),
-                devoir: parseFloat(note.note_devoir1),
+          if(note.note_devoir1_id){
+            await prisma.note_devoir.update({
+              where: {
+                id: parseInt(note.note_devoir1_id),
               },
-            },
-            update: {
-              devoir: parseFloat(note.note_devoir1),
-            },
-            create: {
-              eleve: { connect: { id: note.id_eleve } },
-              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-              matiere: { connect: { id: note.matiere_id } },
-              trimestre: { connect: { id: note.trimestre_id } },
-              devoir: parseFloat(note.note_devoir1),
-            },
-          });
+              data: {
+                devoir: parseFloat(note.note_devoir1_id),
+              },
+            })
+          }else{
+            await prisma.note_devoir.create({
+              data: {
+                id_id_eleve: parseInt(note.id_eleve),
+                id_id_enseignant: parseInt(note.enseignant_id),
+                id_id_matiere: note.matiere_id,
+                id_id_trimestre: note.trimestre_id,
+                devoir: parseFloat(note.note_devoir1_id),
+              }
+            })
+          }
         }
 
         // Note_devoir2
         if (note.note_devoir2) {
-          await prisma.note_devoir.upsert({
-            where: {
-              id_eleve_id_enseignant_id_matiere_id_trimestre_devoir: {
+          if(note.note_devoir2_id){
+            await prisma.note_devoir.update({
+              where: {
+                id: parseInt(note.note_devoir2_id),
+              },
+              data: {
+                devoir: parseFloat(note.note_devoir2_id),
+              },
+            })
+          }else{
+            await prisma.note_devoir.create({
+              data: {
                 id_eleve: parseInt(note.id_eleve),
                 id_enseignant: parseInt(note.enseignant_id),
-                id_matiere: parseInt(note.matiere_id),
-                id_trimestre: parseInt(note.trimestre_id),
-                devoir: parseFloat(note.note_devoir2),
-              },
-            },
-            update: {
-              devoir: parseFloat(note.note_devoir2),
-            },
-            create: {
-              eleve: { connect: { id: note.id_eleve } },
-              enseignant: { connect: { id: parseInt(note.enseignant_id) } },
-              matiere: { connect: { id: note.matiere_id } },
-              trimestre: { connect: { id: note.trimestre_id } },
-              devoir: parseFloat(note.note_devoir2),
-            },
-          });
+                id_matiere: note.matiere_id,
+                id_trimestre: note.trimestre_id,
+                devoir: parseFloat(note.note_devoir2_id),
+              }
+            })
+          }
         }
       }
 
@@ -683,7 +680,6 @@ app.post('/api/save-notes', async (req, res) => {
     await prisma.$disconnect();
   }
 });
-
 
 
 
@@ -1015,6 +1011,8 @@ app.get('/api/parent/:parentId/commentaires', (req, res) => {
       Trimestre t ON c.id_trimestre = t.id
     WHERE 
       e.id_parent = ?
+    ORDER BY
+      c.id DESC
   `;
 
   db.query(querySelect, [parentId], (error, results) => {
