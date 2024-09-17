@@ -863,7 +863,7 @@ app.get('/api/student-grades/:studentId', async (req, res) => {
     // Organiser les données
     const gradesData = {};
 
-    // Objets pour stocker les compteurs par matière
+    // Objets pour stocker les compteurs par matière et trimestre
     const interroCounters = {};
     const devoirCounters = {};
 
@@ -872,15 +872,14 @@ app.get('/api/student-grades/:studentId', async (req, res) => {
       const { matiere, trimestre, inter, id } = note;  // Ajouter l'ID de la note d'interrogation
       if (!gradesData[matiere.id]) {
         gradesData[matiere.id] = { name: matiere.matiere, terms: {} };
-        // Initialiser les compteurs pour cette matière
-        interroCounters[matiere.id] = 1;
-        devoirCounters[matiere.id] = 1;
       }
       if (!gradesData[matiere.id].terms[trimestre.id]) {
         gradesData[matiere.id].terms[trimestre.id] = {};
+        // Initialiser les compteurs pour le trimestre
+        interroCounters[`${matiere.id}_${trimestre.id}`] = 1;
       }
       // Ajouter la note à l'emplacement approprié avec clé incrémentale pour chaque matière
-      gradesData[matiere.id].terms[trimestre.id][`interro${interroCounters[matiere.id]++}`] = { grade: inter, id: id };
+      gradesData[matiere.id].terms[trimestre.id][`interro${interroCounters[`${matiere.id}_${trimestre.id}`]++}`] = { grade: inter, id: id };
     });
 
     // Traiter les notes de devoirs
@@ -888,15 +887,14 @@ app.get('/api/student-grades/:studentId', async (req, res) => {
       const { matiere, trimestre, devoir, id } = note;  // Ajouter l'ID de la note de devoir
       if (!gradesData[matiere.id]) {
         gradesData[matiere.id] = { name: matiere.matiere, terms: {} };
-        // Initialiser les compteurs pour cette matière
-        interroCounters[matiere.id] = 1;
-        devoirCounters[matiere.id] = 1;
       }
       if (!gradesData[matiere.id].terms[trimestre.id]) {
         gradesData[matiere.id].terms[trimestre.id] = {};
+        // Initialiser les compteurs pour le trimestre
+        devoirCounters[`${matiere.id}_${trimestre.id}`] = 1;
       }
       // Ajouter la note à l'emplacement approprié avec clé incrémentale pour chaque matière
-      gradesData[matiere.id].terms[trimestre.id][`devoir${devoirCounters[matiere.id]++}`] = { grade: devoir, id: id };
+      gradesData[matiere.id].terms[trimestre.id][`devoir${devoirCounters[`${matiere.id}_${trimestre.id}`]++}`] = { grade: devoir, id: id };
     });
 
     res.json(gradesData);
@@ -905,6 +903,7 @@ app.get('/api/student-grades/:studentId', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la récupération des notes' });
   }
 });
+
 
 
 app.get('/api/matieres/', (req, res) => {
@@ -1982,35 +1981,48 @@ db.connect((err) => {
 
 // Endpoint de connexion
 app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, role } = req.body;
 
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username and password are required' });
+  if (!username || !password || !role) {
+    return res.status(400).json({ error: 'Username, password, and role are required' });
   }
 
   try {
-    // Trouver l'utilisateur (ou parent, enseignant ou admin) dans la base de données
-    const user = await prisma.eleve.findUnique({
-      where: { username },
-    }) || await prisma.parent.findUnique({
-      where: { username },
-    }) || await prisma.enseignant.findUnique({
-      where: { username },
-    }) || await prisma.admin.findUnique({
-      where: { username },
-    });
+    let user;
+    switch (role) {
+      case 'eleve':
+        user = await prisma.eleve.findUnique({
+          where: { username },
+        });
+        break;
+      case 'parent':
+        user = await prisma.parent.findUnique({
+          where: { username },
+        });
+        break;
+      case 'enseignant':
+        user = await prisma.enseignant.findUnique({
+          where: { username },
+        });
+        break;
+      case 'admin':
+        user = await prisma.admin.findUnique({
+          where: { username },
+        });
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid role' });
+    }
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    // Vérifier le mot de passe
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    // Générer un token JWT si nécessaire 
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });

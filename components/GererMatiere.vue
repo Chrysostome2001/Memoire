@@ -1,17 +1,24 @@
 <template>
     <v-container>
-      <v-row justify="center">
+      <v-row v-if="!currentComponent" justify="center">
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showAddMatiereForm" color="primary" variant="text">Creer matiere</v-btn>
+          <v-btn size="x-large" @click="showComponent('CreerMatiere')" color="primary" variant="text">Creer matiere</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showDeleteMatiereForm" color="error" variant="text">Supprimer matiere</v-btn>
+          <v-btn size="x-large" @click="showComponent('SupprimerMatiere')" color="error" variant="text">Supprimer matiere</v-btn>
         </v-col>
       </v-row>
-  
+
+      <!-- Display the back button when a component is shown -->
+      <v-row v-if="currentComponent">
+        <v-col cols="12">
+          <v-btn @click="goBack" color="secondary" variant="text">Retour</v-btn>
+        </v-col>
+      </v-row>
+
       <!-- Placeholder for displaying different components -->
       <transition name="fade">
-        <component :is="currentComponent"></component>
+        <component :is="currentComponent" v-if="currentComponent"></component>
       </transition>
     </v-container>
   </template>
@@ -30,12 +37,12 @@
       };
     },
     methods: {
-      showAddMatiereForm() {
-        this.currentComponent = 'CreerMatiere';
+      showComponent(componentName) {
+      this.currentComponent = componentName;
       },
-      showDeleteMatiereForm() {
-        this.currentComponent = 'SupprimerMatiere';
-      },
+      goBack() {
+        this.currentComponent = null;
+      }
     }
   };
   </script>

@@ -1,5 +1,14 @@
 <template>
   <v-container>
+    <!-- Barre de recherche -->
+    <v-text-field
+      v-model="search"
+      label="Rechercher un élève"
+      append-icon="mdi-magnify"
+      class="mb-4"
+    ></v-text-field>
+
+    <!-- Liste des élèves, affichée uniquement si aucun élève n'est sélectionné -->
     <v-card v-if="!selectedTrimester">
       <v-card-title>
         Liste des élèves
@@ -7,7 +16,7 @@
       <v-card-text>
         <v-list>
           <v-list-item
-            v-for="student in students"
+            v-for="student in filteredStudents"
             :key="student.id"
             @click="selectStudent(student)"
             class="student-list-item"
@@ -88,7 +97,18 @@ export default {
       bulletinData: [],
       dialog: false,
       showBulletin: false,
+      search: '', // Ajout de la propriété search
     };
+  },
+
+  computed: {
+    // Filtrer les élèves en fonction de la recherche
+    filteredStudents() {
+      return this.students.filter(student => {
+        const fullName = `${student.nom} ${student.prenom}`.toLowerCase();
+        return fullName.includes(this.search.toLowerCase());
+      });
+    },
   },
 
   created() {

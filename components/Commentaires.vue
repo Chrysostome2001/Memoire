@@ -1,5 +1,13 @@
 <template>
   <v-container>
+    <!-- Barre de recherche -->
+    <v-text-field
+      v-model="search"
+      label="Rechercher un élève"
+      append-icon="mdi-magnify"
+      class="mb-4"
+    ></v-text-field>
+
     <!-- Liste des élèves, affichée uniquement si aucun élève n'est sélectionné -->
     <v-card v-if="!selectedStudent">
       <v-card-title>
@@ -8,7 +16,7 @@
       <v-card-text>
         <v-list>
           <v-list-item
-            v-for="student in students"
+            v-for="student in filteredStudents"
             :key="student.id"
             @click="selectStudent(student)"
             class="student-list-item"
@@ -19,35 +27,47 @@
       </v-card-text>
     </v-card>
 
-    <!-- Commentaires, affichés uniquement si un élève est sélectionné -->
-    <div v-if="selectedStudent" class="comments-container">
-      <v-btn @click="closeComments" class="mb-4" color="warning">Retour</v-btn>
-      <div>
-        <h2>Commentaires pour {{ selectedStudent.nom }} {{ selectedStudent.prenom }}</h2>
-        <v-card v-for="comment in comments" :key="comment.id" class="mb-4">
-          <v-card-title>
-            <div>
-              <strong>Élève :</strong> {{ comment.eleve_nom }} {{ comment.eleve_prenom }}
+    <v-row>
+      <v-col cols="12" md="8" offset-md="2">
+        <!-- Commentaires, affichés uniquement si un élève est sélectionné -->
+        <div v-if="selectedStudent" class="comments-container neutral-background">
+          <!-- Si les commentaires sont en cours de chargement -->
+          <v-progress-linear
+            v-if="loading"
+            indeterminate
+            color="blue"
+          ></v-progress-linear>
+  
+          <!-- Si aucun commentaire n'est trouvé -->
+          <v-alert v-else-if="comments.length === 0" type="info">
+            Aucun commentaire trouvé pour cet élève.
+          </v-alert>
+          <div>
+            <div v-if="comments.length != 0" class="mb-9">
+              <strong>Commentaires pour</strong> {{ selectedStudent.nom }} {{ selectedStudent.prenom }}
             </div>
-            <div>
-              <strong>Enseignant :</strong> {{ comment.enseignant_nom }} {{ comment.enseignant_prenom }}
-            </div>
-            <div>
-              <strong>Matière :</strong> {{ comment.matiere_nom }}
-            </div>
-            <div>
-              <strong>Trimestre :</strong> {{ comment.trimestre_nom }}
-            </div>
-            <div>
-              <strong>Date :</strong> {{ new Date(comment.date_commentaire).toLocaleDateString() }}
-            </div>
-          </v-card-title>
-          <v-card-subtitle>
-            {{ comment.text }}
-          </v-card-subtitle>
-        </v-card>
-      </div>
-    </div>
+            <v-card v-for="comment in comments" :key="comment.id" class="mb-4">
+              <v-card-title class="d-flex align-center">
+                <v-avatar class="mr-3">
+                <v-icon>mdi-account</v-icon>
+              </v-avatar>
+                <div>
+                  <strong>{{ comment.enseignant_nom }} {{ comment.enseignant_prenom }}</strong>:  {{ comment.matiere_nom }}
+                </div>
+              </v-card-title>
+              <v-card-subtitle class="text-secondary">
+                <div>
+                  {{ comment.trimestre_nom }} - {{ new Date(comment.date_commentaire).toLocaleDateString() }}
+                </div>
+              </v-card-subtitle>
+              <v-card-text>
+                {{ comment.text }}
+              </v-card-text>
+            </v-card>
+          </div>
+        </div>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
@@ -60,7 +80,18 @@ export default {
       students: [],
       selectedStudent: null,
       comments: [],
+      search: '', // Ajout de la propriété search
     };
+  },
+
+  computed: {
+    // Filtrer les élèves en fonction de la recherche
+    filteredStudents() {
+      return this.students.filter(student => {
+        const fullName = `${student.nom} ${student.prenom}`.toLowerCase();
+        return fullName.includes(this.search.toLowerCase());
+      });
+    },
   },
 
   created() {
@@ -108,11 +139,6 @@ export default {
           console.error("Erreur lors de la récupération des commentaires:", error);
         });
     },
-
-    closeComments() {
-      this.selectedStudent = null;
-      this.comments = [];
-    },
   },
 };
 </script>
@@ -135,5 +161,8 @@ export default {
 
 .mb-4 {
   margin-bottom: 16px;
+}
+.neutral-background {
+  background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
 }
 </style>

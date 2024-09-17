@@ -1,17 +1,24 @@
 <template>
     <v-container>
-      <v-row justify="center">
+      <v-row v-if="!currentComponent" justify="center">
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showAddClasssForm" color="success" variant="text">Creer classe</v-btn>
+          <v-btn size="x-large" @click="showComponent('CreerClasse')" color="success" variant="text">Creer classe</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showDeleteClassForm" color="error" variant="text">Supprimer classe</v-btn>
+          <v-btn size="x-large" @click="showComponent('SupprimerClasse')" color="error" variant="text">Supprimer classe</v-btn>
         </v-col>
       </v-row>
-  
+      
+      <!-- Display the back button when a component is shown -->
+      <v-row v-if="currentComponent">
+        <v-col cols="12">
+          <v-btn @click="goBack" color="secondary" variant="text">Retour</v-btn>
+        </v-col>
+      </v-row>
+
       <!-- Placeholder for displaying different components -->
       <transition name="fade">
-        <component :is="currentComponent"></component>
+        <component :is="currentComponent" v-if="currentComponent"></component>
       </transition>
     </v-container>
   </template>
@@ -30,12 +37,12 @@
       };
     },
     methods: {
-      showAddClasssForm() {
-        this.currentComponent = 'CreerClasse';
+      showComponent(componentName) {
+      this.currentComponent = componentName;
       },
-      showDeleteClassForm() {
-        this.currentComponent = 'SupprimerClasse';
-      },
+      goBack() {
+        this.currentComponent = null;
+      }
     }
   };
   </script>

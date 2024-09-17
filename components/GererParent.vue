@@ -1,20 +1,27 @@
 <template>
     <v-container>
-      <v-row justify="center">
+      <v-row v-if="!currentComponent" justify="center">
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showCreateParentForm" color="primary" variant="text">Creer Parent</v-btn>
+          <v-btn size="x-large" @click="showComponent('CreerParent')" color="primary" variant="text">Creer Parent</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showDeleteParentForm" color="error" variant="text">Supprimer Parent</v-btn>
+          <v-btn size="x-large" @click="showComponent('SupprimerParent')" color="error" variant="text">Supprimer Parent</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showModifyParentForm" color="warning" variant="text">Modifier Info Parent</v-btn>
+          <v-btn size="x-large" @click="showComponent('EditerInfoParent')" color="warning" variant="text">Modifier Info Parent</v-btn>
+        </v-col>
+      </v-row>
+
+      <!-- Display the back button when a component is shown -->
+      <v-row v-if="currentComponent">
+        <v-col cols="12">
+          <v-btn @click="goBack" color="secondary" variant="text">Retour</v-btn>
         </v-col>
       </v-row>
   
       <!-- Placeholder for displaying different components -->
       <transition name="fade">
-        <component :is="currentComponent"></component>
+        <component :is="currentComponent" v-if="currentComponent"></component>
       </transition>
     </v-container>
   </template>
@@ -35,15 +42,12 @@
       };
     },
     methods: {
-      showCreateParentForm() {
-        this.currentComponent = 'CreerParent';
+      showComponent(componentName) {
+      this.currentComponent = componentName;
       },
-      showDeleteParentForm() {
-        this.currentComponent = 'SupprimerParent';
-      },
-      showModifyParentForm() {
-        this.currentComponent = 'EditerInfoParent';
-      },
+      goBack() {
+        this.currentComponent = null;
+      }
     }
   };
   </script>

@@ -99,7 +99,7 @@ export default {
       const doc = new jsPDF();
 
       doc.setFontSize(16);
-      doc.text('Informations du compte parent', 10, 10);
+      doc.text('Informations du compte élève', 10, 10);
       doc.setFontSize(12);
       doc.text(`Nom et prenom: ${nom} ${prenom}`, 10, 20)
       doc.text(`Nom d'utilisateur: ${username}`, 10, 30);

@@ -1,23 +1,29 @@
 <template>
     <v-container>
-      <v-row justify="center">
+      <v-row v-if="!currentComponent" justify="center">
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showAddEnseignantForm" color="primary" variant="text">Creer enseignant</v-btn>
+          <v-btn size="x-large" @click="showComponent('CreerEnseignant')" color="primary" variant="text">Creer enseignant</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showDeleteEnseignantForm" color="error" variant="text">Supprimer enseignant</v-btn>
+          <v-btn size="x-large" @click="showComponent('SupprimerEnseignant')" color="error" variant="text">Supprimer enseignant</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showModifyEnseignantForm" color="warning" variant="text">Editer infos enseignant</v-btn>
+          <v-btn size="x-large" @click="showComponent('EditerInfosEnseignant')" color="warning" variant="text">Editer infos enseignant</v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-btn size="x-large" @click="showEnseignantInfo" color="info" variant="text">Ajouter enseignant</v-btn>
+          <v-btn size="x-large" @click="showComponent('AjouterEnseignant')" color="info" variant="text">Ajouter enseignant</v-btn>
         </v-col>
       </v-row>
-  
+      <!-- Display the back button when a component is shown -->
+      <v-row v-if="currentComponent">
+        <v-col cols="12">
+          <v-btn @click="goBack" color="secondary" variant="text">Retour</v-btn>
+        </v-col>
+      </v-row>
+
       <!-- Placeholder for displaying different components -->
       <transition name="fade">
-        <component :is="currentComponent"></component>
+        <component :is="currentComponent" v-if="currentComponent"></component>
       </transition>
     </v-container>
   </template>
@@ -40,17 +46,11 @@
       };
     },
     methods: {
-      showAddEnseignantForm() {
-        this.currentComponent = 'CreerEnseignant';
+      showComponent(componentName) {
+      this.currentComponent = componentName;
       },
-      showDeleteEnseignantForm() {
-        this.currentComponent = 'SupprimerEnseignant';
-      },
-      showModifyEnseignantForm() {
-        this.currentComponent = 'EditerInfosEnseignant';
-      },
-      showEnseignantInfo() {
-        this.currentComponent = 'AjouterEnseignant';
+      goBack() {
+        this.currentComponent = null;
       }
     }
   };
