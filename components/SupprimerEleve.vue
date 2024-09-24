@@ -11,7 +11,7 @@
             <v-card-title>{{ student.name }} {{ student.surname }}</v-card-title>
             <v-card-subtitle>Classe : {{ student.className }}</v-card-subtitle>
             <v-card-actions>
-              <v-btn color="blue darken-1" text @click="confirmDelete(student)">Supprimer</v-btn>
+              <v-btn color="error darken-1" text @click="confirmDelete(student)">Supprimer</v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
@@ -103,7 +103,7 @@
           surname: student.eleve_prenom,
           className: student.classe_nom
         }));
-        console.log(this.students)
+        this.filteredStudents = [...this.students];
       }else {
         console.warn('No eleve data found');
       }

@@ -51,11 +51,13 @@
   import { jwtDecode } from 'jwt-decode';
   
   export default {
+    props: ['studentId'],
     data() {
       return {
         Commentaires: [], // Liste des commentaires
         loading: false,   // Indicateur de chargement
         error: null,      // Pour afficher les erreurs éventuelles
+        url: null,
       };
     },
     async mounted() {
@@ -71,9 +73,17 @@
   
         const decodedToken = jwtDecode(token);
         this.loading = true;
-  
+        
+        if(decodedToken.role === "parent"){
+          this.url = `http://localhost:8080/api/parent/${decodedToken.id}/commentaires`
+        }else if(decodedToken.role === "eleve"){
+          this.url = `http://localhost:8080/api/eleves/${decodedToken.id}/commentaires`
+        }else{
+          this.url = `http://localhost:8080/api/eleves/${this.studentId}/commentaires`
+        }
         try {
-          const response = await axios.get(`http://localhost:8080/api/parent/${decodedToken.id}/commentaires`);
+
+          const response = await axios.get(this.url);
           this.Commentaires = response.data.map(commentaire => ({
             id: commentaire.id,
             eleve_nom: commentaire.eleve_nom,

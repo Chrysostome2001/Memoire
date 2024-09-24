@@ -107,7 +107,7 @@
           nom: classe.classe_nom,
           nbEleve: classe.nombre_eleve,
         }));
-        console.log(this.classes)
+        this.filteredClass = [...this.classes];
       }else {
         console.warn('No classe data found');
       }

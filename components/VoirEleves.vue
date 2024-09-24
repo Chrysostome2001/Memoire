@@ -35,7 +35,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="showComponent('EditerNote'), dialogNote = !dialogNote">Valider</v-btn>
+          <v-btn color="primary" text @click="showComponent('trimestre'), dialogNote = !dialogNote">Valider</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -55,7 +55,7 @@
 
 <script>
 import axios from 'axios';
-import EditerNote from './EditerNote.vue';
+import trimestre from './trimestre.vue';
 import VoirAvis from './VoirAvis.vue';
 export default {
   data() {
@@ -72,7 +72,7 @@ export default {
     };
   },
   components:{
-    EditerNote,
+    trimestre,
     VoirAvis,
   },
   methods: {

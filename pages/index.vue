@@ -9,9 +9,9 @@
       <v-toolbar-title class="toolbar-title">Page d'Accueil</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn @click="goToEspaceEleve" color="white" class="nav-btn">Espace Élève</v-btn>
+      <v-btn @click="goToEspaceParent" color="white" class="nav-btn">Espace Parent</v-btn>
       <v-btn @click="goToEspaceEnseignant" color="white" class="nav-btn">Espace Enseignant</v-btn>
       <v-btn @click="goToEspaceAdministration" color="white" class="nav-btn">Espace Administration</v-btn>
-      <v-btn @click="goToEspaceParent" color="white" class="nav-btn">Espace Parent</v-btn>
     </v-toolbar>
 
     <v-carousel

@@ -37,7 +37,7 @@
             <v-list-item-content>
               <v-list-item-title :class="{ 'selected-title': selectedItem === item.name }">
                 <v-icon :color="item.iconColor">{{ item.icon }}</v-icon>
-                 <!-- Ajout de la notification pour Avis des profs -->
+                <!-- Ajout de la notification pour Avis des profs -->
                 <template v-if="item.name === 'VoirAvis'">
                   <v-badge
                     v-if="newAvisCount > 0"

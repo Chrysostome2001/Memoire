@@ -208,7 +208,7 @@ export default {
   mounted() {
     const token = localStorage.getItem('token');
     const decodedId = jwtDecode(token);
-
+    
     const url = decodedId.role === "eleve"
       ? `http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=${this.trimestre}`
       : `http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`;

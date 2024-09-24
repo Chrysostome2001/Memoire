@@ -65,6 +65,7 @@
   import HomeEleve from '~/components/HomeEleve.vue';
   import About from '~/components/About.vue';
   import Compte from '~/components/Compte.vue';
+  import VoirAvis from '~/components/VoirAvis.vue';
   import DashboardEleve from '@/components/DashboardEleve';
   import { jwtDecode } from 'jwt-decode';
   export default {
@@ -75,8 +76,10 @@
         drawer: false,
         currentView: 'HomeEleve',
         selectedItem: 'HomeEleve',
+        newAvisCount: 0,
         menuItems: [
           { name: 'Notes', label: 'Consulter note', component: 'DashboardEleve', icon: 'mdi-school', iconColor: 'green' },
+          { name: 'Avis', label: 'Avis des profs', component: 'VoirAvis', icon: 'mdi-comment-text-outline', iconColor: 'green' },
           { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
           { name: 'HomeEleve', label: 'Infos', component: 'HomeEleve', icon: 'mdi-information-outline', iconColor: 'blue' },
         ],
@@ -87,6 +90,7 @@
       About,
       Compte,
       DashboardEleve,
+      VoirAvis,
     },
     created() {
       this.fetchData();
@@ -105,7 +109,8 @@
             id: response.data.eleve_id,
             fullName: `${response.data.eleve_nom} ${response.data.eleve_prenom}`,
             username: response.data.eleve_username,
-          };
+          }
+
         } catch (error) {
           if (error.response) {
             // Erreurs spécifiques en fonction des codes de réponse HTTP
@@ -136,6 +141,9 @@
       changeView(item) {
       this.currentView = item.component;
       this.selectedItem = item.name;
+      if (item.name === 'VoirAvis') {
+          this.newAvisCount = 0;
+        }
     },
       logout() {
         this.$router.push({ name: 'index' });

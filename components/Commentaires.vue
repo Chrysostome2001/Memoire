@@ -1,7 +1,8 @@
 <template>
   <v-container>
     <!-- Barre de recherche -->
-    <v-text-field
+    <div  v-if="!selectedStudent">
+      <v-text-field
       v-model="search"
       label="Rechercher un élève"
       append-icon="mdi-magnify"
@@ -9,7 +10,7 @@
     ></v-text-field>
 
     <!-- Liste des élèves, affichée uniquement si aucun élève n'est sélectionné -->
-    <v-card v-if="!selectedStudent">
+    <v-card>
       <v-card-title>
         Liste des élèves
       </v-card-title>
@@ -26,6 +27,7 @@
         </v-list>
       </v-card-text>
     </v-card>
+    </div>
 
     <v-row>
       <v-col cols="12" md="8" offset-md="2">

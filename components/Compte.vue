@@ -70,42 +70,6 @@
           </v-snackbar>
         </v-sheet>
       </v-col>
-
-      <!-- Username Change Section -->
-      <v-col cols="12" md="6" lg="4">
-        <v-sheet class="mx-auto white-background d-flex flex-column align-center" width="100%" padding="4" elevation="2">
-          <v-avatar size="100" class="mb-4">
-            <v-img
-              alt="Profile Image"
-              src="../assets/profil.png"
-            ></v-img>
-          </v-avatar>
-          <v-form @submit.prevent="changeUsername" class="w-100">
-            <v-text-field
-              v-model="userName"
-              label="Nouveau nom d'utilisateur"
-              required
-            ></v-text-field>
-            <v-text-field
-              v-model="Password"
-              :rules="PasswordRules"
-              :type="showPassword ? 'text' : 'password'"
-              label="Mot de passe"             
-              required
-            >
-            <template v-slot:append>
-                <v-icon
-                  @click="showPassword = !showPassword"
-                  class="cursor-pointer"
-                >
-                  {{ showPassword ? 'mdi-eye' : 'mdi-eye-off' }}
-                </v-icon>
-              </template>
-            </v-text-field>
-            <v-btn class="mt-4" type="submit" outlined color="primary">Changez votre username</v-btn>
-          </v-form>
-        </v-sheet>
-      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -146,33 +110,7 @@ export default {
     };
   },
   methods: {
-    async changeUsername() {
-      try {
-        const token = localStorage.getItem('token');
-        const decodedToken = jwtDecode(token);
-
-        const response = await axios.put(`http://localhost:8080/api/updateUsername/${decodedToken.id}`, {
-          role: decodedToken.role,
-          NuserName: this.userName,
-          Password: this.Password
-        });
-
-        if (response.status === 200) {
-          this.snackbarMessage = 'Nom d\'utilisateur changé avec succès!';
-          this.alertSnackbar = true;
-          this.color = "success";
-        } else {
-          this.snackbarMessage = 'Erreur lors du changement du nom d\'utilisateur';
-          this.alertSnackbar = true;
-          this.color = "error";
-        }
-      } catch (error) {
-        console.error('Error changing username:', error);
-        this.snackbarMessage = 'Erreur lors du changement du nom d\'utilisateur';
-        this.alertSnackbar = true;
-        this.color = "error";
-      }
-    },
+    
     async changePassword() {
       try {
         if(this.newPassword === this.confirmPassword){

@@ -838,71 +838,65 @@ app.get('/api/eleves-classe/:id', (req, res) => {
 });
 
 // Exemple de route pour récupérer les notes d'un élève par matière et trimestre
+// Récupérer les notes d'un étudiant par ID
 app.get('/api/student-grades/:studentId', async (req, res) => {
   const { studentId } = req.params;
 
   try {
-    // Récupérer les notes d'interrogation
-    const interros = await prisma.note_inter.findMany({
-      where: { id_eleve: parseInt(studentId) },
+    // Récupérer les notes d'interrogation et de devoir pour l'étudiant
+    const notes = await prisma.eleve.findUnique({
+      where: { id: parseInt(studentId) },
       include: {
-        matiere: true,
-        trimestre: true
-      }
+        note_inter: {
+          include: {
+            matiere: true,
+          },
+        },
+        note_devoir: {
+          include: {
+            matiere: true,
+          },
+        },
+      },
     });
 
-    // Récupérer les notes de devoirs
-    const devoirs = await prisma.note_devoir.findMany({
-      where: { id_eleve: parseInt(studentId) },
-      include: {
-        matiere: true,
-        trimestre: true
+    if (!notes) {
+      return res.status(404).json({ error: 'Étudiant non trouvé' });
+    }
+
+    // Organiser les notes par matière et par trimestre
+    const result = {};
+    notes.note_inter.forEach(note => {
+      const subjectId = note.matiere.id;
+      const term = note.trimestre;
+      if (!result[subjectId]) {
+        result[subjectId] = { name: note.matiere.name, terms: {} };
       }
+      if (!result[subjectId].terms[term]) {
+        result[subjectId].terms[term] = {};
+      }
+      result[subjectId].terms[term].interro = note.grade; // Ou calcule la moyenne si besoin
     });
 
-    // Organiser les données
-    const gradesData = {};
-
-    // Objets pour stocker les compteurs par matière et trimestre
-    const interroCounters = {};
-    const devoirCounters = {};
-
-    // Traiter les notes d'interrogation
-    interros.forEach(note => {
-      const { matiere, trimestre, inter, id } = note;  // Ajouter l'ID de la note d'interrogation
-      if (!gradesData[matiere.id]) {
-        gradesData[matiere.id] = { name: matiere.matiere, terms: {} };
+    notes.note_devoir.forEach(note => {
+      const subjectId = note.matiere.id;
+      const term = note.trimestre;
+      if (!result[subjectId]) {
+        result[subjectId] = { name: note.matiere.name, terms: {} };
       }
-      if (!gradesData[matiere.id].terms[trimestre.id]) {
-        gradesData[matiere.id].terms[trimestre.id] = {};
-        // Initialiser les compteurs pour le trimestre
-        interroCounters[`${matiere.id}_${trimestre.id}`] = 1;
+      if (!result[subjectId].terms[term]) {
+        result[subjectId].terms[term] = {};
       }
-      // Ajouter la note à l'emplacement approprié avec clé incrémentale pour chaque matière
-      gradesData[matiere.id].terms[trimestre.id][`interro${interroCounters[`${matiere.id}_${trimestre.id}`]++}`] = { grade: inter, id: id };
+      result[subjectId].terms[term].devoir = note.grade; // Ou calcule la moyenne si besoin
     });
 
-    // Traiter les notes de devoirs
-    devoirs.forEach(note => {
-      const { matiere, trimestre, devoir, id } = note;  // Ajouter l'ID de la note de devoir
-      if (!gradesData[matiere.id]) {
-        gradesData[matiere.id] = { name: matiere.matiere, terms: {} };
-      }
-      if (!gradesData[matiere.id].terms[trimestre.id]) {
-        gradesData[matiere.id].terms[trimestre.id] = {};
-        // Initialiser les compteurs pour le trimestre
-        devoirCounters[`${matiere.id}_${trimestre.id}`] = 1;
-      }
-      // Ajouter la note à l'emplacement approprié avec clé incrémentale pour chaque matière
-      gradesData[matiere.id].terms[trimestre.id][`devoir${devoirCounters[`${matiere.id}_${trimestre.id}`]++}`] = { grade: devoir, id: id };
-    });
-
-    res.json(gradesData);
+    res.json(result);
   } catch (error) {
-    console.error('Erreur lors de la récupération des notes:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération des notes' });
+    console.error(error);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 });
+
 
 
 
@@ -1134,8 +1128,8 @@ app.post('/api/students', async (req, res) => {
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(2); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(2); // Par exemple, 12 octets en hexadécimal
+    const username = generateRandomString(5); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(10); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -1188,8 +1182,8 @@ app.post('/api/parent', async (req, res) => {
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(2); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(2); // Par exemple, 12 octets en hexadécimal
+    const username = generateRandomString(5); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(10); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -1241,8 +1235,8 @@ app.post('/api/enseignants', async (req, res) => {
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(2); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(2); // Par exemple, 12 octets en hexadécimal
+    const username = generateRandomString(5); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(10); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -2010,6 +2004,11 @@ app.post('/api/login', async (req, res) => {
           where: { username },
         });
         break;
+        case 'directeur':
+          user = await prisma.directeur.findUnique({
+            where: { username },
+          });
+          break;
       default:
         return res.status(400).json({ error: 'Invalid role' });
     }
@@ -2032,6 +2031,41 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+
+app.post('/api/forgot-password', async (req, res) => {
+  const { username, role } = req.body;
+
+  try {
+    const user = await prisma[role].findUnique({
+      where: { username },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+    }
+
+    // Générer un nouveau mot de passe
+    const newPassword = generateRandomPassword(); // Fonction pour générer un mot de passe aléatoire
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Mettre à jour l'utilisateur avec le nouveau mot de passe haché
+    await prisma[role].update({
+      where: { username },
+      data: { password: hashedPassword },
+    });
+
+    // Retourner le nouveau mot de passe en clair pour l'afficher sur l'interface
+    res.json({ newPassword });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur interne du serveur.' });
+  }
+});
+
+function generateRandomPassword() {
+  return Math.random().toString(36).slice(-8); // Génère un mot de passe simple
+}
+
 /***************************************************Admin*************************************************/
 
 
@@ -2085,7 +2119,7 @@ app.post('/api/admin', async (req, res) => {
     const photoData = fs.readFileSync(photoPath);
 
     // Ajout de l'enseignant dans la base de données avec le mot de passe haché
-    const newEnseignant = await prisma.admin.create({
+    const newEnseignant = await prisma.directeur.create({
       data: {
         nom,
         prenom,
