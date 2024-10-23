@@ -1,152 +1,238 @@
 <template>
-    <div>
-      <v-card class="elevation-2 rounded-lg" color="white" outlined>
-        <v-card-title class="title-section">
-          <v-row justify="space-between" align="center">
-            <v-col>
-              <h5 class="student-info">NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h5>
-            </v-col>
-            <v-col class="text-right">
-              <h5 class="term-info">Trimestre 1</h5>
-            </v-col>
-          </v-row>
-        </v-card-title>
-  
-        <v-data-table
-          :headers="headers"
-          :items="formattedNotes"
-          class="elevation-1"
-          item-key="matiere"
-          hide-default-footer
+  <v-data-table
+    :headers="headers"
+    :items="formattedNotes"
+    :sort-by="[{ key: 'matiere', order: 'asc' }]"
+  >
+    <template v-slot:top>
+      <v-toolbar
+        flat
+      >
+        <v-toolbar-title>My CRUD</v-toolbar-title>
+        <v-divider
+          class="mx-4"
+          inset
+          vertical
+        ></v-divider>
+        <v-spacer></v-spacer>
+        <v-dialog
+          v-model="dialog"
+          max-width="500px"
         >
-          <template v-slot:items="props">
-            <tr :key="props.item.matiere">
-              <td>{{ props.item.matiere }}</td>
-              <td>{{ props.item.coefficient }}</td>
-              <td>
-                <v-text-field
-                  v-model.number="props.item.note_inter_1"
-                  @dblclick="openDialog(props.item, 'note_inter_1')"
-                  type="number"
-                  hide-details
-                  clearable
-                />
-              </td>
-              <td>
-                <v-text-field
-                  v-model.number="props.item.note_inter_2"
-                  @dblclick="openDialog(props.item, 'note_inter_2')"
-                  type="number"
-                  hide-details
-                  clearable
-                />
-              </td>
-              <td>
-                <v-text-field
-                  v-model.number="props.item.note_inter_3"
-                  @dblclick="openDialog(props.item, 'note_inter_3')"
-                  type="number"
-                  hide-details
-                  clearable
-                />
-              </td>
-              <td>
-                <v-text-field
-                  v-model.number="props.item.note_inter_4"
-                  @dblclick="openDialog(props.item, 'note_inter_4')"
-                  type="number"
-                  hide-details
-                  clearable
-                />
-              </td>
-              <td>{{ props.item.moy_Inter }}</td>
-              <td>
-                <v-text-field
-                  v-model.number="props.item.note_devoir_1"
-                  @dblclick="openDialog(props.item, 'note_devoir_1')"
-                  type="number"
-                  hide-details
-                  clearable
-                />
-              </td>
-              <td>
-                <v-text-field
-                  v-model.number="props.item.note_devoir_2"
-                  @dblclick="openDialog(props.item, 'note_devoir_2')"
-                  type="number"
-                  hide-details
-                  clearable
-                />
-              </td>
-              <td>{{ props.item.moy_gen }}</td>
-              <td class="text-success">{{ props.item.rang }}</td>
-            </tr>
+          <template v-slot:activator="{ props }">
+            <v-btn
+              class="mb-2"
+              color="primary"
+              dark
+              v-bind="props"
+            >
+              Valider
+            </v-btn>
           </template>
-        </v-data-table>
-  
-        <v-dialog v-model="dialog" max-width="290">
           <v-card>
             <v-card-title>
-              <span class="headline">Modifier la Note</span>
+              <span class="text-h5">{{ formTitle }}</span>
             </v-card-title>
+
             <v-card-text>
-              <v-text-field
-                v-model.number="selectedNoteValue"
-                label="Nouvelle Note"
-                type="number"
-                clearable
-              />
+              <v-container>
+                <v-row>
+                  <v-col
+                    cols="12"
+                    md="4"
+                    sm="6"
+                  >
+                    <v-text-field
+                      v-model="editedItem.note_inter_1"
+                      label="N°1"
+                    ></v-text-field>
+                    <!-- Champ caché pour capturer l'ID de la note -->
+                    <input type="hidden" v-model="editedItem.id_inter1">
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="4"
+                    sm="6"
+                  >
+                    <v-text-field
+                      v-model="editedItem.note_inter_2"
+                      label="N°2"
+                    ></v-text-field>
+                    <!-- Champ caché pour capturer l'ID de la note -->
+                    <input type="hidden" v-model="editedItem.id_inter2">
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="4"
+                    sm="6"
+                  >
+                    <v-text-field
+                      v-model="editedItem.note_inter_3"
+                      label="N°3"
+                    ></v-text-field>
+                    <!-- Champ caché pour capturer l'ID de la note -->
+                    <input type="hidden" v-model="editedItem.id_inter3">
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="4"
+                    sm="6"
+                  >
+                    <v-text-field
+                      v-model="editedItem.note_inter_4"
+                      label="N°4"
+                    ></v-text-field>
+                    <!-- Champ caché pour capturer l'ID de la note -->
+                    <input type="hidden" v-model="editedItem.id_inter4">
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="4"
+                    sm="6"
+                  >
+                    <v-text-field
+                      v-model="editedItem.note_devoir_1"
+                      label="Dev1"
+                    ></v-text-field>
+                    <!-- Champ caché pour capturer l'ID de la note -->
+                    <input type="hidden" v-model="editedItem.id_devoir1">
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    md="4"
+                    sm="6"
+                  >
+                    <v-text-field
+                      v-model="editedItem.note_devoir_2"
+                      label="Dev2"
+                    ></v-text-field>
+                    <!-- Champ caché pour capturer l'ID de la note -->
+                    <input type="hidden" v-model="editedItem.id_devoir2">
+                  </v-col>
+                </v-row>
+              </v-container>
             </v-card-text>
+
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="primary" @click="updateNote">Valider</v-btn>
-              <v-btn color="grey" @click="dialog = false">Annuler</v-btn>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="close"
+              >
+                Cancel
+              </v-btn>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="save"
+              >
+                Save
+              </v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
-      </v-card>
-    </div>
-  </template>
-  
-  
-  <script>
+        <v-dialog v-model="dialogDelete" max-width="500px">
+          <v-card>
+            <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue-darken-1" variant="text" @click="closeDelete">Cancel</v-btn>
+              <v-btn color="blue-darken-1" variant="text" @click="deleteItemConfirm">OK</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-toolbar>
+    </template>
+    <template v-slot:item.actions="{ item }">
+      <v-icon
+        class="me-2"
+        size="small"
+        @click="editItem(item)"
+      >
+        mdi-pencil
+      </v-icon>
+    </template>
+    <template v-slot:no-data>
+      <v-btn
+        color="primary"
+        @click="initialize"
+      >
+        Reset
+      </v-btn>
+    </template>
+  </v-data-table>
+</template>
+
+<script>
   import axios from 'axios';
   import { jwtDecode } from 'jwt-decode';
-  
   export default {
     props: ['trimestre', 'studentId'],
-    data() {
-      return {
-        notes: [],
-        studentName: '',
-        sexe: '',
-        dialog: false,
-        headers: [
-          { title: 'Matières', value: 'matiere' },
-          { title: 'Coefficient', value: 'coefficient' },
-          {
-            title: 'Interrogations',
-            children: [
-              { title: 'N°1', value: 'note_inter_1' },
-              { title: 'N°2', value: 'note_inter_2' },
-              { title: 'N°3', value: 'note_inter_3' },
-              { title: 'N°4', value: 'note_inter_4' },
-            ]
-          },
-          { title: 'Moyenne Interrogations', value: 'moy_Inter' },
-          {
-            title: 'Devoirs',
-            children: [
-              { title: 'Devoir N°1', value: 'note_devoir_1' },
-              { title: 'Devoir N°2', value: 'note_devoir_2' },
-            ]
-          },
-          { title: 'Moyenne Générale', value: 'moy_gen' },
-          { title: 'Rang', value: 'rang' },
-        ],
-      };
-    },
+    data: () => ({
+      dialog: false,
+      dialogDelete: false,
+      headers: [
+        {
+          title: 'MATIERES',
+          align: 'start',
+          sortable: false,
+          key: 'matiere',
+        },
+        { title: 'Coefficient', key: 'coefficient' },
+        { title: 'N°1', key: 'note_inter_1' },
+        { title: 'N°2', key: 'note_inter_2' },
+        { title: 'N°3', key: 'note_inter_3' },
+        { title: 'N°4', key: 'note_inter_4' },
+        { title: 'Devoir N°1', key: 'note_devoir_1' },
+        { title: 'Devoir N°2', key: 'note_devoir_2' },
+        { title: 'Rang', key: 'rang' },
+        { title: 'Actions', key: 'actions', sortable: false },
+      ],
+      notes: [],
+      editedIndex: -1,
+      editedItem: {
+        matiere: '',
+        Coefficient: 0,
+        id_inter1: 0,
+        note_inter_1: 0,
+        id_inter2: 0,
+        note_inter_2: 0,
+        id_inter3: 0,
+        note_inter_3: 0,
+        id_inter4: 0,
+        note_inter_4: 0,
+        id_devoir1: 0,
+        note_devoir_1: 0,
+        id_devoir2: 0,
+        note_devoir_2: 0,
+        rang: 0,
+      },
+      defaultItem: {
+        matiere: '',
+        Coefficient: 0,
+        id_inter1: 0,
+        note_inter_1: 0,
+        id_inter2: 0,
+        note_inter_2: 0,
+        id_inter3: 0,
+        note_inter_3: 0,
+        id_inter4: 0,
+        note_inter_4: 0,
+        id_devoir1: 0,
+        note_devoir_1: 0,
+        id_devoir2: 0,
+        note_devoir_2: 0,
+        rang: 0,
+      },
+      modifiedNotes: {},
+    }),
+
     computed: {
+      formTitle () {
+        return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+      },
       formattedNotes() {
         const formatted = {};
         const seenNoteInterIds = new Set();
@@ -157,14 +243,18 @@
             formatted[note.matiere] = {
               matiere: note.matiere,
               coefficient: null,
+              id_inter1: null,
               note_inter_1: null,
+              id_inter2: null,
               note_inter_2: null,
+              id_inter3: null,
               note_inter_3: null,
+              id_inter4: null,
               note_inter_4: null,
-              moy_Inter: null,
+              id_devoir1: null,
               note_devoir_1: null,
+              id_devoir2: null,
               note_devoir_2: null,
-              moy_gen: null,
               rang: null,
             };
           }
@@ -172,12 +262,16 @@
           if (note.note && note.type_note === 'Interrogation' && !seenNoteInterIds.has(note.id_note)) {
             seenNoteInterIds.add(note.id_note);
             if (!formatted[note.matiere].note_inter_1) {
+              formatted[note.matiere].id_inter1 = note.id_note
               formatted[note.matiere].note_inter_1 = note.note;
             } else if (!formatted[note.matiere].note_inter_2) {
+              formatted[note.matiere].id_inter2 = note.id_note
               formatted[note.matiere].note_inter_2 = note.note;
             } else if (!formatted[note.matiere].note_inter_3) {
+              formatted[note.matiere].id_inter3 = note.id_note
               formatted[note.matiere].note_inter_3 = note.note;
             } else if (!formatted[note.matiere].note_inter_4) {
+              formatted[note.matiere].id_inter4 = note.id_note
               formatted[note.matiere].note_inter_4 = note.note;
             }
           }
@@ -185,8 +279,10 @@
           if (note.note && note.type_note === 'Devoir' && !seenNoteDevoirIds.has(note.id_note)) {
             seenNoteDevoirIds.add(note.id_note);
             if (!formatted[note.matiere].note_devoir_1) {
+              formatted[note.matiere].id_devoir1 = note.id_note
               formatted[note.matiere].note_devoir_1 = note.note;
             } else if (!formatted[note.matiere].note_devoir_2) {
+              formatted[note.matiere].id_devoir2 = note.id_note
               formatted[note.matiere].note_devoir_2 = note.note;
             }
           }
@@ -203,114 +299,114 @@
           }
         });
   
-        Object.values(formatted).forEach(item => {
-          const totalInterrogations = [item.note_inter_1, item.note_inter_2, item.note_inter_3, item.note_inter_4].filter(Boolean);
-          const totalDevoirs = [item.note_devoir_1, item.note_devoir_2].filter(Boolean);
-  
-          if (totalInterrogations.length > 0) {
-            const sumInterrogations = totalInterrogations.reduce((acc, val) => acc + val, 0);
-            item.moy_Inter = parseFloat(this.formatToTwoDecimalPlaces(sumInterrogations / totalInterrogations.length));
-          }
-  
-          if (totalDevoirs.length === 2) {
-            const sumDevoirs = totalDevoirs.reduce((acc, val) => acc + val, 0);
-            item.moy_gen = parseFloat(this.formatToTwoDecimalPlaces(((item.moy_Inter + sumDevoirs) / 3)));
-          }
-        });
+        
   
         return Object.values(formatted);
       },
     },
-    methods: {
-      formatToTwoDecimalPlaces(value) {
-        return (Math.floor(value * 100) / 100).toFixed(2);
+
+    watch: {
+      dialog (val) {
+        val || this.close()
       },
-      openDialog(item, noteType) {
-  console.log("Ouverture du dialog pour la note:", item[noteType]);
-  this.selectedNote = item;
-  this.selectedNoteValue = item[noteType];
-  this.selectedNoteType = noteType; // Ajoute cette ligne pour stocker le type de note
-  this.dialog = true;
-},
-      updateNote() {
-      const noteToUpdate = this.notes.find(note => note.matiere === this.selectedNote.matiere && note.type_note === this.selectedNoteType);
-      
-      if (noteToUpdate) {
-        axios.put(`http://localhost:8080/api/note/${noteToUpdate.id_note}`, {
-          note: this.selectedNoteValue,
-        })
-        .then(response => {
-          console.log('Note mise à jour:', response.data);
-          // Actualisez la note locale
-          noteToUpdate.note = this.selectedNoteValue;
-          this.dialog = false; // Fermez le dialogue
-        })
-        .catch(error => {
-          console.error('Erreur lors de la mise à jour de la note:', error);
-        });
-      }
+      dialogDelete (val) {
+        val || this.closeDelete()
+      },
     },
+
+    created () {
+      this.initialize()
     },
-    mounted() {
-      const token = localStorage.getItem('token');
-      const decodedId = jwtDecode(token);
-  
-      const url = decodedId.role === "eleve"
-        ? `http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=${this.trimestre}`
-        : `http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`;
-  
-      axios.get(url)
+
+    methods: {
+      initialize () {
+        const token = localStorage.getItem('token');
+        axios.get(`http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre.id}` , {
+            headers: {
+              'Authorization': `Bearer ${token}` // Inclure le jeton JWT dans l'en-tête
+            }
+          })
         .then(response => {
-          if (response.data.length > 0) {
-            this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
-            this.sexe = response.data[0].eleve_sexe;
-            this.notes = response.data;
+          if (response.data && response.data.length > 0) {
+              // Map the API response to the expected data structure for notes
+              this.notes = response.data
+              console.log('hgiozshp', this.notes)
+          }else {
+            console.warn('No eleve data found');
           }
         })
         .catch(error => {
-          console.error('Erreur lors de la récupération des notes:', error);
+          console.error('Error lors de la recuperation des élèves', error)
         });
-    },
-    watch: {
-      studentId(newStudentId) {
-        if (newStudentId) {
-          axios.get(`http://localhost:8080/api/eleve/${newStudentId}/notes?trimestre_id=${this.trimestre}`)
-            .then(response => {
-              if (response.data.length > 0) {
-                this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
-                this.sexe = response.data[0].eleve_sexe;
-                this.notes = response.data;
-              }
-            })
-            .catch(error => {
-              console.error('Erreur lors de la récupération des notes:', error);
-            });
-        }
       },
+
+      editItem (item) {
+        this.editedIndex = this.formattedNotes.indexOf(item)
+        this.editedItem = Object.assign({}, item)
+        this.dialog = true
+      },
+
+      close () {
+        this.dialog = false
+        this.$nextTick(() => {
+          this.editedItem = Object.assign({}, this.defaultItem)
+          this.editedIndex = -1
+        })
+      },
+      save() {
+        const token = localStorage.getItem('token');
+
+        // Préparer les données de mise à jour
+        const updatedNotes = {
+          id_inter1: this.editedItem.id_inter1 !== null ? this.editedItem.id_inter1 : null,
+          note_inter_1: this.editedItem.note_inter_1,
+          id_inter2: this.editedItem.id_inter2 !== null ? this.editedItem.id_inter2 : null,
+          note_inter_2: this.editedItem.note_inter_2,
+          id_inter3: this.editedItem.id_inter3 !== null ? this.editedItem.id_inter3 : null,
+          note_inter_3: this.editedItem.note_inter_3,
+          id_inter4: this.editedItem.id_inter4 !== null ? this.editedItem.id_inter4 : null,
+          note_inter_4: this.editedItem.note_inter_4,
+          id_devoir1: this.editedItem.id_devoir1 !== null ? this.editedItem.id_devoir1 : null,
+          note_devoir_1: this.editedItem.note_devoir_1,
+          id_devoir2: this.editedItem.id_devoir2 !== null ? this.editedItem.id_devoir2 : null,
+          note_devoir_2: this.editedItem.note_devoir_2
+        };
+
+        // Envoie des données via une seule requête
+        axios.put('http://localhost:8080/api/notes/update', updatedNotes, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        .then(response => {
+          console.log('Notes mises à jour avec succès:', response.data);
+          // Fermer le dialogue après succès
+          this.dialog = false;
+        })
+        .catch(error => {
+          console.error('Erreur lors de la mise à jour des notes:', error);
+        });
+
+        // Ferme le dialogue et réinitialise les variables
+        this.close();
+        // Actualiser les notes après la sauvegarde
+        this.initialize();  // Appeler cette méthode pour récupérer les nouvelles notes
+      },
+
+    close() {
+      this.dialog = false;
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
     },
-  };
-  </script>
-  
-  <style scoped>
-  .title-section {
-    background-color: #f5f5f5; /* Couleur de fond douce */
-    padding: 16px; /* Espacement autour du contenu */
-    border-bottom: 2px solid #e0e0e0; /* Ligne séparatrice en bas */
+    },
   }
-  
-  .student-info {
-    font-weight: bold; /* Met en gras le texte du nom et du sexe */
-    font-size: 1.1rem; /* Taille de police légèrement plus grande */
-    color: #424242; /* Couleur du texte */
-  }
-  
-  .term-info {
-    font-weight: bold; /* Met en gras le texte du trimestre */
-    color: #1976d2; /* Couleur de texte bleu */
-  }
-  
-  .v-data-table {
-    margin-top: 16px; /* Marge au-dessus du tableau */
-  }
-  </style>
-  
+</script>
+
+<style scoped>
+.text-h5 {
+  font-size: 1.5em; /* Assurez-vous que toutes les propriétés sont correctement définies */
+  font-weight: bold;
+}
+</style>

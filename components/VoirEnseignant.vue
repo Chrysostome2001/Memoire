@@ -10,9 +10,6 @@
         <v-card>
           <v-card-title>{{ enseignant.fullName }}</v-card-title>
           <v-card-subtitle>SEXE : {{ enseignant.sexe }} <br> Classe : {{ enseignant.classeNom }}</v-card-subtitle>
-          <v-card-actions>
-            <v-btn color="blue darken-1" text @click="confirmDelete(enseignant)">Supprimer</v-btn>
-          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>

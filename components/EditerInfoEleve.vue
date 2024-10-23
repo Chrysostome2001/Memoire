@@ -21,6 +21,12 @@
         <v-card-text>
           <v-text-field v-model="editedEleve.eleve_nom" label="Nom"></v-text-field>
           <v-text-field v-model="editedEleve.eleve_prenom" label="Prénom"></v-text-field>
+          <v-file-input
+            v-model="photo"
+            label="Choisir la photo"
+            accept="image/*,.pdf"
+            prepend-icon="mdi-paperclip"
+          ></v-file-input>
           <v-col cols="12">
           <v-combobox 
             v-model="selectedClass"
@@ -66,6 +72,7 @@ export default {
       classOptions: [],
       selectedClass: null,
       alertSnackbar: false,
+      photo: null,
     };
   },
   methods: {
@@ -101,10 +108,16 @@ export default {
     },
     updateEleve(eleve) {
       const classId = this.selectedClass ? this.selectedClass.id : null;
-      return axios.put(`http://localhost:8080/api/miseajoureleve/${eleve.id}`, {
-        nom: eleve.eleve_nom,
-        prenom: eleve.eleve_prenom,
-        id_classe: classId,
+      const formData = new FormData();
+      formData.append('nom', eleve.eleve_nom);
+      formData.append('prenom', eleve.eleve_prenom);
+      formData.append('id_classe', classId);
+      formData.append('photo', this.photo);  // On ajoute le fichier réel, pas juste le nom
+
+      return axios.put(`http://localhost:8080/api/miseajoureleve/${eleve.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
       });
     },
     saveChanges() {

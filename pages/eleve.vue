@@ -11,7 +11,7 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../assets/profil.png"
+                v-if="eleve.photo" :src="`data:image/jpeg;base64,${eleve.photo}`"
               ></v-img>
             </v-avatar>
           </v-list-item>
@@ -42,6 +42,11 @@
           </v-list-item-content>
         </v-list-item>
         </v-list>
+        <v-footer padless class="v-navigation-footer bg-primary">
+        <v-col class="text-center" cols="12">
+          <span>{{ eleve.fullName }}</span>
+        </v-col>
+      </v-footer>
       </v-navigation-drawer>
       
       <v-app-bar app>
@@ -81,7 +86,7 @@
           { name: 'Notes', label: 'Consulter note', component: 'DashboardEleve', icon: 'mdi-school', iconColor: 'green' },
           { name: 'Avis', label: 'Avis des profs', component: 'VoirAvis', icon: 'mdi-comment-text-outline', iconColor: 'green' },
           { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
-          { name: 'HomeEleve', label: 'Infos', component: 'HomeEleve', icon: 'mdi-information-outline', iconColor: 'blue' },
+          { name: 'HomeEleve', label: 'Aide', component: 'HomeEleve', icon: 'mdi-information-outline', iconColor: 'blue' },
         ],
       };
     },
@@ -97,7 +102,6 @@
     },
     methods: {
       async fetchData() {
-        const { id } = this.$route.params;
 
         // Récupérer le token JWT du local storage
         const token = localStorage.getItem('token');
@@ -109,6 +113,7 @@
             id: response.data.eleve_id,
             fullName: `${response.data.eleve_nom} ${response.data.eleve_prenom}`,
             username: response.data.eleve_username,
+            photo: response.data.eleve_photo
           }
 
         } catch (error) {
@@ -153,6 +158,18 @@
   </script>
   
   <style scoped>
+  .v-navigation-drawer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .v-navigation-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
     .selected-title {
       color: navajowhite; /* La couleur que vous voulez appliquer au titre sélectionné */
     }
@@ -160,7 +177,17 @@
       text-decoration: none; /* Enlève le soulignement */
       color: inherit; /* Utilise la couleur du texte environnant */
     }
+    .v-list-item-title {
+      font-weight: bold;
+    }
+    .v-list-item-content {
+      display: flex;
+      align-items: center;
+    }
     .neutral-background {
       background-color: #f5f5f5; /* Couleur de fond neutre (gris clair) */
+    }
+    .v-app-bar {
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
   </style>

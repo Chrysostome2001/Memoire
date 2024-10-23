@@ -5,7 +5,7 @@
         <v-expansion-panels>
           <v-expansion-panel v-for="(enfant, i) in enfants" :key="i" class="mb-4">
             <v-expansion-panel-title
-              @click="loadNotes(enfant.id)"
+              @click="loadNotes(enfant.id), enfant.newNotesCount = 0"
               class="bg-primary text-white"
             >
               <v-icon left class="mr-2">mdi-account-circle</v-icon>

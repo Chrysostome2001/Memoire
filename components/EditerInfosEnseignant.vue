@@ -23,6 +23,12 @@
             <v-text-field v-model="editedEnseignant.enseignant_prenom" label="Prénom"></v-text-field>
             <v-text-field v-model="editedEnseignant.enseignant_contact" label="Contact"></v-text-field>
             <v-combobox v-model="editedEnseignant.enseignant_sexe" :items="sexe" label="Sexe">{{ enseignants.sexe }}</v-combobox>
+            <v-file-input
+            v-model="photo"
+            label="Choisir la photo"
+            accept="image/*,.pdf"
+            prepend-icon="mdi-paperclip"
+          ></v-file-input>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -58,6 +64,7 @@
           enseignant_sexe: '',
         },
         alertSnackbar: false,
+        photo: null,
       };
     },
     methods: {
@@ -93,11 +100,17 @@
         this.dialog = true;
       },
       updateEnseignant(enseignant) {
-        return axios.put(`http://localhost:8080/api/miseajourenseignant/${enseignant.id}`, {
-          nom: enseignant.enseignant_nom,
-          prenom: enseignant.enseignant_prenom,
-          contact: enseignant.enseignant_contact,
-          sexe: enseignant.enseignant_sexe,
+
+        const formData = new FormData();
+        formData.append('nom', enseignant.enseignant_nom);
+        formData.append('prenom', enseignant.enseignant_prenom);
+        formData.append('contact', enseignant.enseignant_contact);
+        formData.append('sexe', enseignant.enseignant_sexe)
+        formData.append('photo', this.photo);
+        return axios.put(`http://localhost:8080/api/miseajourenseignant/${enseignant.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
         });
       },
       saveChanges() {

@@ -11,7 +11,7 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../assets/profil.png"
+                v-if="parent.photo" :src="`data:image/jpeg;base64,${parent.photo}`"
               ></v-img>
             </v-avatar>
           </v-list-item>
@@ -113,7 +113,7 @@
           { name: 'Notes', label: 'Consulter notes', component: 'DashboardParent', icon: 'mdi-school', iconColor: 'green' },
           { name: 'VoirAvis', label: 'Avis des profs', component: 'VoirAvis', icon: 'mdi-comment-text-outline', iconColor: '#00FF00' },
           { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
-          { name: 'HomeParent', label: 'Infos', component: 'HomeParent', icon: 'mdi-information-outline', iconColor: 'blue' },
+          { name: 'HomeParent', label: 'Aide', component: 'HomeParent', icon: 'mdi-information-outline', iconColor: 'blue' },
         ],
       };
     },
@@ -136,6 +136,7 @@
             id: response.data.parent_id,
             fullName: `${response.data.parent_nom} ${response.data.parent_prenom}`,
             username: response.data.parent_username,
+            photo: response.data.parent_photo
           }
 
           // Récupérer le nombre de nouveaux avis
@@ -201,7 +202,13 @@
 .v-list-item:hover {
   background-color: rgba(255, 255, 255, 0.1); /* Couleur de fond au survol */
 }
-
+.v-list-item-title {
+  font-weight: bold;
+}
+.v-list-item-content {
+  display: flex;
+  align-items: center;
+}
 .v-text-field {
   background-color: #fff; /* Fond blanc pour les champs de texte */
 }

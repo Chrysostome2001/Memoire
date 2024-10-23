@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors'); // Importer le package CORS
 const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken')
+const multer = require('multer')
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -80,7 +81,8 @@ app.get('/api/parent/:id', (req, res) => {
                       Parent.id AS parent_id,
                       Parent.nom AS parent_nom,
                       Parent.prenom AS parent_prenom,
-                      Parent.username AS parent_username 
+                      Parent.username AS parent_username, 
+                      Parent.photo AS parent_photo
                     FROM Parent 
                        WHERE id = ?`;
   const id = req.params.id;
@@ -90,8 +92,15 @@ app.get('/api/parent/:id', (req, res) => {
     }
     if (results.length === 0) {
       return res.status(404).json({ message: 'Parent not found' });
+    } else {
+      const parent = results[0];
+      
+      // Si la photo existe, on l'encode en base64
+      if (parent.parent_photo) {
+        parent.parent_photo = parent.parent_photo.toString('base64');
+      }
+      res.json(parent);
     }
-    res.json(results[0]);
   });
 });
 
@@ -159,25 +168,35 @@ app.get('/api/parent-enfant/:id', (req, res) => {
 
 /*********************************************Eleves***********************************************************/
 app.get('/api/eleve/:id', (req, res) => {
-  const id = req.params.id; 
+  const id = req.params.id;
   const query = `
-                  SELECT 
-                          Eleve.id AS eleve_id,
-                          Eleve.nom AS eleve_nom,
-                          Eleve.prenom AS eleve_prenom,
-                          Eleve.username AS eleve_username
-                         FROM Eleve 
-                          WHERE id = ?`;
- 
+    SELECT 
+      Eleve.id AS eleve_id,
+      Eleve.nom AS eleve_nom,
+      Eleve.prenom AS eleve_prenom,
+      Eleve.username AS eleve_username,
+      Eleve.photo AS eleve_photo
+    FROM Eleve 
+    WHERE id = ?`;
 
   db.query(query, [id], (error, results) => {
     if (error) {
       res.status(500).send(error);
+    } else if (results.length === 0) {
+      res.status(404).json({ error: 'Élève non trouvé' });
     } else {
-      res.json(results[0]); // Assuming you want to return the first result
+      const eleve = results[0];
+      
+      // Si la photo existe, on l'encode en base64
+      if (eleve.eleve_photo) {
+        eleve.eleve_photo = eleve.eleve_photo.toString('base64');
+      }
+      
+      res.json(eleve);  // On renvoie l'élève avec la photo encodée en base64
     }
   });
 });
+
 
 
 app.get('/api/eleves/', (req, res) => {
@@ -204,7 +223,7 @@ app.get('/api/eleves/', (req, res) => {
 });
 
 // Route to get grades for a student by ID
-app.get('/api/eleve/:id/notes', (req, res) => {
+app.get('/api/eleve/:id/notes', authenticateToken, (req, res) => {
   const id = req.params.id;
   const trimestreId = req.query.trimestre_id;
   const sql = `
@@ -360,16 +379,28 @@ GROUP BY
 
 // Route to get a enseignant by ID
 app.get('/api/enseignant/:id', (req, res) => {
-  const sql = 'SELECT * FROM Enseignant WHERE id = ?';
+  const sql = `SELECT 
+                    Enseignant.id AS id,
+                    Enseignant.username AS username,
+                    Enseignant.photo AS enseignant_photo                
+                  FROM Enseignant 
+                    WHERE id = ?`;
   const id = req.params.id;
   db.query(sql, [id], (error, results) => {
     if (error) {
       return res.status(500).json({ message: error.message });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: 'Enseignant non trouvé' });
+    } else {
+      const enseignant = results[0];
+      
+      // Si la photo existe, on l'encode en base64
+      if (enseignant.enseignant_photo) {
+        enseignant.enseignant_photo = enseignant.enseignant_photo.toString('base64');
+      }
+      
+      res.json(enseignant); 
     }
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'Enseignant not found' });
-    }
-    res.json(results[0]);
   });
 });
 
@@ -650,7 +681,7 @@ app.post('/api/save-notes', async (req, res) => {
       }
 
       // Mise à jour ou création des rangs
-      if (note.rang_final) {
+      if (note.note_devoir1 && note.note_devoir2) {
         await prisma.rang.upsert({
           where: {
             id_eleve_id_matiere_id_trimestre: {
@@ -686,14 +717,54 @@ app.post('/api/save-notes', async (req, res) => {
 /**************************************************Administrateur**********************************************/
 app.get('/api/admin/:id', (req, res) => {
   const id = req.params.id;
-  const query = 'SELECT * FROM Admin WHERE id = ?';
+  const query = `SELECT 
+                    Admin.id AS id,
+                    Admin.username AS username,
+                    Admin.photo AS admin_photo
+                  FROM Admin 
+                    WHERE id = ?;`
 
   db.query(query, [id], (error, results) => {
     if (error) {
       res.status(500).send(error);
+    } else if (results.length === 0) {
+      res.status(404).json({ error: 'Élève non trouvé' });
     } else {
-      res.json(results[0]); 
+      const admin = results[0];
+      
+      // Si la photo existe, on l'encode en base64
+      if (admin.admin_photo) {
+        admin.admin_photo = admin.admin_photo.toString('base64');
+      }
+      
+      res.json(admin);  
     }
+  });
+});
+
+app.get('/api/directeur/:id', (req, res) => {
+  const id = req.params.id;
+  const query = `SELECT
+                      Directeur.username AS username,
+                      Directeur.photo AS directeur_photo 
+                    FROM Directeur 
+                      WHERE id = ?`;
+
+  db.query(query, [id], (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else if (results.length === 0) {
+      res.status(404).json({ error: 'Directeur non trouvé' });
+    } else {
+      const directeur = results[0];
+      
+      // Si la photo existe, on l'encode en base64
+      if (directeur.directeur_photo) {
+        directeur.directeur_photo = directeur.directeur_photo.toString('base64');
+      }
+      
+      res.json(directeur);  
+    } 
   });
 });
 
@@ -952,7 +1023,7 @@ app.get('/api/matiere/:matiereId', (req, res) => {
   });
 });
 
-app.get('/api/trimesters/', (req, res) => {
+app.get('/api/trimesters/', authenticateToken, (req, res) => {
   const query = `
     SELECT
       id AS trimestre_id,
@@ -1128,8 +1199,8 @@ app.post('/api/students', async (req, res) => {
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(5); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(10); // Par exemple, 12 octets en hexadécimal
+    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -1182,8 +1253,8 @@ app.post('/api/parent', async (req, res) => {
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(5); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(10); // Par exemple, 12 octets en hexadécimal
+    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -1235,8 +1306,8 @@ app.post('/api/enseignants', async (req, res) => {
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(5); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(10); // Par exemple, 12 octets en hexadécimal
+    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -1670,9 +1741,19 @@ app.delete('/api/supprimerclasse/:id', async (req, res) => {
 
 
 // Endpoint pour mettre à jour un élève
-app.put('/api/miseajoureleve/:id', async (req, res) => {
+// Configuration de multer pour stocker les fichiers dans la mémoire temporaire
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+app.put('/api/miseajoureleve/:id', upload.single('photo'), async (req, res) => {
   const { id } = req.params;
   const { nom, prenom, id_classe } = req.body;
+  const photo = req.file;  // Contient le fichier photo
+
+  // Validation de la requête
+  if (!photo || !nom || !prenom || !id_classe) {
+    return res.status(400).json({ error: 'Tous les champs sont requis' });
+  }
 
   try {
     const updatedEleve = await prisma.eleve.update({
@@ -1680,7 +1761,8 @@ app.put('/api/miseajoureleve/:id', async (req, res) => {
       data: {
         nom,
         prenom,
-        id_classe,
+        id_classe: parseInt(id_classe),
+        photo: photo.buffer  // On sauvegarde les données binaires de la photo
       },
     });
     res.json(updatedEleve);
@@ -1690,11 +1772,16 @@ app.put('/api/miseajoureleve/:id', async (req, res) => {
   }
 });
 
-
 // Endpoint pour mettre à jour un parent
 app.put('/api/miseajourparent/:id', async (req, res) => {
   const { id } = req.params;
   const { nom, prenom , contact} = req.body;
+  const photo = req.file;  // Contient le fichier photo
+
+   // Validation de la requête
+   if (!photo || !nom || !prenom || !contact) {
+    return res.status(400).json({ error: 'Tous les champs sont requis' });
+  }
 
   try {
     const updatedParent = await prisma.parent.update({
@@ -1703,6 +1790,7 @@ app.put('/api/miseajourparent/:id', async (req, res) => {
         nom,
         prenom,
         contact,
+        photo: photo.buffer
       },
     });
     res.json(updatedParent);
@@ -1716,6 +1804,12 @@ app.put('/api/miseajourparent/:id', async (req, res) => {
 app.put('/api/miseajourenseignant/:id', async (req, res) => {
   const { id } = req.params;
   const { nom, prenom, contact, sexe } = req.body;
+  const photo = req.file; 
+
+  // Validation de la requête
+  if (!photo || !nom || !prenom || !contact || !sexe) {
+    return res.status(400).json({ error: 'Tous les champs sont requis' });
+  }
 
   try {
     const updatedEnseignant = await prisma.enseignant.update({
@@ -1725,6 +1819,7 @@ app.put('/api/miseajourenseignant/:id', async (req, res) => {
         prenom,
         contact,
         sexe,
+        photo: photo.buffer
       },
     });
     res.json(updatedEnseignant);
@@ -1959,6 +2054,57 @@ app.put('/api/updateUsername/:id', async (req, res) => {
   }
 });
 
+// Endpoint pour mettre à jour une note
+app.put('/api/notes/update', authenticateToken, async (req, res) => {
+  const { id_inter1, note_inter_1, id_inter2, note_inter_2, id_inter3, note_inter_3, id_inter4, note_inter_4, id_devoir1, note_devoir_1, id_devoir2, note_devoir_2 } = req.body;
+
+  try {
+    // Mise à jour des notes d'interrogations
+    if (id_inter1) {
+      await prisma.note_inter.update({
+        where: { id: id_inter1 },
+        data: { inter: parseFloat(note_inter_1) }
+      });
+    }
+    if (id_inter2) {
+      await prisma.note_inter.update({
+        where: { id: id_inter2 },
+        data: { inter: parseFloat(note_inter_2) }
+      });
+    }
+    if (id_inter3) {
+      await prisma.note_inter.update({
+        where: { id: id_inter3 },
+        data: { inter: parseFloat(note_inter_3) }
+      });
+    }
+    if (id_inter4) {
+      await prisma.note_inter.update({
+        where: { id: id_inter4 },
+        data: { inter: parseFloat(note_inter_4) }
+      });
+    }
+
+    // Mise à jour des notes de devoirs
+    if (id_devoir1) {
+      await prisma.note_devoir.update({
+        where: { id: id_devoir1 },
+        data: { devoir: parseFloat(note_devoir_1) }
+      });
+    }
+    if (id_devoir2) {
+      await prisma.note_devoir.update({
+        where: { id: id_devoir2 },
+        data: { devoir: parseFloat(note_devoir_2) }
+      });
+    }
+
+    return res.status(200).json({ message: 'Notes updated successfully' });
+  } catch (error) {
+    console.error('Error updating notes:', error);
+    return res.status(500).json({ error: 'Failed to update notes' });
+  }
+});
 
 /*************************************************Connexion*************************************************/
 
@@ -1974,6 +2120,8 @@ db.connect((err) => {
 
 
 // Endpoint de connexion
+let loginAttempts = {}; // Suivi des tentatives échouées
+
 app.post('/api/login', async (req, res) => {
   const { username, password, role } = req.body;
 
@@ -1981,47 +2129,87 @@ app.post('/api/login', async (req, res) => {
     return res.status(400).json({ error: 'Username, password, and role are required' });
   }
 
+  const currentTime = new Date().getTime();
+
+  // Initialiser ou récupérer les tentatives pour cet utilisateur
+  if (!loginAttempts[username]) {
+    loginAttempts[username] = { attempts: 0, lockoutEndTime: null };
+  }
+
+  const userAttempts = loginAttempts[username];
+
+  // Vérifier si l'utilisateur est bloqué
+  if (userAttempts.lockoutEndTime && currentTime < userAttempts.lockoutEndTime) {
+    const timeRemaining = Math.ceil((userAttempts.lockoutEndTime - currentTime) / 60000);
+    return res.status(403).json({
+      error: `Account locked. Please try again in ${timeRemaining} minutes.`,
+      lockedOut: true,
+      lockoutEndTime: userAttempts.lockoutEndTime
+    });
+  }
+
   try {
     let user;
     switch (role) {
       case 'eleve':
-        user = await prisma.eleve.findUnique({
-          where: { username },
-        });
+        user = await prisma.eleve.findUnique({ where: { username } });
         break;
       case 'parent':
-        user = await prisma.parent.findUnique({
-          where: { username },
-        });
+        user = await prisma.parent.findUnique({ where: { username } });
         break;
       case 'enseignant':
-        user = await prisma.enseignant.findUnique({
-          where: { username },
-        });
+        user = await prisma.enseignant.findUnique({ where: { username } });
         break;
       case 'admin':
-        user = await prisma.admin.findUnique({
-          where: { username },
-        });
+        user = await prisma.admin.findUnique({ where: { username } });
         break;
-        case 'directeur':
-          user = await prisma.directeur.findUnique({
-            where: { username },
-          });
-          break;
+      case 'directeur':
+        user = await prisma.directeur.findUnique({ where: { username } });
+        break;
       default:
         return res.status(400).json({ error: 'Invalid role' });
     }
 
     if (!user) {
+      // Incrémenter le nombre de tentatives échouées
+      userAttempts.attempts += 1;
+
+      if (userAttempts.attempts >= 3) {
+        // Bloquer pendant 15 minutes après 3 tentatives échouées
+        userAttempts.lockoutEndTime = currentTime + 1 * 60 * 1000;
+        return res.status(403).json({
+          error: 'Too many failed attempts. Your account is locked for 15 minutes.',
+          lockedOut: true,
+          lockoutEndTime: userAttempts.lockoutEndTime
+        });
+      }
+
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
+    // Vérifier le mot de passe
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      // Incrémenter les tentatives échouées
+      userAttempts.attempts += 1;
+
+      if (userAttempts.attempts >= 3) {
+        // Bloquer pendant 15 minutes après 3 tentatives échouées
+        userAttempts.lockoutEndTime = currentTime + 15 * 60 * 1000;
+        return res.status(403).json({
+          error: 'Too many failed attempts. Your account is locked for 15 minutes.',
+          lockedOut: true,
+          lockoutEndTime: userAttempts.lockoutEndTime
+        });
+      }
+
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
+    // Réinitialiser les tentatives après une connexion réussie
+    loginAttempts[username] = { attempts: 0, lockoutEndTime: null };
+
+    // Générer le token JWT
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
@@ -2031,6 +2219,7 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 
 app.post('/api/forgot-password', async (req, res) => {
@@ -2098,8 +2287,8 @@ app.post('/api/admin', async (req, res) => {
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(2); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(2); // Par exemple, 12 octets en hexadécimal
+    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
+    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -2115,11 +2304,11 @@ app.post('/api/admin', async (req, res) => {
   
       return fs.readFileSync(filePath);
     };
-    const photoPath = path.join(__dirname, 'public/00014372.jpg');
+    const photoPath = path.join(__dirname, 'assets/profil.png');
     const photoData = fs.readFileSync(photoPath);
 
     // Ajout de l'enseignant dans la base de données avec le mot de passe haché
-    const newEnseignant = await prisma.directeur.create({
+    const newEnseignant = await prisma.admin.create({
       data: {
         nom,
         prenom,

@@ -46,7 +46,6 @@ model Rang {
   matiere Matiere @relation(fields: [id_matiere], references: [id])
   eleve Eleve @relation(fields: [id_eleve], references: [id])
   trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
-  @@unique([id_eleve, id_matiere, id_trimestre])
 }
 
 model Coefficient {
@@ -177,7 +176,6 @@ model Note_inter {
   enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
   matiere Matiere @relation(fields: [id_matiere], references: [id])
   trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
-  @@unique([id_eleve, id_enseignant, id_matiere, id_trimestre, inter])
 }
 
 model Note_devoir {
@@ -194,7 +192,6 @@ model Note_devoir {
   enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
   matiere Matiere @relation(fields: [id_matiere], references: [id])
   trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
-  @@unique([id_eleve, id_enseignant, id_matiere, id_trimestre, devoir])
 }
 
 model Admin {

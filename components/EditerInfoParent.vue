@@ -15,7 +15,8 @@
       <v-col v-for="parent in filteredParents" :key="parent.id" cols="12" sm="6" md="4">
         <v-card class="parent-card" @click="viewParent(parent)">
           <v-card-title>{{ parent.nom }} {{ parent.prenom }}</v-card-title>
-          <v-card-subtitle>Nombre d'enfants: {{ parent.nbEnfant }}</v-card-subtitle>
+          <v-card-subtitle>Nombre d'enfants: <strong>{{ parent.nbEnfant }}</strong></v-card-subtitle>
+          <v-card-subtitle>Contact: <strong>{{ parent.contact }}</strong></v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -28,6 +29,12 @@
           <v-text-field v-model="editedParent.parent_nom" label="Nom"></v-text-field>
           <v-text-field v-model="editedParent.parent_prenom" label="Prénom"></v-text-field>
           <v-text-field v-model="editedParent.parent_contact" label="Contact"></v-text-field>
+          <v-file-input
+            v-model="photo"
+            label="Choisir la photo"
+            accept="image/*,.pdf"
+            prepend-icon="mdi-paperclip"
+          ></v-file-input>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -62,6 +69,7 @@ export default {
         parent_contact: '',
       },
       alertSnackbar: false,
+      photo: null,
     };
   },
   methods: {
@@ -92,10 +100,17 @@ export default {
       this.dialog = true;
     },
     updateParent(parent) {
-      return axios.put(`http://localhost:8080/api/miseajourparent/${parent.id}`, {
-        nom: parent.parent_nom,
-        prenom: parent.parent_prenom,
-        contact: parent.parent_contact,
+
+      const formData = new FormData();
+      formData.append('nom', parent.parent_nom);
+      formData.append('prenom', parent.parent_prenom);
+      formData.append('id_classe', parent.parent_contact);
+      formData.append('photo', this.photo);
+
+      return axios.put(`http://localhost:8080/api/miseajourparent/${parent.id}`, ormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
       });
     },
     saveChanges() {

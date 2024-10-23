@@ -48,7 +48,7 @@
     </v-row>
     
     <v-transition name="fade">
-      <component :is="currentComponent" v-if="currentComponent" :studentId="idEleve" :trimestre="selectedTrimester.id"/>
+      <component :is="currentComponent" v-if="currentComponent" :studentId="idEleve" :trimestre="selectedTrimester"/>
     </v-transition>
   </v-container>
 </template>

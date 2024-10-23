@@ -143,11 +143,11 @@
     </v-dialog>
     <v-container>
       <v-row>
-        <v-col cols="12" sm="6" md="3">
+        <!--<v-col cols="12" sm="6" md="3">
           <v-btn variant="text" @click="attachmentDialog = !attachmentDialog">Ajouter une pièce jointe</v-btn>
-        </v-col>
+        </v-col>-->
         <v-col cols="12" sm="6" md="3">
-          <v-btn variant="text" @click="CommentaireDialog = !CommentaireDialog">Avis sur un élève</v-btn>
+          <v-btn @click="CommentaireDialog = !CommentaireDialog" color="green">Avis sur un élève</v-btn>
         </v-col>
       </v-row>
     </v-container>

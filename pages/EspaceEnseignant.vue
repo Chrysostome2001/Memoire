@@ -78,9 +78,18 @@ export default {
       value => !!value || 'Le mot de passe est requis.',
       value => (value && value.length >= 3) || 'Le mot de passe doit comporter au moins 6 caractères.',
     ],
+    lockoutEndTime: null, // Stockage du moment de fin de blocage
   }),
   methods: {
     async login() {
+      
+      // Vérifier si l'utilisateur est bloqué
+      const currentTime = new Date().getTime();
+      if (this.lockoutEndTime && currentTime < this.lockoutEndTime) {
+        this.loginError = `Trop de tentatives échouées. Réessayez dans ${Math.ceil((this.lockoutEndTime - currentTime) / 60000)} minutes.`;
+        return;
+      }
+
       this.loginError = null;
       try {
         const response = await axios.post('http://localhost:8080/api/login', {
@@ -93,8 +102,13 @@ export default {
         const role = user.role;
         this.$router.push({ path: `/enseignant` });
       } catch (error) {
-        this.loginError = 'Nom d\'utilisateur ou mot de passe incorrect.';
-        console.error(error);
+        // Gérer les tentatives incorrectes
+        if (error.response && error.response.data.lockedOut) {
+          this.lockoutEndTime = error.response.data.lockoutEndTime;
+          this.loginError = `Trop de tentatives échouées. Réessayez dans ${Math.ceil((this.lockoutEndTime - currentTime) / 60000)} minutes.`;
+        } else {
+          this.loginError = 'Nom d\'utilisateur ou mot de passe incorrect.';
+        }
       }
     },
   },

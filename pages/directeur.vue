@@ -11,12 +11,12 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../assets/profil.png"
+                v-if="directeur.photo" :src="`data:image/jpeg;base64,${directeur.photo}`"
               ></v-img>
             </v-avatar>
           </v-list-item>
           <v-list-item class="d-flex justify-center">
-            <v-list-item-title class="text-white font-weight-bold">{{ admin.username }}</v-list-item-title>
+            <v-list-item-title class="text-white font-weight-bold">{{ directeur.username }}</v-list-item-title>
           </v-list-item>
           <v-divider></v-divider>
           <v-list-item link>
@@ -72,7 +72,7 @@
     data() {
       return {
         id: null,
-        admin: {},
+        directeur: {},
         drawer: false,
         currentView: 'HomeAdmin',
         selectedItem: 'HomeAdmin',
@@ -80,7 +80,7 @@
           { name: 'VoirEleves', label: 'Infos élèves', component: 'VoirEleves', icon: 'mdi-account-circle', iconColor: 'blue' },
           { name: 'VoirEnseignant', label: 'Infos enseignants', component: 'VoirEnseignant', icon: 'mdi-account-circle', iconColor: 'blue' },
           { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
-          { name: 'HomeAdmin', label: 'Infos', component: 'HomeAdmin', icon: 'mdi-information-outline', iconColor: 'blue' },
+          { name: 'HomeAdmin', label: 'Aide', component: 'HomeAdmin', icon: 'mdi-information-outline', iconColor: 'blue' },
         ],
       };
     },
@@ -98,10 +98,11 @@
         const token = localStorage.getItem('token');
         const decodedToken = jwtDecode(token);
         try {
-          const response = await axios.get(`http://localhost:8080/api/admin/${decodedToken.id}`);
-          this.admin = {
+          const response = await axios.get(`http://localhost:8080/api/directeur/${decodedToken.id}`);
+          this.directeur = {
             id: response.data.id,
             username: response.data.username,
+            photo: response.data.directeur_photo
           };
         } catch (error) {
           console.error(error);

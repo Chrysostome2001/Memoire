@@ -213,7 +213,11 @@ export default {
       ? `http://localhost:8080/api/eleve/${decodedId.id}/notes?trimestre_id=${this.trimestre}`
       : `http://localhost:8080/api/eleve/${this.studentId}/notes?trimestre_id=${this.trimestre}`;
 
-    axios.get(url)
+    axios.get(url, {
+        headers: {
+          'Authorization': `Bearer ${token}` // Inclure le jeton JWT dans l'en-tête
+        }
+      })
       .then(response => {
         if (response.data.length > 0) {
           this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
@@ -228,7 +232,12 @@ export default {
   watch: {
     studentId(newStudentId) {
       if (newStudentId) {
-        axios.get(`http://localhost:8080/api/eleve/${newStudentId}/notes?trimestre_id=${this.trimestre}`)
+        const token = localStorage.getItem('token');
+        axios.get(`http://localhost:8080/api/eleve/${newStudentId}/notes?trimestre_id=${this.trimestre}`, {
+            headers: {
+              'Authorization': `Bearer ${token}` // Inclure le jeton JWT dans l'en-tête
+            }
+          })
           .then(response => {
             if (response.data.length > 0) {
               this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;

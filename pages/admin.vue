@@ -11,7 +11,7 @@
           <v-avatar size="150">
             <v-img
               alt="Profile Image"
-              src="../assets/profil.png"
+              v-if="admin.photo" :src="`data:image/jpeg;base64,${admin.photo}`"
             ></v-img>
           </v-avatar>
         </v-list-item>
@@ -89,7 +89,7 @@ export default {
         { name: 'GererMatiere', label: 'Gérer matière', component: 'GererMatiere', icon: 'mdi-book-open', iconColor: 'yellow' },
         { name: 'InitierTrimestre', label: 'Initier trimestre', component: 'InitierTrimestre', icon: 'mdi-school', iconColor: 'secondary' },
         { name: 'Compte', label: 'Compte', component: 'Compte', icon: 'mdi-account-circle', iconColor: 'blue' },
-        { name: 'HomeAdmin', label: 'Infos', component: 'HomeAdmin', icon: 'mdi-information-outline', iconColor: 'blue' },
+        { name: 'HomeAdmin', label: 'Aide', component: 'HomeAdmin', icon: 'mdi-information-outline', iconColor: 'blue' },
       ],
     };
   },
@@ -115,6 +115,7 @@ export default {
         this.admin = {
           id: response.data.id,
           username: response.data.username,
+          photo: response.data.admin_photo
         };
       } catch (error) {
         console.error(error);

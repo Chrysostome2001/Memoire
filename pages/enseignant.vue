@@ -11,7 +11,7 @@
             <v-avatar size="150">
               <v-img
                 alt="Profile Image"
-                src="../assets/profil.png"
+                v-if="enseignant.photo" :src="`data:image/jpeg;base64,${enseignant.photo}`"
               ></v-img>
             </v-avatar>
           </v-list-item>
@@ -41,8 +41,8 @@
                     >
                       <v-list-item-content>
                         <v-list-item-title :class="{'selected-title': selectedClasseId === classe.classe_id}">
-                          <strong>{{ classe.classe_nom }}</strong>
-                          <span class="matiere">{{ classe.matiere_nom }}</span>
+                          <strong>{{ classe.classe_nom }} -- </strong>
+                          <span>{{ classe.matiere_nom }}</span>
                         </v-list-item-title>
                       </v-list-item-content>
                     </v-list-item>
@@ -58,7 +58,7 @@
           </v-list-item>
           <v-list-item link @click="changeView('HomeEnseignant')">
             <v-list-item-content>
-              <v-list-item-title><v-icon left color="blue">mdi-information-outline</v-icon> info</v-list-item-title>
+              <v-list-item-title><v-icon left color="blue">mdi-information-outline</v-icon> Aide</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -123,6 +123,7 @@
           this.enseignant = {
             id: response.data.id,
             username: response.data.username,
+            photo: response.data.enseignant_photo
           };
         } catch (error) {
           console.error(error);
@@ -184,6 +185,14 @@
   
   .v-list-item:hover {
     background-color: rgba(255, 255, 255, 0.1); /* Couleur de fond au survol */
+  }
+  
+  .v-list-item-title {
+    font-weight: bold;
+  }
+  .v-list-item-content {
+    display: flex;
+    align-items: center;
   }
   
   .v-text-field {

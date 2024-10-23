@@ -28,7 +28,7 @@
 <script>
 import axios from 'axios';
 import CahierDeNote from './CahierDeNote.vue';
-
+import { jwtDecode } from 'jwt-decode';
 export default {
   props: {
     classeId: Number,
@@ -54,7 +54,12 @@ export default {
     },
   },
   mounted() {
-    axios.get('http://localhost:8080/api/trimestres/')
+    const token = localStorage.getItem('token');
+    axios.get('http://localhost:8080/api/trimestres/', {
+        headers: {
+          'Authorization': `Bearer ${token}` // Inclure le jeton JWT dans l'en-tête
+        }
+      })
       .then(response => {
         console.log('Trimestre data:', response.data);  // Log class data
         if (response.data && response.data.length > 0) {

@@ -1,27 +1,19 @@
 <template>
   <v-app>
-    <v-toolbar
-      app
-      flat
-      color="primary"
-      class="toolbar"
-    >
+    <v-toolbar app flat color="primary" class="toolbar">
       <v-toolbar-title class="toolbar-title">Page d'Accueil</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn @click="goToEspaceEleve" color="white" class="nav-btn">Espace Élève</v-btn>
-      <v-btn @click="goToEspaceParent" color="white" class="nav-btn">Espace Parent</v-btn>
-      <v-btn @click="goToEspaceEnseignant" color="white" class="nav-btn">Espace Enseignant</v-btn>
-      <v-btn @click="goToEspaceAdministration" color="white" class="nav-btn">Espace Administration</v-btn>
     </v-toolbar>
 
+    <!-- Carousel -->
     <v-carousel
       :items="carouselItems"
-      show-arrows
+      :show-arrows="false"
       :timeout="3000"
-      hide-delimiter-background
+      hide-delimiters
       class="carousel"
       cycle
-      height="calc(100vh - 64px)"
+      height="100vh"
       :interval="3000"
     >
       <v-carousel-item
@@ -31,6 +23,28 @@
         :alt="item.alt"
       ></v-carousel-item>
     </v-carousel>
+
+    <!-- Section pour les boutons avec image de fond -->
+    <v-container fluid class="button-container">
+      <v-row justify="center" align="center" class="flex-column">
+        <v-col
+          v-for="(espace, index) in Espaces"
+          :key="index"
+          cols="12"
+          sm="6"
+          md="3"
+          class="d-flex justify-center"
+        >
+          <v-btn
+            @click="goToEspace(espace.name)"
+            color="primary"
+            class="nav-btn"
+          >
+            {{ espace.label }}
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
   </v-app>
 </template>
 
@@ -44,25 +58,16 @@ export default {
         { src: '/3.png', alt: 'Slide 3' },
       ],
       Espaces: [
-      { name: 'EspaceEleve', label: 'Gérer parent' },
-      { name: 'EspaceEnseignant', label: 'Gérer parent' },
-      { name: 'EspaceParent', label: 'Gérer parent' },
-      { name: 'EspaceAdminstrateur', label: 'Gérer parent' }
+        { name: 'EspaceEleve', label: 'Espace Élève' },
+        { name: 'EspaceEnseignant', label: 'Espace Enseignant' },
+        { name: 'EspaceParent', label: 'Espace Parent' },
+        { name: 'EspaceAdministration', label: 'Espace Administration' }
       ]
     };
   },
   methods: {
-    goToEspaceEleve() {
-      this.$router.push('/EspaceEleve');
-    },
-    goToEspaceEnseignant() {
-      this.$router.push('/EspaceEnseignant');
-    },
-    goToEspaceAdministration() {
-      this.$router.push('/EspaceAdministration');
-    },
-    goToEspaceParent() {
-      this.$router.push('/EspaceParent');
+    goToEspace(espace) {
+      this.$router.push(`/${espace}`);
     },
   },
 };
@@ -75,26 +80,34 @@ export default {
 
 .toolbar {
   z-index: 1;
-  background-color: #1976D2; /* Couleur primaire */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+  background-color: #1976D2;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .toolbar-title {
-  color: white; /* Couleur du texte */
+  color: white;
   font-weight: bold;
 }
 
 .nav-btn {
   border-radius: 20px;
   text-transform: uppercase;
-  margin-right: 8px; /* Espacement entre les boutons */
+  margin: 10px; /* Marge autour des boutons */
+  position: relative;
+  z-index: 3; /* S'assurer que le bouton est au-dessus de l'arrière-plan */
+  color: white; /* Couleur du texte du bouton */
+}
+
+.button-container {
+  position: absolute; /* Positionne le conteneur de boutons en haut du carousel */
+  top: 50%; /* Aligne verticalement au milieu */
+  left: 50%; /* Aligne horizontalement au milieu */
+  transform: translate(-50%, -50%); /* Centre le conteneur de boutons */
+  z-index: 2; /* S'assurer que le conteneur de boutons est au-dessus du carousel */
+  text-align: center; /* Centre le texte à l'intérieur */
 }
 
 .carousel {
-  height: calc(100vh - 64px); /* Ajuste pour la hauteur du v-toolbar */
-}
-
-.v-carousel .v-carousel__controls {
-  z-index: 2;
+  height: calc(100vh - 128px); /* Ajuste pour la hauteur du v-toolbar + espace boutons */
 }
 </style>

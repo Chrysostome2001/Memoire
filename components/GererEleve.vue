@@ -11,14 +11,11 @@
         <v-btn size="x-large" @click="showComponent('EditerInfoEleve')" color="warning" variant="text">Modifier Info Élève</v-btn>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-btn size="x-large" @click="showComponent('InfoEleve')" color="info" variant="text">Editer une note</v-btn>
+        <v-btn size="x-large" @click="showComponent('InfoEleve')" color="info" variant="text">Note & Avis</v-btn>
       </v-col>
-      <v-col cols="12" sm="6" md="3">
+      <!--<v-col cols="12" sm="6" md="3">
         <v-btn size="x-large" @click="showComponent('Bulletin')" color="info" variant="text">Bulletin</v-btn>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-btn size="x-large" @click="showComponent('Commentaires')" color="info" variant="text">Commentaire des profs</v-btn>
-      </v-col>
+      </v-col>-->
     </v-row>
 
     <!-- Display the back button when a component is shown -->
@@ -41,7 +38,6 @@ import AjoutEleve from './AjoutEleve.vue';
 import SupprimerEleve from '@/components/SupprimerEleve.vue';
 import EditerInfoEleve from '@/components/EditerInfoEleve.vue';
 import Bulletin from './Bulletin.vue';
-import Commentaires from '@/components/Commentaires.vue';
 
 export default {
   components: {
@@ -50,7 +46,6 @@ export default {
     SupprimerEleve,
     EditerInfoEleve,
     Bulletin,
-    Commentaires,
   },
   data() {
     return {
