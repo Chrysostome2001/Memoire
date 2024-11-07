@@ -382,6 +382,8 @@ app.get('/api/enseignant/:id', (req, res) => {
   const sql = `SELECT 
                     Enseignant.id AS id,
                     Enseignant.username AS username,
+                    Enseignant.nom AS Enseignant_nom,
+                    Enseignant.prenom AS Enseignant_prenom,
                     Enseignant.photo AS enseignant_photo                
                   FROM Enseignant 
                     WHERE id = ?`;
@@ -639,17 +641,17 @@ app.post('/api/save-notes', async (req, res) => {
                 id: parseInt(note.note_devoir1_id),
               },
               data: {
-                devoir: parseFloat(note.note_devoir1_id),
+                devoir: parseFloat(note.note_devoir1),
               },
             })
           }else{
             await prisma.note_devoir.create({
               data: {
-                id_id_eleve: parseInt(note.id_eleve),
-                id_id_enseignant: parseInt(note.enseignant_id),
-                id_id_matiere: note.matiere_id,
-                id_id_trimestre: note.trimestre_id,
-                devoir: parseFloat(note.note_devoir1_id),
+                id_eleve: parseInt(note.id_eleve),
+                id_enseignant: parseInt(note.enseignant_id),
+                id_matiere: note.matiere_id,
+                id_trimestre: note.trimestre_id,
+                devoir: parseFloat(note.note_devoir1),
               }
             })
           }
@@ -663,7 +665,7 @@ app.post('/api/save-notes', async (req, res) => {
                 id: parseInt(note.note_devoir2_id),
               },
               data: {
-                devoir: parseFloat(note.note_devoir2_id),
+                devoir: parseFloat(note.note_devoir2),
               },
             })
           }else{
@@ -673,7 +675,7 @@ app.post('/api/save-notes', async (req, res) => {
                 id_enseignant: parseInt(note.enseignant_id),
                 id_matiere: note.matiere_id,
                 id_trimestre: note.trimestre_id,
-                devoir: parseFloat(note.note_devoir2_id),
+                devoir: parseFloat(note.note_devoir2),
               }
             })
           }
@@ -822,6 +824,7 @@ app.get("/api/enseignants-classe/", (req, res) => {
                       Enseignant.id AS enseignant_id,
                       Enseignant.nom AS enseignant_nom,
                       Enseignant.prenom AS enseignant_prenom,
+                      Enseignant.contact AS enseignant_contact,
                       Enseignant.sexe AS enseignant_sexe
                   FROM 
                       Enseignant_Classe
@@ -837,6 +840,35 @@ app.get("/api/enseignants-classe/", (req, res) => {
     }
   });
 });
+
+app.get("/api/Directeur-enseignants-classe/", authenticateToken, (req, res) => {
+  const query = `
+    SELECT 
+        Enseignant.id AS enseignant_id,
+        Enseignant.nom AS enseignant_nom,
+        Enseignant.prenom AS enseignant_prenom,
+        Enseignant.contact AS enseignant_contact,
+        Enseignant.sexe AS enseignant_sexe,
+        GROUP_CONCAT(Classe.nom SEPARATOR ', ') AS classes_nom,
+        Matiere.matiere AS matieres_nom
+    FROM 
+        Enseignant_Classe
+    JOIN Enseignant ON Enseignant.id = Enseignant_Classe.id_enseignant
+    JOIN Classe ON Classe.id = Enseignant_Classe.id_classe
+    JOIN Matiere ON Matiere.id = Enseignant_Classe.id_matiere
+    GROUP BY 
+        Enseignant.id
+  `;
+
+  db.query(query, (error, results) => {
+    if (error) {
+      res.status(500).send(error);
+    } else {
+      res.json(results);
+    }
+  });
+});
+
 
 
 app.get('/api/:id/photo', (req, res) => {
@@ -1154,33 +1186,14 @@ app.get('/api/eleves/:eleveId/commentaires', (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).json({ error: 'Aucun commentaire trouvé pour ce parent.' });
-    }
+      return res.status(404).json({ error: 'Aucun commentaire trouvé pour cet élève.' });
+    }  
 
-    // Étape 2: Mettre à jour la colonne `vu` pour tous les commentaires récupérés
-    const commentaireIds = results.map(row => row.commentaire_id); // Récupérer les IDs des commentaires
-
-    if (commentaireIds.length > 0) {
-      const queryUpdateVu = `
-        UPDATE Commentaire
-        SET vu = true
-        WHERE id IN (?)
-      `;
-      
-      db.query(queryUpdateVu, [commentaireIds], (updateError) => {
-        if (updateError) {
-          console.error('Erreur lors de la mise à jour des commentaires.', updateError);
-          return res.status(500).json({ error: 'Erreur lors de la mise à jour des commentaires.' });
-        }
-
-        // Envoyer les résultats une fois la mise à jour effectuée
+        // Envoyer les résultats 
         res.json(results);
       });
-    } else {
-      res.json(results); // Si aucun commentaire à mettre à jour, on retourne juste les résultats
     }
-  });
-});
+  );
 
 
 
@@ -2178,7 +2191,7 @@ app.post('/api/login', async (req, res) => {
         // Bloquer pendant 15 minutes après 3 tentatives échouées
         userAttempts.lockoutEndTime = currentTime + 1 * 60 * 1000;
         return res.status(403).json({
-          error: 'Too many failed attempts. Your account is locked for 15 minutes.',
+          error: 'Too many failed attempts. Your account is locked for 1 minutes.',
           lockedOut: true,
           lockoutEndTime: userAttempts.lockoutEndTime
         });
@@ -2195,9 +2208,9 @@ app.post('/api/login', async (req, res) => {
 
       if (userAttempts.attempts >= 3) {
         // Bloquer pendant 15 minutes après 3 tentatives échouées
-        userAttempts.lockoutEndTime = currentTime + 15 * 60 * 1000;
+        userAttempts.lockoutEndTime = currentTime + 1 * 60 * 1000;
         return res.status(403).json({
-          error: 'Too many failed attempts. Your account is locked for 15 minutes.',
+          error: 'Too many failed attempts. Your account is locked for 1 minutes.',
           lockedOut: true,
           lockoutEndTime: userAttempts.lockoutEndTime
         });

@@ -9,7 +9,7 @@
       <v-col v-for="enseignant in filteredEnseignant" :key="enseignant.id" cols="12" sm="6" md="4">
         <v-card>
           <v-card-title>{{ enseignant.fullName }}</v-card-title>
-          <v-card-subtitle>SEXE : {{ enseignant.sexe }} <br> Classe : {{ enseignant.classeNom }}</v-card-subtitle>
+          <v-card-subtitle>TEL: {{ enseignant.contact }} <br> SEXE : {{ enseignant.sexe }} <br> Classe : {{ enseignant.classeNom }}</v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -35,7 +35,12 @@ export default {
     },
   },
   mounted(){
-    axios.get('http://localhost:8080/api/enseignants-classe/')
+    const token = localStorage.getItem('token')
+    axios.get('http://localhost:8080/api/Directeur-enseignants-classe/', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
     .then(response => {
       if (response.data && response.data.length > 0) {
         this.enseignants = response.data.map(enseignant => ({
@@ -43,7 +48,8 @@ export default {
         fullName: `${enseignant.enseignant_nom} ${enseignant.enseignant_prenom}`,
         sexe: enseignant.enseignant_sexe,
         classeId : enseignant.classe_id,
-        classeNom: enseignant.classe_nom,
+        classeNom: enseignant.classes_nom,
+        contact: enseignant.enseignant_contact,
         enseignant_classeId: enseignant.enseignant_classe_id,
       }));
       this.filteredEnseignant = [...this.enseignants];

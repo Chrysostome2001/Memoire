@@ -4,7 +4,7 @@
       <v-card-title class="title-section">
         <v-row justify="space-between" align="center">
           <v-col>
-            <h5 class="student-info">NOM : {{ studentName }} <br> SEXE : {{ sexe }}</h5>
+            <h5 class="student-info">NOM : {{ studentName }} <br> SEXE : {{ sexe }} <br> Classe: {{ classe }}</h5>
           </v-col>
           <v-col class="text-right">
             <h5 class="term-info">Trimestre 1</h5>
@@ -58,6 +58,7 @@ export default {
       notes: [],
       studentName: '',
       sexe: '',
+      classe:'',
       headers: [
       { title: 'Matières', value: 'matiere' },
         { title: 'Coefficient', value: 'coefficient' },
@@ -222,6 +223,7 @@ export default {
         if (response.data.length > 0) {
           this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
           this.sexe = response.data[0].eleve_sexe;
+          this.classe = response.data[0].classe_nom
           this.notes = response.data;
         }
       })
@@ -242,6 +244,7 @@ export default {
             if (response.data.length > 0) {
               this.studentName = `${response.data[0].nom_eleve} ${response.data[0].prenom_eleve}`;
               this.sexe = response.data[0].eleve_sexe;
+              this.classe = response.data[0].classe_nom
               this.notes = response.data;
             }
           })

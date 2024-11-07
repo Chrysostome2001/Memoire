@@ -29,6 +29,7 @@
     "jwt-decode": "^4.0.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.10.2",
+    "nodemailer": "^6.9.16",
     "nuxt": "^3.12.2",
     "vue": "latest"
   },

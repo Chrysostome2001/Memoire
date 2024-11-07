@@ -3,12 +3,14 @@
     :headers="headers"
     :items="formattedNotes"
     :sort-by="[{ key: 'matiere', order: 'asc' }]"
+    hide-default-footer
   >
     <template v-slot:top>
       <v-toolbar
         flat
+        class="bg-primary"
       >
-        <v-toolbar-title>My CRUD</v-toolbar-title>
+        <v-toolbar-title>{{ this.FullName }}</v-toolbar-title>
         <v-divider
           class="mx-4"
           inset
@@ -19,16 +21,6 @@
           v-model="dialog"
           max-width="500px"
         >
-          <template v-slot:activator="{ props }">
-            <v-btn
-              class="mb-2"
-              color="primary"
-              dark
-              v-bind="props"
-            >
-              Valider
-            </v-btn>
-          </template>
           <v-card>
             <v-card-title>
               <span class="text-h5">{{ formTitle }}</span>
@@ -120,26 +112,15 @@
                 variant="text"
                 @click="close"
               >
-                Cancel
+                Annuler
               </v-btn>
               <v-btn
                 color="blue-darken-1"
                 variant="text"
                 @click="save"
               >
-                Save
+                Sauvegarder
               </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-        <v-dialog v-model="dialogDelete" max-width="500px">
-          <v-card>
-            <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue-darken-1" variant="text" @click="closeDelete">Cancel</v-btn>
-              <v-btn color="blue-darken-1" variant="text" @click="deleteItemConfirm">OK</v-btn>
-              <v-spacer></v-spacer>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -156,7 +137,6 @@
     </template>
     <template v-slot:no-data>
       <v-btn
-        color="primary"
         @click="initialize"
       >
         Reset
@@ -167,9 +147,8 @@
 
 <script>
   import axios from 'axios';
-  import { jwtDecode } from 'jwt-decode';
   export default {
-    props: ['trimestre', 'studentId'],
+    props: ['trimestre', 'studentId', 'FullName'],
     data: () => ({
       dialog: false,
       dialogDelete: false,
@@ -231,7 +210,7 @@
 
     computed: {
       formTitle () {
-        return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+        return this.editedIndex === -1 ? `Modifier la note` : 'Edit Item'
       },
       formattedNotes() {
         const formatted = {};
@@ -387,10 +366,11 @@
           console.error('Erreur lors de la mise à jour des notes:', error);
         });
 
+        // Actualiser les notes après la sauvegarde
+        //this.initialize();  // Appeler cette méthode pour récupérer les nouvelles notes
+        
         // Ferme le dialogue et réinitialise les variables
         this.close();
-        // Actualiser les notes après la sauvegarde
-        this.initialize();  // Appeler cette méthode pour récupérer les nouvelles notes
       },
 
     close() {
@@ -398,6 +378,9 @@
       this.$nextTick(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
+        // Actualiser les notes après la sauvegarde
+        this.initialize();  // Appeler cette méthode pour récupérer les nouvelles notes
+        
       });
     },
     },

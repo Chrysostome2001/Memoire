@@ -18,6 +18,7 @@
           <v-list-item class="d-flex justify-center">
             <v-list-item-title class="text-white font-weight-bold">{{ parent.username }}</v-list-item-title>
           </v-list-item>
+          <v-divider></v-divider>
             <v-list-item link>
             <nuxt-link to="/" class="no-decoration" @click="selectedItem = 'Acceuil'">
               <v-list-item-content>
@@ -36,7 +37,7 @@
           >
             <v-list-item-content>
               <v-list-item-title :class="{ 'selected-title': selectedItem === item.name }">
-                <v-icon :color="item.iconColor">{{ item.icon }}</v-icon>
+                <v-icon :color="item.iconColor">{{ item.icon }}</v-icon> 
                 <!-- Ajout de la notification pour Avis des profs -->
                 <template v-if="item.name === 'VoirAvis'">
                   <v-badge
@@ -104,7 +105,7 @@
       return {
         id: null,
         parent: {},
-        drawer: false,
+        drawer: true,
         currentView: 'HomeParent',
         selectedItem: 'HomeParent',
         newAvisCount: 0, // Compteur des nouveaux avis
@@ -157,7 +158,10 @@
         this.selectedItem = item.name;
         if (item.name === 'VoirAvis') {
           this.newAvisCount = 0;
-        }
+        }/*
+        if(item.name = 'DashboardParent'){
+          newNotesCount = 0
+        }*/
       },
       logout() {
         this.$router.push({ name: 'index' });

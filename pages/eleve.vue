@@ -78,10 +78,9 @@
       return {
         id: null,
         eleve: {},
-        drawer: false,
+        drawer: true,
         currentView: 'HomeEleve',
         selectedItem: 'HomeEleve',
-        newAvisCount: 0,
         menuItems: [
           { name: 'Notes', label: 'Consulter note', component: 'DashboardEleve', icon: 'mdi-school', iconColor: 'green' },
           { name: 'Avis', label: 'Avis des profs', component: 'VoirAvis', icon: 'mdi-comment-text-outline', iconColor: 'green' },
@@ -146,9 +145,6 @@
       changeView(item) {
       this.currentView = item.component;
       this.selectedItem = item.name;
-      if (item.name === 'VoirAvis') {
-          this.newAvisCount = 0;
-        }
     },
       logout() {
         this.$router.push({ name: 'index' });

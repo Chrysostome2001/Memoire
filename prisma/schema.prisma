@@ -64,6 +64,7 @@ model Parent {
   nom       String
   prenom    String
   contact   String
+  email     String?
   photo     Bytes?
   username  String    @unique
   password  String
@@ -79,6 +80,7 @@ model Enseignant {
   prenom       String
   contact      String
   sexe         String
+  email        String?
   photo        Bytes?
   username     String    @unique
   password     String
@@ -96,6 +98,7 @@ model Eleve {
   updatedAt    DateTime  @updatedAt
   nom String
   prenom String
+  email  String?
   photo Bytes?
   sexe String
   classe Classe @relation(fields: [id_classe], references: [id])
@@ -176,6 +179,7 @@ model Note_inter {
   enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
   matiere Matiere @relation(fields: [id_matiere], references: [id])
   trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
+  @@unique([id_eleve, id_enseignant, id_matiere, id_trimestre])
 }
 
 model Note_devoir {
@@ -200,7 +204,7 @@ model Admin {
   updatedAt    DateTime  @updatedAt
   nom          String
   prenom       String
-  email        String
+  email        String?
   photo        Bytes?     // Assumed reference to Matiere's ID
   username     String    @unique
   password     String
@@ -213,7 +217,7 @@ model Directeur {
   updatedAt    DateTime  @updatedAt
   nom          String
   prenom       String
-  email        String
+  email        String?
   photo        Bytes?     // Assumed reference to Matiere's ID
   username     String    @unique
   password     String

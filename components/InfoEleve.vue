@@ -43,12 +43,12 @@
     <!-- Display the back button when a component is shown -->
     <v-row v-if="currentComponent">
       <v-col cols="12">
-        <v-btn @click="goBack" color="secondary" variant="text">Retour</v-btn>
+        <v-btn @click="goBack" color="warning">Liste des élèves</v-btn>
       </v-col>
     </v-row>
     
     <v-transition name="fade">
-      <component :is="currentComponent" v-if="currentComponent" :studentId="idEleve" :trimestre="selectedTrimester"/>
+      <component :is="currentComponent" v-if="currentComponent" :FullName="fullname" :studentId="idEleve" :trimestre="selectedTrimester"/>
     </v-transition>
   </v-container>
 </template>
@@ -69,6 +69,7 @@ export default {
       selectedTrimester: null,
       trimesters: [],
       currentComponent: null,
+      fullname: null,
     };
   },
   components:{
@@ -83,6 +84,7 @@ export default {
     },
     VoirNotes(student) {
       this.idEleve = student.id
+      this.fullname = student.fullName
     },
     VoirAvis(student) {
       this.idEleve = student.id

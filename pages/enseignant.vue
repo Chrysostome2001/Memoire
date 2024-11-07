@@ -26,10 +26,10 @@
             </v-list-item-content>
           </v-list-item>
           <v-list-item>
-            <v-expansion-panels variant="accordion">
-              <v-expansion-panel class="mt-6 mb-6">
-                <v-expansion-panel-title color="primary">
-                  Cahier de Note
+            <v-expansion-panels variant="accordion" class="expansion-panel-no-margin">
+              <v-expansion-panel>
+                <v-expansion-panel-title color="primary" class="cahier-note-title">
+                  <v-icon left color=green>mdi-book-open-page-variant</v-icon> <span class="ml-2">Cahier de Note</span>
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
                   <v-list>
@@ -51,7 +51,7 @@
               </v-expansion-panel>
             </v-expansion-panels>
           </v-list-item>
-          <v-list-item link @click="changeView('Compte')">
+          <v-list-item link @click="changeView('Compte')"><!-- :class="{'selected-title': currentView === 'Compte'}"-->
             <v-list-item-content>
               <v-list-item-title><v-icon left color="blue">mdi-account-circle</v-icon> compte</v-list-item-title>
             </v-list-item-content>
@@ -62,6 +62,11 @@
             </v-list-item-content>
           </v-list-item>
         </v-list>
+        <v-footer padless class="v-navigation-footer bg-primary">
+        <v-col class="text-center" cols="12">
+          <span>{{ enseignant.fullname }}</span>
+        </v-col>
+      </v-footer>
       </v-navigation-drawer>
       
       <v-app-bar app>
@@ -91,7 +96,7 @@
       return {
         id: null,
         enseignant: {},
-        drawer: false,
+        drawer: true,
         currentView: 'HomeEnseignant',
         classes: [], // Utiliser un tableau vide pour stocker les classes récupérées
         currentClasseId: null,
@@ -123,6 +128,7 @@
           this.enseignant = {
             id: response.data.id,
             username: response.data.username,
+            fullname: `${response.data.Enseignant_nom} ${response.data.Enseignant_prenom}`,
             photo: response.data.enseignant_photo
           };
         } catch (error) {
@@ -151,6 +157,18 @@
   </script>
   
   <style scoped>
+  .v-navigation-drawer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .v-navigation-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
   .selected-title {
     color: orange; /* Modifier cette couleur selon vos besoins */
   }
@@ -205,6 +223,16 @@
   
   .v-btn {
     border-radius: 20px; /* Coins arrondis pour le bouton */
+  }
+  .expansion-panel-no-margin {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .cahier-note-title {
+    color: white;
+    font-weight: bold;
+    padding-left: 0px !important; /* Ajustez cette valeur pour aligner précisément */
+    margin: 0 !important;
   }
   </style>
   

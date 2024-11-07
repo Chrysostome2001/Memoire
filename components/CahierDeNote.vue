@@ -599,7 +599,7 @@ export default {
           note_devoir2: student.devoir2,
           rang_final: student.finalRank,
         }));
-
+        console.log(notesToSave)
       if (notesToSave.length > 0) {
         axios.post('http://localhost:8080/api/save-notes', notesToSave)
           .then(response => {
@@ -611,6 +611,7 @@ export default {
             // Nettoyer le localStorage après succès
             const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
             localStorage.removeItem(key);
+            this.fetchStudentsData()
           })
           .catch(error => {
             console.error('Erreur lors de l\'enregistrement des notes :', error);
