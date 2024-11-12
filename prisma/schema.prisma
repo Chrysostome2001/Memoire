@@ -46,6 +46,7 @@ model Rang {
   matiere Matiere @relation(fields: [id_matiere], references: [id])
   eleve Eleve @relation(fields: [id_eleve], references: [id])
   trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
+  @@unique([id_eleve, id_matiere, id_trimestre])
 }
 
 model Coefficient {
@@ -67,7 +68,7 @@ model Parent {
   email     String?
   photo     Bytes?
   username  String    @unique
-  password  String
+  password  String    @unique
   role      String   @default("parent")
   enfants Eleve[]
 }
@@ -83,7 +84,7 @@ model Enseignant {
   email        String?
   photo        Bytes?
   username     String    @unique
-  password     String
+  password     String    @unique
   role      String   @default("enseignant")
   enseignant_classe Enseignant_Classe[]
   note_inter Note_inter[]
@@ -179,7 +180,7 @@ model Note_inter {
   enseignant Enseignant @relation(fields: [id_enseignant], references: [id])
   matiere Matiere @relation(fields: [id_matiere], references: [id])
   trimestre Trimestre @relation(fields: [id_trimestre], references: [id])
-  @@unique([id_eleve, id_enseignant, id_matiere, id_trimestre])
+  //@@unique([id_eleve, id_enseignant, id_matiere, id_trimestre])
 }
 
 model Note_devoir {
@@ -207,7 +208,7 @@ model Admin {
   email        String?
   photo        Bytes?     // Assumed reference to Matiere's ID
   username     String    @unique
-  password     String
+  password     String    @unique
   role      String   @default("admin")
 }
 
@@ -220,6 +221,6 @@ model Directeur {
   email        String?
   photo        Bytes?     // Assumed reference to Matiere's ID
   username     String    @unique
-  password     String
+  password     String    @unique
   role      String   @default("directeur")
 }

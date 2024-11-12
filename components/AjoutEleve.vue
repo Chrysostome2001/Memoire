@@ -31,6 +31,9 @@
             required
           ></v-combobox>
         </v-col>
+        <v-col cols="12" sm="6">
+          <v-text-field v-model="student.username" label="E-mail" required></v-text-field>
+        </v-col>
         <v-col cols="12">
           <v-btn color="primary" type="submit">ajouter</v-btn>
         </v-col>
@@ -54,6 +57,7 @@ export default {
         name: '',
         surname: '',
         sexe: '',
+        username:'',
         parentId: null,
         className: null
       },
@@ -73,21 +77,23 @@ export default {
       axios.post('http://localhost:8080/api/students', {
         nom: this.student.name,
         prenom: this.student.surname,
+        username: this.student.username,
         sexe: this.student.sexe,
         id_parent: parentId,
         id_classe: classId,
       })
       .then(response => {
         console.log('Student added successfully:', response.data);
-        this.generatedUsername = response.data.generatedUsername;
+        //this.generatedUsername = response.data.generatedUsername;
         this.generatedPassword = response.data.generatedPassword;
         this.alertSnackbar = true;
          // Generate and download the PDF
-         this.generatePDF(this.generatedUsername, this.generatedPassword, this.student.name, this.student.surname);
+         this.generatePDF(this.student.username, this.generatedPassword, this.student.name, this.student.surname);
         // Reset form fields after submission
         this.student.name = '';
         this.student.surname = ''; 
         this.student.sexe = '';
+        this.student.username = '';
         this.student.parentId = null;
         this.student.className = null;
       })

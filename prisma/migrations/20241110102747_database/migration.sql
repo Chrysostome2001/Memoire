@@ -20,6 +20,19 @@ CREATE TABLE `Matiere` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `Rang` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `rang` INTEGER NOT NULL,
+    `id_matiere` INTEGER NOT NULL,
+    `id_eleve` INTEGER NOT NULL,
+    `id_trimestre` INTEGER NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `Coefficient` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -37,12 +50,14 @@ CREATE TABLE `Parent` (
     `nom` VARCHAR(191) NOT NULL,
     `prenom` VARCHAR(191) NOT NULL,
     `contact` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NULL,
     `photo` LONGBLOB NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'parent',
 
     UNIQUE INDEX `Parent_username_key`(`username`),
+    UNIQUE INDEX `Parent_password_key`(`password`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -55,12 +70,14 @@ CREATE TABLE `Enseignant` (
     `prenom` VARCHAR(191) NOT NULL,
     `contact` VARCHAR(191) NOT NULL,
     `sexe` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NULL,
     `photo` LONGBLOB NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'enseignant',
 
     UNIQUE INDEX `Enseignant_username_key`(`username`),
+    UNIQUE INDEX `Enseignant_password_key`(`password`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -71,6 +88,7 @@ CREATE TABLE `Eleve` (
     `updatedAt` DATETIME(3) NOT NULL,
     `nom` VARCHAR(191) NOT NULL,
     `prenom` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NULL,
     `photo` LONGBLOB NULL,
     `sexe` VARCHAR(191) NOT NULL,
     `id_classe` INTEGER NOT NULL,
@@ -81,6 +99,35 @@ CREATE TABLE `Eleve` (
 
     UNIQUE INDEX `Eleve_username_key`(`username`),
     UNIQUE INDEX `Eleve_password_key`(`password`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Commentaire` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `contenu` VARCHAR(191) NOT NULL,
+    `id_eleve` INTEGER NOT NULL,
+    `id_enseignant` INTEGER NOT NULL,
+    `id_matiere` INTEGER NOT NULL,
+    `id_trimestre` INTEGER NOT NULL,
+    `vu` BOOLEAN NOT NULL DEFAULT false,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `PieceJointe` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `titre` VARCHAR(191) NOT NULL,
+    `piece` LONGBLOB NOT NULL,
+    `id_classe` INTEGER NOT NULL,
+    `id_matiere` INTEGER NOT NULL,
+    `id_enseignant` INTEGER NOT NULL,
+
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -116,6 +163,7 @@ CREATE TABLE `Note_inter` (
     `id_enseignant` INTEGER NOT NULL,
     `id_matiere` INTEGER NOT NULL,
     `id_trimestre` INTEGER NOT NULL,
+    `vu` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -130,6 +178,7 @@ CREATE TABLE `Note_devoir` (
     `id_enseignant` INTEGER NOT NULL,
     `id_matiere` INTEGER NOT NULL,
     `id_trimestre` INTEGER NOT NULL,
+    `vu` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -141,13 +190,32 @@ CREATE TABLE `Admin` (
     `updatedAt` DATETIME(3) NOT NULL,
     `nom` VARCHAR(191) NOT NULL,
     `prenom` VARCHAR(191) NOT NULL,
-    `email` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NULL,
     `photo` LONGBLOB NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'admin',
 
     UNIQUE INDEX `Admin_username_key`(`username`),
+    UNIQUE INDEX `Admin_password_key`(`password`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Directeur` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `nom` VARCHAR(191) NOT NULL,
+    `prenom` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NULL,
+    `photo` LONGBLOB NULL,
+    `username` VARCHAR(191) NOT NULL,
+    `password` VARCHAR(191) NOT NULL,
+    `role` VARCHAR(191) NOT NULL DEFAULT 'directeur',
+
+    UNIQUE INDEX `Directeur_username_key`(`username`),
+    UNIQUE INDEX `Directeur_password_key`(`password`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -155,10 +223,40 @@ CREATE TABLE `Admin` (
 ALTER TABLE `Matiere` ADD CONSTRAINT `Matiere_id_coefficient_fkey` FOREIGN KEY (`id_coefficient`) REFERENCES `Coefficient`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `Rang` ADD CONSTRAINT `Rang_id_matiere_fkey` FOREIGN KEY (`id_matiere`) REFERENCES `Matiere`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Rang` ADD CONSTRAINT `Rang_id_eleve_fkey` FOREIGN KEY (`id_eleve`) REFERENCES `Eleve`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Rang` ADD CONSTRAINT `Rang_id_trimestre_fkey` FOREIGN KEY (`id_trimestre`) REFERENCES `Trimestre`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `Eleve` ADD CONSTRAINT `Eleve_id_classe_fkey` FOREIGN KEY (`id_classe`) REFERENCES `Classe`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Eleve` ADD CONSTRAINT `Eleve_id_parent_fkey` FOREIGN KEY (`id_parent`) REFERENCES `Parent`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Commentaire` ADD CONSTRAINT `Commentaire_id_eleve_fkey` FOREIGN KEY (`id_eleve`) REFERENCES `Eleve`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Commentaire` ADD CONSTRAINT `Commentaire_id_enseignant_fkey` FOREIGN KEY (`id_enseignant`) REFERENCES `Enseignant`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Commentaire` ADD CONSTRAINT `Commentaire_id_matiere_fkey` FOREIGN KEY (`id_matiere`) REFERENCES `Matiere`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Commentaire` ADD CONSTRAINT `Commentaire_id_trimestre_fkey` FOREIGN KEY (`id_trimestre`) REFERENCES `Trimestre`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `PieceJointe` ADD CONSTRAINT `PieceJointe_id_classe_fkey` FOREIGN KEY (`id_classe`) REFERENCES `Classe`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `PieceJointe` ADD CONSTRAINT `PieceJointe_id_matiere_fkey` FOREIGN KEY (`id_matiere`) REFERENCES `Matiere`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `PieceJointe` ADD CONSTRAINT `PieceJointe_id_enseignant_fkey` FOREIGN KEY (`id_enseignant`) REFERENCES `Enseignant`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Enseignant_Classe` ADD CONSTRAINT `Enseignant_Classe_id_enseignant_fkey` FOREIGN KEY (`id_enseignant`) REFERENCES `Enseignant`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

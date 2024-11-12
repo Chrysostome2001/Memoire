@@ -10,7 +10,7 @@
                 <v-text-field
                   v-model="username"
                   :rules="nameRules"
-                  label="Votre identifiant"
+                  label="email"
                   hide-details
                   required
                   class="mb-4"

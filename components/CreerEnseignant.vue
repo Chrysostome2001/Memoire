@@ -14,6 +14,9 @@
           <v-col cols="12" sm="6">
           <v-combobox v-model="enseignant.sexe" :items="sexe" label="Sexe" required></v-combobox>
           </v-col>
+          <v-col cols="12" sm="6">
+          <v-text-field v-model="enseignant.username" :items="sexe" label="E-mail" required></v-text-field>
+          </v-col>
           <v-col cols="12">
             <v-btn color="primary" type="submit">ajouter</v-btn>
           </v-col>
@@ -38,6 +41,7 @@
           surname: '',
           contact: '',
           sexe: '',
+          username: ''
         },
         sexe: ['M', 'F'],
         alertSnackbar: false,
@@ -51,19 +55,20 @@
           prenom: this.enseignant.surname,
           contact: this.enseignant.contact,
           sexe: this.enseignant.sexe,
+          username: this.enseignant.username
         })
         .then(response => {
           console.log('Enseignant added successfully:', response.data);
-          this.generatedUsername = response.data.generatedUsername;
           this.generatedPassword = response.data.generatedPassword;
           this.alertSnackbar = true;
           // Generate and download the PDF
-          this.generatePDF(this.generatedUsername, this.generatedPassword, this.enseignant.name, this.enseignant.surname);
+          this.generatePDF(this.enseignant.username, this.generatedPassword, this.enseignant.name, this.enseignant.surname);
           // Reset form fields after submission
           this.enseignant.name = '';
           this.enseignant.surname = '';
           this.enseignant.contact = '';
           this.enseignant.sexe = '';
+          this.enseignant.username = '';
         })
         .catch(error => {
           console.error('Error adding enseignant:', error);

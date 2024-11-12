@@ -409,7 +409,6 @@ export default {
           // Vérifie si les données sont stockées dans le localStorage et sont valides
           const key = `notes_classe${this.$props.classeId}_matiere${this.$props.matiereId}_trimestre${this.$props.trimester}`;
           const storedNotes = localStorage.getItem(key);
-          
           if (storedNotes && storedNotes.length > 0) {
             if (this.areStoredNotesValid(storedNotes, this.students)) {
               // Utiliser les données du localStorage si elles sont valides

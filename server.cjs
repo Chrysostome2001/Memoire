@@ -1204,16 +1204,15 @@ function generateRandomString(length) {
 
 app.post('/api/students', async (req, res) => {
   try {
-    const { nom, prenom, sexe, id_parent, id_classe } = req.body;
+    const { nom, prenom, username, sexe, id_parent, id_classe } = req.body;
 
     // Validation de la requête
-    if (!nom || !prenom || !sexe || !id_parent || !id_classe) {
+    if (!nom || !prenom || !username || !sexe || !id_parent || !id_classe) {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
-    // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
+    // Générer un un mot de passe aléatoires
+    const password = generateRandomString(5); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -1240,14 +1239,13 @@ app.post('/api/students', async (req, res) => {
         photo: photoData, // Utiliser la données binaires
         id_parent,
         id_classe,
-        username,
+        username: username,
         password: hashedPassword
       }
     });
 
     res.status(201).json({ 
       ...newStudent,
-      generatedUsername: username,
       generatedPassword: password
     });
   } catch (error) {
@@ -1258,16 +1256,15 @@ app.post('/api/students', async (req, res) => {
 
 app.post('/api/parent', async (req, res) => {
   try {
-    const { nom, prenom, contact } = req.body;
+    const { nom, prenom, username, contact } = req.body;
 
     // Validation de la requête
-    if (!nom || !prenom || !contact) {
+    if (!nom || !prenom || !username || !contact) {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
+    const password = generateRandomString(5); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -1294,13 +1291,13 @@ app.post('/api/parent', async (req, res) => {
         contact,
         photo: photoData,
         username,
+        email: username,
         password: hashedPassword
       }
     });
 
     res.status(201).json({ 
       ...newParent,
-      generatedUsername: username,
       generatedPassword: password
     });
   } catch (error) {
@@ -1311,16 +1308,15 @@ app.post('/api/parent', async (req, res) => {
 
 app.post('/api/enseignants', async (req, res) => {
   try {
-    const { nom, prenom, contact, sexe } = req.body;
+    const { nom, prenom, username, contact, sexe } = req.body;
 
     // Validation de la requête
-    if (!nom || !prenom || !contact || !sexe) {
+    if (!nom || !prenom || !username || !contact || !sexe) {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
+    const password = generateRandomString(5); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -1347,6 +1343,7 @@ app.post('/api/enseignants', async (req, res) => {
         contact,
         sexe,
         photo:photoData,
+        email: username,
         username,
         password: hashedPassword
       }
@@ -1354,7 +1351,6 @@ app.post('/api/enseignants', async (req, res) => {
 
     res.status(201).json({ 
       ...newEnseignant,
-      generatedUsername: username,
       generatedPassword: password,
     });
   } catch (error) {
@@ -2300,8 +2296,7 @@ app.post('/api/admin', async (req, res) => {
     }
 
     // Générer un username et un mot de passe aléatoires
-    const username = generateRandomString(8); // Par exemple, 8 octets en hexadécimal
-    const password = generateRandomString(12); // Par exemple, 12 octets en hexadécimal
+    const password = generateRandomString(6); // Par exemple, 12 octets en hexadécimal
 
     // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -2327,14 +2322,13 @@ app.post('/api/admin', async (req, res) => {
         prenom,
         photo: photoData,
         email,
-        username,
+        username: email,
         password: hashedPassword
       }
     });
 
     res.status(201).json({ 
       ...newEnseignant,
-      generatedUsername: username,
       generatedPassword: password,
     });
   } catch (error) {

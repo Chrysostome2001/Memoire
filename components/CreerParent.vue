@@ -20,6 +20,14 @@
         </v-col>
         <v-col cols="12" sm="6">
           <v-text-field
+            v-model="parent.username"
+            label="E-mail"
+            required
+            class="form-field"
+          ></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="6">
+          <v-text-field
             v-model="parent.parentContact"
             label="Contact du parent"
             required
@@ -56,6 +64,7 @@ export default {
         parentNom: '',
         parentPrenom: '',
         parentContact: '',
+        username: ''
       },
       alertSnackbar: false,
       generatedUsername: '',
@@ -69,18 +78,20 @@ export default {
         nom: this.parent.parentNom,
         prenom: this.parent.parentPrenom,
         contact: this.parent.parentContact,
+        username: this.parent.username
       })
       .then(response => {
         console.log('Parent added successfully:', response.data);
-        this.generatedUsername = response.data.generatedUsername;
+        //this.generatedUsername = response.data.generatedUsername;
         this.generatedPassword = response.data.generatedPassword;
         this.alertSnackbar = true;
         // Generate and download the PDF
-        this.generatePDF(this.generatedUsername, this.generatedPassword, this.parent.parentNom, this.parent.parentPrenom);
+        this.generatePDF(this.parent.username, this.generatedPassword, this.parent.parentNom, this.parent.parentPrenom);
         // Reset form fields after submission
         this.parent.parentNom = '';
         this.parent.parentPrenom = '';
         this.parent.parentContact = '';
+        this.parent.username = '';
       })
       .catch(error => {
         console.error('Error adding parent:', error);

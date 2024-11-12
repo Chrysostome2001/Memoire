@@ -16,7 +16,7 @@
                 <v-text-field
                   v-model="username"
                   :rules="nameRules"
-                  label="Nom d'utilisateur"
+                  label="email"
                   hide-details
                   required
                   class="mb-4"
