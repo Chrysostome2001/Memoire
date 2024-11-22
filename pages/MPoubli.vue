@@ -17,6 +17,17 @@
                     class="mb-4"
                     outlined
                   ></v-text-field>
+
+                   <!-- Champ pour l'email 
+                  <v-text-field
+                    v-model="email"
+                    :rules="emailRules"
+                    label="Votre email"
+                    hide-details
+                    required
+                    class="mb-4"
+                    outlined
+                  ></v-text-field> -->
   
                   <!-- Champ pour le rôle -->
                   <v-select
@@ -46,6 +57,16 @@
                   <v-alert v-if="newPassword" type="info" class="mt-4">
                     Votre nouveau mot de passe est : <strong>{{ newPassword }}</strong>
                   </v-alert>
+                  <!-- Lien vers la page de connexion -->
+                  <nuxt-link
+                    v-if="newPassword"
+                    :to="getLoginPage()"
+                    class="mt-4 d-block text-center"
+                    style="text-decoration: none; color: #1976D2; font-weight: bold;"
+                  >
+                    Cliquez ici pour vous connecter en tant que {{ role }}
+                  </nuxt-link>
+
                 </v-form>
               </v-card-text>
             </v-card>
@@ -64,12 +85,17 @@ export default {
     valid: false,
     username: '',
     role: '',
+    email: '',
     error: null,
     successMessage: null,
     newPassword: null, // Nouveau champ pour stocker le mot de passe récupéré
     roles: ['eleve', 'enseignant', 'admin', 'parent', 'directeur'],
     usernameRules: [
       value => !!value || "L'identifiant est requis.",
+    ],
+    emailRules: [
+      value => !!value || "L'email est requis.",
+      value => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value) || 'Email invalide',
     ],
   }),
   methods: {
@@ -86,6 +112,7 @@ export default {
       try {
         const response = await axios.post('http://localhost:8080/api/forgot-password', {
           username: this.username,
+          email: this.email,
           role: this.role,
         });
         
@@ -95,6 +122,22 @@ export default {
       } catch (error) {
         this.error = 'Une erreur est survenue lors de la récupération du mot de passe.';
         console.error(error);
+      }
+    },
+    getLoginPage() {
+      switch (this.role) {
+        case 'eleve':
+          return '/EspaceEleve';
+        case 'enseignant':
+          return '/EspaceEnseignant';
+        case 'admin':
+          return '/EspaceAdministration';
+        case 'parent':
+          return '/EspaceParent';
+        case 'directeur':
+          return '/EspaceAdministration';
+        default:
+          return '/login'; // Par défaut
       }
     },
   },

@@ -1947,6 +1947,8 @@ app.put('/api/updatePassword/:id', async (req, res) => {
       user = await prisma.enseignant.findUnique({ where: { id: parseInt(id) } });
     } else if (role === "admin") {
       user = await prisma.admin.findUnique({ where: { id: parseInt(id) } });
+    } else if (role === "directeur") {
+      user = await prisma.directeur.findUnique({ where: { id: parseInt(id) } });
     } else {
       return res.status(400).json({ error: 'Rôle invalide' });
     }
@@ -1985,6 +1987,12 @@ app.put('/api/updatePassword/:id', async (req, res) => {
       res.status(200).json(updatedPassword);
     } else if (role === "admin") {
       const updatedPassword = await prisma.admin.update({
+        where: { id: parseInt(id) },
+        data: { password: hashedPassword },
+      });
+      res.status(200).json(updatedPassword);
+    } else if (role === "directeur") {
+      const updatedPassword = await prisma.directeur.update({
         where: { id: parseInt(id) },
         data: { password: hashedPassword },
       });
